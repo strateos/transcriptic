@@ -14,7 +14,8 @@ $ transcriptic analyze < some_autoprotocol.json
 ✓ Protocol analyzed
   2 instructions
   1 container
-$ transcriptic submit --project sequencing --title "Sequencing run"
+$ transcriptic submit --project sequencing --title "Sequencing run" \
+    < some_autoprotocol.json
 Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 ```
 
