@@ -54,11 +54,14 @@ class Config:
 
 @click.group()
 @click.option('--config', envvar='TRANSCRIPTIC_CONFIG', default='~/.transcriptic')
+@click.option('--organization', '-o', default=None)
 @click.pass_context
-def cli(ctx, config):
+def cli(ctx, config, organization):
     if ctx.invoked_subcommand != 'login':
         try:
             ctx.obj = Config.from_file(config)
+            if organization is not None:
+                ctx.organization = organization
         except IOError:
             click.echo("Error reading config file, running `transcriptic login` ...")
             ctx.invoke(login)
