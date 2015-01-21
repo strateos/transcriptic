@@ -98,8 +98,7 @@ def submit(ctx, file, project, title):
 def analyze(ctx, file):
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
-    project = ctx.obj.get('/').json()['projects'][0]['url']
-    response = ctx.obj.post('%s/runs/analyze' % project,
+    response = ctx.obj.post('analyze_run',
             data=json.dumps({
                 "protocol": protocol,
                 }))
