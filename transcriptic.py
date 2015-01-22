@@ -125,6 +125,22 @@ def analyze(ctx, file):
     else:
         click.echo("Unknown error: %s" % response.text)
 
+
+@cli.command()
+@click.argument('protocol_name')
+def preview(protocol_name):
+    with click.open_file('manifest.json', 'r') as f:
+        manifest = json.loads(f.read())
+    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+    command = p['command_string']
+    from subprocess import call
+    import tempfile
+    with tempfile.NamedTemporaryFile() as fp:
+        fp.write(json.dumps(p['preview']))
+        fp.flush()
+        call(["bash", "-c", command + " " + fp.name])
+
+
 @cli.command()
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
