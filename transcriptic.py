@@ -5,6 +5,7 @@ from os.path import expanduser
 import click
 import requests
 
+
 class Config:
     def __init__(self, api_root, email, token, organization):
         self.api_root = api_root
@@ -17,7 +18,7 @@ class Config:
         with click.open_file(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             return Config(**cfg)
-        
+
     def save(self, path):
         with click.open_file(expanduser(path), 'w') as f:
             f.write(json.dumps({
@@ -32,28 +33,31 @@ class Config:
 
     def post(self, path, **kwargs):
         default_headers = {
-                'X-User-Email': self.email,
-                'X-User-Token': self.token,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                }
-        kwargs['headers'] = dict(default_headers.items() +
-                kwargs.get('headers', {}).items())
+            'X-User-Email': self.email,
+            'X-User-Token': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            }
+        kwargs['headers'] = \
+            dict(default_headers.items() + kwargs.get('headers', {}).items())
         return requests.post(self.url(path), **kwargs)
 
     def get(self, path, **kwargs):
         default_headers = {
-                'X-User-Email': self.email,
-                'X-User-Token': self.token,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                }
-        kwargs['headers'] = dict(default_headers.items() +
-                kwargs.get('headers', {}).items())
+            'X-User-Email': self.email,
+            'X-User-Token': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            }
+        kwargs['headers'] = \
+            dict(default_headers.items() + kwargs.get('headers', {}).items())
         return requests.get(self.url(path), **kwargs)
 
+
 @click.group()
-@click.option('--config', envvar='TRANSCRIPTIC_CONFIG', default='~/.transcriptic')
+@click.option('--config',
+              envvar='TRANSCRIPTIC_CONFIG',
+              default='~/.transcriptic')
 @click.option('--organization', '-o', default=None)
 @click.pass_context
 def cli(ctx, config, organization):
@@ -63,34 +67,42 @@ def cli(ctx, config, organization):
             if organization is not None:
                 ctx.organization = organization
         except IOError:
-            click.echo("Error reading config file, running `transcriptic login` ...")
+            click.echo("Error reading config file, running "
+                       "`transcriptic login` ...")
             ctx.invoke(login)
+
 
 @cli.command()
 @click.argument('file', default='-')
-@click.option('--project', '-p', metavar='PROJECT_ID',
-        help='Project to submit the run to',
-        required=True)
+@click.option('--project', '-p',
+              metavar='PROJECT_ID',
+              help='Project to submit the run to',
+              required=True)
 @click.option('--title', '-t', help='Title the run')
 @click.pass_context
 def submit(ctx, file, project, title):
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
-    response = ctx.obj.post('%s/runs' % project,
-            data=json.dumps({
-                "title": title,
-                "protocol": protocol,
-                }))
+    response = ctx.obj.post(
+        '%s/runs' % project,
+        data=json.dumps({
+            "title": title,
+            "protocol": protocol,
+            }))
     if response.status_code == 201:
-        click.echo("Run created: %s" %
-                ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
+        click.echo(
+            "Run created: %s" %
+            ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
         return response.json()['id']
     elif response.status_code == 404:
-        click.echo("Couldn't create run (404). Are you sure the project %s exists, and that you have access to it?" % ctx.obj.url(project))
+        click.echo("Couldn't create run (404). Are you sure the project %s "
+                   "exists, and that you have access to it?" %
+                   ctx.obj.url(project))
     elif response.status_code == 422:
         click.echo("Error creating run: %s" % response.text)
     else:
         click.echo("Unknown error: %s" % response.text)
+
 
 @cli.command()
 @click.argument('file', default='-')
@@ -98,19 +110,16 @@ def submit(ctx, file, project, title):
 def analyze(ctx, file):
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
-    response = ctx.obj.post('analyze_run',
-            data=json.dumps({
-                "protocol": protocol,
-                }))
+    response = \
+        ctx.obj.post('analyze_run', data=json.dumps({"protocol": protocol}))
     if response.status_code == 200:
         click.echo(u"\u2713 Protocol analyzed")
+
         def count(thing, things, num):
             click.echo("  %s %s" % (num, thing if num == 1 else things))
         result = response.json()
         count("instruction", "instructions", len(result['instructions']))
         count("container", "containers", len(result['refs']))
-    elif response.status_code == 404:
-        click.echo("Couldn't create run (404). Are you sure the project %s exists, and that you have access to it?" % ctx.obj.url(project))
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
@@ -122,37 +131,44 @@ def analyze(ctx, file):
 def login(ctx, api_root):
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = requests.post("%s/users/sign_in" % api_root,
-            data=json.dumps({
-                'user': {
-                    'email': email,
-                    'password': password,
-                    },
-                }),
-            headers={
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                })
+    r = requests.post(
+        "%s/users/sign_in" % api_root,
+        data=json.dumps({
+            'user': {
+                'email': email,
+                'password': password,
+                },
+            }),
+        headers={
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            })
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.text)
         sys.exit(1)
     user = r.json()
-    token = user.get('authentication_token') or user['test_mode_authentication_token']
+    token = (
+        user.get('authentication_token') or
+        user['test_mode_authentication_token']
+    )
 
     if len(user['organizations']) < 1:
-        click.echo("You don't appear to belong to any organizations. Visit %s and create an organization." % api_root)
+        click.echo("You don't appear to belong to any organizations. Visit %s "
+                   "and create an organization." % api_root)
         sys.exit(1)
     if len(user['organizations']) == 1:
         organization = user['organizations'][0]['subdomain']
     else:
-        click.echo("You belong to %s organizations:" % len(user['organizations']))
+        click.echo("You belong to %s organizations:" %
+                   len(user['organizations']))
         for o in user['organizations']:
             click.echo("  %s (%s)" % (o['name'], o['subdomain']))
-        organization = click.prompt('Which would you like to login as',
-                default=user['organizations'][0]['subdomain'],
-                prompt_suffix='? ')
+        organization = click.prompt(
+            'Which would you like to login as',
+            default=user['organizations'][0]['subdomain'],
+            prompt_suffix='? ')
 
-    org_json = requests.get('%s/%s' % (api_root, organization), headers={
+    r = requests.get('%s/%s' % (api_root, organization), headers={
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',
