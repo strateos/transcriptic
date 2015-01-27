@@ -6,7 +6,7 @@ Transcriptic API.
 # Installing
 
 ```
-$ git clone git@github.com:transcriptic/runner
+$ git clone https://github.com/transcriptic/runner.git
 $ cd runner
 $ pip install .
 ```
