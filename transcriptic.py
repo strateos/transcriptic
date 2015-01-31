@@ -61,7 +61,7 @@ class Config:
 @click.option('--organization', '-o', default=None)
 @click.pass_context
 def cli(ctx, config, organization):
-    if ctx.invoked_subcommand != 'login':
+    if ctx.invoked_subcommand not in ['login', 'preview', 'run']:
         try:
             ctx.obj = Config.from_file(config)
             if organization is not None:
