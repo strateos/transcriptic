@@ -142,6 +142,18 @@ def preview(protocol_name):
 
 
 @cli.command()
+@click.argument('protocol_name')
+@click.argument('args', nargs=-1)
+def run(protocol_name, args):
+    with click.open_file('manifest.json', 'r') as f:
+        manifest = json.loads(f.read())
+    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+    command = p['command_string']
+    from subprocess import call
+    call(["bash", "-c", command + " " + ' '.join(args)])
+
+
+@cli.command()
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
 def login(ctx, api_root):
