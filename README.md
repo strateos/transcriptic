@@ -73,8 +73,8 @@ A manifest.json file contains metadata about protocols required when uploading a
             }
           },
           "parameters": {
-            "source_sample": "sample_plate/A1"
-            "dest_sample": "sample_plate/A2"
+            "source_sample": "sample_plate/A1",
+            "dest_sample": "sample_plate/A2",
             "transfer_vol": "5:microliter"
           }
       },
