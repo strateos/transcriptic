@@ -66,17 +66,17 @@ A manifest.json file contains metadata about protocols required when uploading a
       "name": "SampleProtocol",
       "command_string": "python -m my_protocols.sample_protocol",
       "preview": {
-          "refs": {
-            "sample_plate": {
-              "type": "96-pcr",
-              "discard": true
-            }
-          },
-          "parameters": {
-            "source_sample": "sample_plate/A1",
-            "dest_sample": "sample_plate/A2",
-            "transfer_vol": "5:microliter"
+        "refs": {
+          "sample_plate": {
+            "type": "96-pcr",
+            "discard": true
           }
+        },
+        "parameters": {
+          "source_sample": "sample_plate/A1",
+          "dest_sample": "sample_plate/A2",
+          "transfer_vol": "5:microliter"
+        }
       },
       "inputs": {
         "source_sample": "aliquot",
