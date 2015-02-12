@@ -79,15 +79,19 @@ def cli(ctx, config, organization):
               help='Project to submit the run to',
               required=True)
 @click.option('--title', '-t', help='Title the run')
+@click.option('--test', help="submit this run in test mode.", is_flag=True)
 @click.pass_context
-def submit(ctx, file, project, title):
+def submit(ctx, file, project, title, test):
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
+    if test:
+        test = True
     response = ctx.obj.post(
         '%s/runs' % project,
         data=json.dumps({
             "title": title,
             "protocol": protocol,
+            "test_mode": test
             }))
     if response.status_code == 201:
         click.echo(
