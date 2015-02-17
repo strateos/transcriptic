@@ -96,7 +96,7 @@ def sample_protocol(protocol, params):
                     params["dest_sample"],
                     params["transfer_vol"])
   
-if __name__ == __main__:
+if __name__ == "__main__":
   from autoprotocol.harness import run
   run(sample_protocol, protocol_name="SampleProtocol")
 ```
