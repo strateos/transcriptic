@@ -81,7 +81,7 @@ A manifest.json file contains metadata about protocols required when uploading a
       "inputs": {
         "source_sample": "aliquot",
         "dest_sample": "aliquot",
-        "transfer_vol": "aliquot"
+        "transfer_vol": "volume"
       },
       "dependencies": []
     }
