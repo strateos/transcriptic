@@ -25,10 +25,10 @@ Password:
 Logged in as sanger@transcriptic.com (cambridge)
 ```
 
-##### Analyze a protocol 
+##### Analyze a protocol
 Submit a protocol to Transcriptic to check its validity.
 ```
-$ python my_protocol.py | transcriptic analyze 
+$ python my_protocol.py | transcriptic analyze
 ✓ Protocol analyzed
   2 instructions
   1 container
@@ -65,6 +65,7 @@ A manifest.json file contains metadata about protocols required when uploading a
     {
       "name": "SampleProtocol",
       "command_string": "python -m my_protocols.sample_protocol",
+      "description": "this is a sample protocol",
       "preview": {
         "refs": {
           "sample_plate": {
@@ -95,16 +96,16 @@ def sample_protocol(protocol, params):
   protocol.transfer(params["source_sample"],
                     params["dest_sample"],
                     params["transfer_vol"])
-  
+
 if __name__ == "__main__":
   from autoprotocol.harness import run
   run(sample_protocol, protocol_name="SampleProtocol")
 ```
-To preview the protocol's output on the command line: 
+To preview the protocol's output on the command line:
 ```
 $ transcriptic preview SampleProtocol
 ```
-To submit the resulting protocol to transcriptic or analyze it, pipe that result to submit or analyze as above. 
+To submit the resulting protocol to transcriptic or analyze it, pipe that result to submit or analyze as above.
 ```
 $ transcriptic preview SampleProtocol | transcriptic analyze
 ```

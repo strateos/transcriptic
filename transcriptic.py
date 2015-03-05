@@ -58,7 +58,7 @@ class Config:
 @click.option('--config',
               envvar='TRANSCRIPTIC_CONFIG',
               default='~/.transcriptic')
-@click.option('--organization', '-o', default=None)
+@click.option('--organization', '-o', default=None, help='The organization to associate your login with')
 @click.pass_context
 def cli(ctx, config, organization):
     if ctx.invoked_subcommand not in ['login', 'preview', 'run']:
@@ -76,12 +76,12 @@ def cli(ctx, config, organization):
 @click.argument('file', default='-')
 @click.option('--project', '-p',
               metavar='PROJECT_ID',
-              help='Project to submit the run to',
-              required=True)
-@click.option('--title', '-t', help='Title the run')
-@click.option('--test', help="submit this run in test mode.", is_flag=True)
+              required=True, help='Project to submit the run to')
+@click.option('--title', '-t', help='Optional title of your run')
+@click.option('--test', help='submit this run in test mode.', is_flag=True)
 @click.pass_context
 def submit(ctx, file, project, title, test):
+    '''Submit your run to the project specified'''
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
     if test:
@@ -112,6 +112,7 @@ def submit(ctx, file, project, title, test):
 @click.argument('file', default='-')
 @click.pass_context
 def analyze(ctx, file):
+    '''Analyze your run'''
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
     response = \
@@ -133,6 +134,7 @@ def analyze(ctx, file):
 @cli.command()
 @click.argument('protocol_name')
 def preview(protocol_name):
+    '''Preview the Autoprotocol output of a protocol'''
     with click.open_file('manifest.json', 'r') as f:
         manifest = json.loads(f.read())
     p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
@@ -149,6 +151,7 @@ def preview(protocol_name):
 @click.argument('protocol_name')
 @click.argument('args', nargs=-1)
 def run(protocol_name, args):
+    '''Run a protocol by passing it a config file'''
     with click.open_file('manifest.json', 'r') as f:
         manifest = json.loads(f.read())
     p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
@@ -161,6 +164,7 @@ def run(protocol_name, args):
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
 def login(ctx, api_root):
+    '''Log in to your Transcriptic account'''
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
     r = requests.post(
