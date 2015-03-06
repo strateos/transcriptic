@@ -61,6 +61,7 @@ class Config:
 @click.option('--organization', '-o', default=None, help='The organization to associate your login with')
 @click.pass_context
 def cli(ctx, config, organization):
+    '''A command line tool for submitting protocols to Transcriptic and more'''
     if ctx.invoked_subcommand not in ['login', 'preview', 'run']:
         try:
             ctx.obj = Config.from_file(config)
@@ -134,7 +135,7 @@ def analyze(ctx, file):
 @cli.command()
 @click.argument('protocol_name')
 def preview(protocol_name):
-    '''Preview the Autoprotocol output of a protocol'''
+    '''Preview the Autoprotocol output of a run (without submitting or analyzing)'''
     with click.open_file('manifest.json', 'r') as f:
         manifest = json.loads(f.read())
     p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
@@ -151,7 +152,7 @@ def preview(protocol_name):
 @click.argument('protocol_name')
 @click.argument('args', nargs=-1)
 def run(protocol_name, args):
-    '''Run a protocol by passing it a config file'''
+    '''Run a protocol by passing it a config file (without submitting or analyzing)'''
     with click.open_file('manifest.json', 'r') as f:
         manifest = json.loads(f.read())
     p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
