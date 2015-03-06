@@ -13,6 +13,8 @@ $ pip install .
 
 ## Example usage
 
+access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --help`
+
 ##### Login to your Transcriptic account
 Before using the runner, you'll need to log in to Transcriptic to fetch your
 access key information. This will be saved in `~/.transcriptic` for future
@@ -36,9 +38,16 @@ $ python my_protocol.py | transcriptic analyze
 
 ##### Submit a protocol to Transcriptic
 ```
-$ python my_protocol.py | transcriptic submit --project sequencing --title "Sequencing run"
+$ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run"
 Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 ```
+
+##### Run a protocol by passing it a .json file with parameters
+```
+$ transcriptic run my_protocol.py protocol_config.json
+```
+
+**See below for using the preview command to preview the Autoprotocol output of a protocol outlined in a manifest.json file
 
 ## Using the Runner with autoprotocol.harness and a manifest.json file
 
