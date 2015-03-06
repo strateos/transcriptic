@@ -47,7 +47,7 @@ Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 $ transcriptic run my_protocol.py protocol_config.json
 ```
 
-**See below for using the preview command to preview the Autoprotocol output of a protocol outlined in a manifest.json file
+**See below for using the `preview` command to preview the Autoprotocol output of a protocol outlined in a manifest.json file**
 
 ## Using the Runner with autoprotocol.harness and a manifest.json file
 
