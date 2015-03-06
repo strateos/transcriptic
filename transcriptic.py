@@ -79,7 +79,7 @@ def cli(ctx, config, organization):
               metavar='PROJECT_ID',
               required=True, help='Project to submit the run to')
 @click.option('--title', '-t', help='Optional title of your run')
-@click.option('--test', help='submit this run in test mode.', is_flag=True)
+@click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
