@@ -13,6 +13,8 @@ $ pip install .
 
 ## Example usage
 
+Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --help`
+
 ##### Login to your Transcriptic account
 Before using the runner, you'll need to log in to Transcriptic to fetch your
 access key information. This will be saved in `~/.transcriptic` for future
@@ -25,10 +27,10 @@ Password:
 Logged in as sanger@transcriptic.com (cambridge)
 ```
 
-##### Analyze a protocol 
+##### Analyze a protocol
 Submit a protocol to Transcriptic to check its validity.
 ```
-$ python my_protocol.py | transcriptic analyze 
+$ python my_protocol.py | transcriptic analyze
 ✓ Protocol analyzed
   2 instructions
   1 container
@@ -36,9 +38,11 @@ $ python my_protocol.py | transcriptic analyze
 
 ##### Submit a protocol to Transcriptic
 ```
-$ python my_protocol.py | transcriptic submit --project sequencing --title "Sequencing run"
+$ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run"
 Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 ```
+
+**See below for using the preview command to preview the Autoprotocol output of a protocol outlined in a manifest.json file**
 
 ## Using the Runner with autoprotocol.harness and a manifest.json file
 
@@ -65,6 +69,7 @@ A manifest.json file contains metadata about protocols required when uploading a
     {
       "name": "SampleProtocol",
       "command_string": "python -m my_protocols.sample_protocol",
+      "description": "this is a sample protocol",
       "preview": {
         "refs": {
           "sample_plate": {
@@ -95,19 +100,27 @@ def sample_protocol(protocol, params):
   protocol.transfer(params["source_sample"],
                     params["dest_sample"],
                     params["transfer_vol"])
-  
+
 if __name__ == "__main__":
   from autoprotocol.harness import run
   run(sample_protocol, protocol_name="SampleProtocol")
 ```
-To preview the protocol's output on the command line: 
+
+To preview the protocol's output on the command line:
 ```
 $ transcriptic preview SampleProtocol
 ```
-To submit the resulting protocol to transcriptic or analyze it, pipe that result to submit or analyze as above. 
+
+To run the protocol and view its output on the command line by passing it an external .json file with parameters and refs:
+```
+$ transcriptic run SampleProtocol protocol_params.json
+```
+
+To submit the resulting protocol to transcriptic or analyze it, pipe that result to submit or analyze as above.
 ```
 $ transcriptic preview SampleProtocol | transcriptic analyze
 ```
+
 When you're ready to upload a package to Transcriptic, make sure to include the version of autoprotocol and any other packages you might have used in your requirements.txt file:
 ```
 autoprotocol==2.0.1
