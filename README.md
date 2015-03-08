@@ -100,7 +100,7 @@ A manifest.json file contains metadata about protocols required when uploading a
 }
 ```
 
-The following is what your sample_protocol.py file would look like.  Note that there is no need to declare a Protocol object within the script or print the protocol to standard out, both of these things are taken care of by autoprotocol.harness.  The `protocol_name` declared in autoprotocol.harness.run() must match the name of that protocol within your manifest.json file:
+The following is what your `sample_protocol.py` file would look like.  Note that there is no need to declare a Protocol object within the script or print the protocol to standard out, both of these things are taken care of by autoprotocol.harness.  The `protocol_name` declared in `autoprotocol.harness.run()` must match the name of that protocol within your manifest.json file:
 ```python
 def sample_protocol(protocol, params):
   protocol.transfer(params["source_sample"],
@@ -122,16 +122,16 @@ To run the protocol and view its output on the command line by passing it an ext
 $ transcriptic run SampleProtocol protocol_params.json
 ```
 
-To submit the resulting protocol to transcriptic or analyze it, pipe that result to submit or analyze as above.
+To submit the resulting protocol to transcriptic or analyze it, pipe that result to `transcriptic submit` or `transcriptic analyze` as above.
 ```
 $ transcriptic preview SampleProtocol | transcriptic analyze
 ```
 
-When you're ready to upload a package to Transcriptic, make sure to include the version of autoprotocol and any other packages you might have used in your requirements.txt file:
+When you're ready to upload a package to Transcriptic, make sure to include the version of autoprotocol and any other packages you might have used in your `requirements.txt` file:
 ```
-autoprotocol==2.0.1
+autoprotocol==2.0.2
 ```
 
-A release consists of everything within the protocols_folder folder (but do not zip the folder itself: the manifest.json file must be at the top level of the archive.)
+A release consists of everything within the protocols_folder folder **(but do not zip the folder itself: the manifest.json file must be at the top level of the archive.)**
 
 For more information on uploading and packaging releases, see the [Transcriptic Developer Hub](http://developers.transcriptic.com/v1.0/docs/package-quickstart#packaging-and-uploading)
