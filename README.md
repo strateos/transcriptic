@@ -48,6 +48,11 @@ $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Se
 Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 ```
 
+##### Submit a protocol to Transcriptic in test mode --project "sequencing" --title "Sequencing run" --test
+```
+$ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run" --test
+```
+
 **See below for using the preview command to preview the Autoprotocol output of a protocol outlined in a manifest.json file**
 
 ## Using the Runner with autoprotocol.harness and a manifest.json file
