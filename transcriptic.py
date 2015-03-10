@@ -57,7 +57,8 @@ class Config:
 @click.group()
 @click.option('--config',
               envvar='TRANSCRIPTIC_CONFIG',
-              default='~/.transcriptic')
+              default='~/.transcriptic',
+              help='Specify a configuration file')
 @click.option('--organization', '-o', default=None, help='The organization to associate your login with')
 @click.pass_context
 def cli(ctx, config, organization):
@@ -71,7 +72,6 @@ def cli(ctx, config, organization):
             click.echo("Error reading config file, running "
                        "`transcriptic login` ...")
             ctx.invoke(login)
-
 
 @cli.command()
 @click.argument('file', default='-')
@@ -108,6 +108,19 @@ def submit(ctx, file, project, title, test):
     else:
         click.echo("Unknown error: %s" % response.text)
 
+@cli.command()
+@click.pass_context
+def projects(ctx):
+    '''List the projects in your organization'''
+    response = ctx.obj.get('')
+    if response.status_code == 200:
+        click.echo('{:^35}'.format("PROJECT NAME") + "|" +
+                   '{:^35}'.format("PROJECT ID"))
+        click.echo('{:-^70}'.format(''))
+        for proj in response.json()['projects']:
+            click.echo('{:<35}'.format(proj['name']) + "|" +
+                       '{:^35}'.format(proj['url']))
+            click.echo('{:-^70}'.format(''))
 
 @cli.command()
 @click.argument('file', default='-')
