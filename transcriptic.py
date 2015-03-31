@@ -1,6 +1,7 @@
 import sys
 import json
 from os.path import expanduser
+import locale
 
 import click
 import requests
@@ -139,6 +140,9 @@ def analyze(ctx, file):
         result = response.json()
         count("instruction", "instructions", len(result['instructions']))
         count("container", "containers", len(result['refs']))
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        click.echo("  %s" %
+                   locale.currency(float(result['total_cost']), grouping=True))
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
