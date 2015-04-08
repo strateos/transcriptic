@@ -143,6 +143,13 @@ def analyze(ctx, file):
         locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
         click.echo("  %s" %
                    locale.currency(float(result['total_cost']), grouping=True))
+        for w in result['warnings']:
+            message = w['message']
+            if 'instruction' in w['context']:
+                context = "instruction %s" % w['context']['instruction']
+            else:
+                context = json.dumps(w['context'])
+            click.echo("WARNING (%s): %s" % (context, message))
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
