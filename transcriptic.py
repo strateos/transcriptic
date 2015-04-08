@@ -125,13 +125,17 @@ def projects(ctx):
 
 @cli.command()
 @click.argument('file', default='-')
+@click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
-def analyze(ctx, file):
+def analyze(ctx, file, test):
     '''Analyze your run'''
     with click.open_file(file, 'r') as f:
         protocol = json.loads(f.read())
     response = \
-        ctx.obj.post('analyze_run', data=json.dumps({"protocol": protocol}))
+        ctx.obj.post(
+            'analyze_run',
+            data=json.dumps({"protocol": protocol, "test_mode": test})
+        )
     if response.status_code == 200:
         click.echo(u"\u2713 Protocol analyzed")
 
