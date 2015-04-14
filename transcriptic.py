@@ -56,19 +56,22 @@ class Config:
 
 
 @click.group()
+@click.option('--apiroot', default=None)
 @click.option('--config',
               envvar='TRANSCRIPTIC_CONFIG',
               default='~/.transcriptic',
               help='Specify a configuration file')
 @click.option('--organization', '-o', default=None, help='The organization to associate your login with')
 @click.pass_context
-def cli(ctx, config, organization):
+def cli(ctx, apiroot, config, organization):
     '''A command line tool for submitting protocols to Transcriptic and more'''
     if ctx.invoked_subcommand not in ['login', 'preview', 'run']:
         try:
             ctx.obj = Config.from_file(config)
             if organization is not None:
-                ctx.organization = organization
+                ctx.obj.organization = organization
+            if apiroot is not None:
+                ctx.obj.api_root = apiroot
         except IOError:
             click.echo("Error reading config file, running "
                        "`transcriptic login` ...")
