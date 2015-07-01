@@ -127,15 +127,14 @@ def projects(ctx):
             click.echo('{:-^70}'.format(''))
 
 @cli.command()
-@click.pass_context
-def init(ctx):
-    '''Initialize a new directory with a blank manifest.json file'''
+def init():
+    '''Initialize a directory with a blank manifest.json file'''
     try:
         f = open('manifest.json', 'r')
         ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
         if ow.lower() in ["y", "yes"]:
             with open('manifest.json', 'w') as f:
-                click.echo('overwriting manifest.json...')
+                click.echo('Overwriting manifest.json...')
                 f.write(json.dumps({
                                   "version": "1.0.0",
                                   "format": "python",
