@@ -1,6 +1,6 @@
 import sys
 import json
-from os.path import expanduser
+from os.path import expanduser, isfile
 import locale
 
 import click
@@ -125,6 +125,37 @@ def projects(ctx):
             click.echo('{:<35}'.format(proj['name']) + "|" +
                        '{:^35}'.format(proj['url']))
             click.echo('{:-^70}'.format(''))
+
+@cli.command()
+def init():
+    '''Initialize a directory with a blank manifest.json file'''
+    manifest_data = {
+        "version": "1.0.0",
+        "format": "python",
+        "license": "MIT",
+        "protocols": [
+            {
+                "name": "SampleProtocol",
+                "description": "This is a protocol.",
+                "command_string": "python sample_protocol.py",
+                "preview": {
+                    "refs":{},
+                    "parameters": {}
+                },
+                "inputs": {},
+                "dependencies": []
+            }
+        ]
+    }
+    if isfile('manifest.json'):
+        ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
+        abort = ow.lower() in ["y", "yes"]
+        if not abort:
+            click.echo('Aborting initialization...')
+            return
+    with open('manifest.json', 'w+') as f:
+        click.echo('Creating empty manifest.json...')
+        f.write(json.dumps(manifest_data, indent=2))
 
 @cli.command()
 @click.argument('file', default='-')
