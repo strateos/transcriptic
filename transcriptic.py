@@ -149,8 +149,8 @@ def init():
     }
     if isfile('manifest.json'):
         ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
-        ow = True if (ow.lower() in ["y", "yes"]) else False
-        if not ow:
+        abort = ow.lower() in ["y", "yes"]
+        if not abort:
             click.echo('Aborting initialization...')
             return
     with open('manifest.json', 'w+') as f:
