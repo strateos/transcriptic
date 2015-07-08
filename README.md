@@ -30,7 +30,7 @@ Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --hel
 ##### Login to your Transcriptic account
 **\*Before using the runner, you'll need to log in to Transcriptic to fetch your
 access key information. This will be saved in `~/.transcriptic` for future
-commands.\***
+commands.**\*
 
 ```
 $ transcriptic login
@@ -70,7 +70,7 @@ $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Se
 
 The [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) library helps you generate Autoprotocol with easy to use functions. [autoprotocol.harness](https://github.com/autoprotocol/autoprotocol-python/blob/master/autoprotocol/harness.py) parses a set of typed input parameters contained in a `manifest.json` file and passes them back to the specified script when you run `transcriptic preview` (see above).  Input types also define protocol browser UI elements on transcriptic's website. 
 
-#### Example
+##### Example
 The example below assumes the following file structure:
 ```
 protocols/
