@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='transcriptic',
-    version='1.0.2',
+    version='1.2.0',
     py_modules=['transcriptic'],
     install_requires=[
         'Click',
