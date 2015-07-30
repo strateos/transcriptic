@@ -200,7 +200,11 @@ def preview(protocol_name):
     '''Preview the Autoprotocol output of a run (without submitting or analyzing)'''
     with click.open_file('manifest.json', 'r') as f:
         manifest = json.loads(f.read())
-    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+    try:
+        p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+    except StopIteration:
+        click.echo("The protocol name '%s' does not match any protocols that can be previewed from within this directory.  Check either your spelling or your manifest.json file and try again." % protocol_name)
+        return
     command = p['command_string']
     from subprocess import call
     import tempfile
