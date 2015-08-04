@@ -6,6 +6,13 @@ import locale
 import click
 import requests
 
+# Workaround to support the correct input for both Python 2 and 3. Always use
+# input() which will point to the correct builtin.
+try:
+    input = raw_input
+except NameError:
+    pass
+
 
 class Config:
     def __init__(self, api_root, email, token, organization):
@@ -39,9 +46,8 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        kwargs['headers'] = \
-            dict(default_headers.items() + kwargs.get('headers', {}).items())
-        return requests.post(self.url(path), **kwargs)
+        default_headers.update(kwargs.get('headers', {}))
+        return requests.post(self.url(path), headers=default_headers, **kwargs)
 
     def get(self, path, **kwargs):
         default_headers = {
@@ -50,9 +56,8 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        kwargs['headers'] = \
-            dict(default_headers.items() + kwargs.get('headers', {}).items())
-        return requests.get(self.url(path), **kwargs)
+        default_headers.update(kwargs.get('headers', {}))
+        return requests.get(self.url(path), headers=default_headers, **kwargs)
 
 
 @click.group()
@@ -148,7 +153,7 @@ def init():
         ]
     }
     if isfile('manifest.json'):
-        ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
+        ow = input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
         abort = ow.lower() in ["y", "yes"]
         if not abort:
             click.echo('Aborting initialization...')
