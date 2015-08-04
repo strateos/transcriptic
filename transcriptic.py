@@ -6,6 +6,13 @@ import locale
 import click
 import requests
 
+# Workaround to support the correct input for both Python 2 and 3. Always use
+# input() which will point to the correct builtin.
+try:
+    input = raw_input
+except NameError:
+    pass
+
 
 class Config:
     def __init__(self, api_root, email, token, organization):
@@ -146,7 +153,7 @@ def init():
         ]
     }
     if isfile('manifest.json'):
-        ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
+        ow = input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
         abort = ow.lower() in ["y", "yes"]
         if not abort:
             click.echo('Aborting initialization...')
