@@ -39,9 +39,8 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        kwargs['headers'] = \
-            dict(default_headers.items() + kwargs.get('headers', {}).items())
-        return requests.post(self.url(path), **kwargs)
+        default_headers.update(kwargs.get('headers', {}))
+        return requests.post(self.url(path), headers=default_headers, **kwargs)
 
     def get(self, path, **kwargs):
         default_headers = {
@@ -50,9 +49,8 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        kwargs['headers'] = \
-            dict(default_headers.items() + kwargs.get('headers', {}).items())
-        return requests.get(self.url(path), **kwargs)
+        default_headers.update(kwargs.get('headers', {}))
+        return requests.get(self.url(path), headers=default_headers, **kwargs)
 
 
 @click.group()
