@@ -204,7 +204,11 @@ def analyze(ctx, file, test):
 def preview(protocol_name):
     '''Preview the Autoprotocol output of a run (without submitting or analyzing)'''
     with click.open_file('manifest.json', 'r') as f:
-        manifest = json.loads(f.read())
+        try:
+            manifest = json.loads(f.read())
+        except ValueError:
+            click.echo("Your manifest.json file is improperly formatted.  Please double check your brackets and commas!")
+            return
     try:
         p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
     except StopIteration:
