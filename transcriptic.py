@@ -129,6 +129,20 @@ def submit(ctx, file, project, title, test):
 
 @cli.command()
 @click.pass_context
+def packages(ctx):
+    '''List packages in your organizaiton'''
+    response = ctx.obj.get('/packages/')
+    if response.status_code == 200:
+        click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                   '{:^40}'.format("PACKAGE ID"))
+        click.echo('{:-^80}'.format(''))
+        for pack in response.json():
+            click.echo('{:<40}'.format(pack['name']) + "|" +
+                       '{:^40}'.format(pack['id']))
+            click.echo('{:-^80}'.format(''))
+
+@cli.command()
+@click.pass_context
 @click.option("-i")
 def projects(ctx, i):
     '''List the projects in your organization'''
