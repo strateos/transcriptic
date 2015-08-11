@@ -94,7 +94,6 @@ def cli(ctx, apiroot, config, organization):
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
-
     project = get_project_id(ctx, project)
     with click.open_file(file, 'r') as f:
         try:
