@@ -2,6 +2,7 @@ import sys
 import json
 from os.path import expanduser, isfile
 import locale
+import ap2en
 import click
 import requests
 from collections import OrderedDict
@@ -138,7 +139,6 @@ def submit(ctx, file, project, title, test):
 @cli.command()
 @click.argument('package', required=False)
 @click.option('--name', '-n', help="Optional name for your zip file")
-# @click.option('--upload', '-u', help="Upload release to specified package")
 @click.pass_context
 def release(ctx, name=None, package=None):
     '''Compress the contents of the current directory to upload as a release'''
@@ -409,6 +409,13 @@ def analyze(ctx, file, test):
     else:
         click.echo("Unknown error: %s" % response.text)
 
+@cli.command()
+@click.argument('file', default='-')
+@click.pass_context
+def summarize(ctx, file):
+    with click.open_file(file, 'r') as f:
+        protocol = json.loads(f.read())
+    click.echo(ap2en.parse(protocol))
 
 def price(response):
     def count(thing, things, num):

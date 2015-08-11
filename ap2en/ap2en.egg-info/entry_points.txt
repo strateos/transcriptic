@@ -1,0 +1,4 @@
+
+        [console_scripts]
+        ap2en = ap2en:parse
+    
