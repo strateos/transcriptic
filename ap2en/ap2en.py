@@ -7,15 +7,15 @@ PLURAL_UNITS = ["microliter", "nanoliter", "milliliter", "second", "minute",
 
 TEMP_DICT = {"cold_20": "-20 degrees celsius", "cold_80": "-80 degrees celsius",
              "warm_37": "37 degrees celsius", "cold_4": "4 degrees celsius",
-             "warm_30": "30 degrees celsius"}
+             "warm_30": "30 degrees celsius", "ambient": "room temperature"}
 
 
 def parse(protocol_obj):
     instructions = protocol_obj['instructions']
     parsed_output = []
     for i in instructions:
-        output = eval(i['op'])(i)
         try:
+            output = eval(i['op'])(i)
             parsed_output.extend(output) if isinstance(output, list) else parsed_output.append(output)
         except NameError:
             parsed_output.append("[Unknown instruction]")
@@ -24,14 +24,13 @@ def parse(protocol_obj):
         print "%d. %s" % (i+1, p)
 
 def absorbance(opts):
-    well_list = "wells " + (', ').join(str(x) for x in opts['wells'])
-    if len(opts['wells']) > 10:
-        well_list = str(len(well_list)) + " wells"
     return "Measure absorbance at %s for %s of plate %s" % (unit(opts['wavelength']),
-                                                    well_list, opts['object'])
+                                                    well_list(opts['wells']), opts['object'])
 
 def autopick(opts):
-    pass
+    return "Pick %d colonies from well %s of plate %s" % (len(opts['to']),
+                                                          well(opts['from']),
+                                                          platename(opts['from']))
 
 def consolidate(opts):
     pass
@@ -40,17 +39,17 @@ def cover(opts):
     return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
 
 def dispense(opts):
-    pass
+    return "Dispense %s to %d column(s) of %s" % (opts['reagent'],
+                                                len(opts['columns']),
+                                                opts['object'])
 
 def flash_freeze(opts):
     return "Flash freeze %s for %s" % (opts['object'], unit(opts['duration']))
 
 def fluorescence(opts):
-    well_list = "wells " + (', ').join(str(x) for x in opts['wells'])
-    if len(opts['wells']) > 10:
-        well_list = str(len(well_list)) + " wells"
     return ("Read fluorescence of %s of plate %s at excitation wavelength %s"
-            " and emission wavelength %s" % (well_list, opts['object'],
+            " and emission wavelength %s" % (well_list(opts['wells']),
+                                             opts['object'],
                                              unit(opts['excitation']),
                                              unit(opts['emission'])))
 
@@ -68,10 +67,7 @@ def image_plate(opts):
     return "Take an image of %s" % opts['object']
 
 def luminescence(opts):
-    well_list = "wells " + (', ').join(str(x) for x in opts['wells'])
-    if len(opts['wells']) > 10:
-        well_list = str(len(well_list)) + " wells"
-    return "Read luminescence of %s of plate %s" % (well_list, opts['object'])
+    return "Read luminescence of %s of plate %s" % (well_list(opts['wells']), opts['object'])
 
 def mix(opts):
     return ("Mix well %s of plate %s %d times with "
@@ -80,15 +76,20 @@ def mix(opts):
                                opts['repetitions'], unit(opts['volume'])))
 
 def oligosynthesize(opts):
-    pass
+    return ["Oligosynthesize sequence '%s' into '%s'" % (o['sequence'], o['destination']) for o in opts['oligos']]
 
 def provision(opts):
     for t in opts['to']:
         return "Provision %s of resource with ID %s to well %s of plate %s" % \
             (unit(t['volume']), opts['resource_id'], well(t['well']), platename(t['well']))
 
-def sangerseq(opts):
-    pass
+def sanger_sequence(opts):
+    seq = "Sanger sequence %s of plate %s" % (well_list(opts['wells']), opts['object'])
+    if opts['type'] == "standard":
+        return seq
+    elif opts['type'] == "rca":
+        return seq + " with %s" % platename(opts['primer'])
+
 
 def seal(opts):
     return "Seal %s (%s)" % (opts['object'], opts['type'])
@@ -110,6 +111,9 @@ def stamp(opts):
                       )
     return stamps
 
+def thermocycle(opts):
+    return "Thermocycle %s" % opts['object']
+
 def pipette(opts):
     pipettes = []
     for g in opts['groups']:
@@ -118,12 +122,11 @@ def pipette(opts):
                 for m in g[pip]:
                     pipettes.append(mix(m))
             elif pip == "transfer":
-                pass
+                return ["Transfer %s to %s" % (p['from'], p['to']) for p in g[pip]]
             elif pip == "distribute":
                 pass
 
     return pipettes
-
 
 
 def uncover(opts):
@@ -137,6 +140,12 @@ def platename(ref):
 
 def well(ref):
     return ref.split('/')[1]
+
+def well_list(wells, max=10):
+    well_list = "wells " + (', ').join(str(x) for x in wells)
+    if len(wells) > max:
+        well_list = str(len(wells)) + " wells"
+    return well_list
 
 def unit(u):
     value = u.split(':')[0]
