@@ -141,6 +141,26 @@ def packages(ctx):
             click.echo('{:-^80}'.format(''))
 
 @cli.command()
+@click.option('--description', '-d', required=True, help="A description for your package.")
+@click.option('--name', '-n', required=True, help="Title of your package (no special characters or spaces allowed).")
+@click.pass_context
+def new_package(ctx, description, name):
+    '''List packages in your organization'''
+    existing = ctx.obj.get('/packages/')
+    for p in existing.json():
+        if name == p['name'].split('.')[-1]:
+            click.echo("You already have an existing package with the name \"%s\"."
+                       "  Please choose a different package name." % name)
+            return
+    new_pack = ctx.obj.post('/packages/',
+        data = json.dumps({"description": description, "name": name}))
+    if new_pack.status_code == 201:
+        click.echo("New package %s created.  "
+                   "The package ID is %s." % (name, new_pack.json()['id']))
+    else:
+        click.echo("There was an error creating this package.")
+
+@cli.command()
 @click.pass_context
 @click.option("-i")
 def projects(ctx, i):
