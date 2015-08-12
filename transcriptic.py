@@ -2,9 +2,14 @@ import sys
 import json
 from os.path import expanduser, isfile
 import locale
-
+from requests_toolbelt import MultipartEncoder
 import click
 import requests
+import boto
+from collections import OrderedDict
+import zipfile
+import os
+import xml.etree.ElementTree as ET
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
@@ -12,7 +17,6 @@ try:
     input = raw_input
 except NameError:
     pass
-
 
 class Config:
     def __init__(self, api_root, email, token, organization):
@@ -127,6 +131,77 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
+@click.argument('package_id')
+@click.option('--file', '-f', help="Upload existing archive in this directory as a package.")
+@click.option('--name', '-n', help="Optional name for your zip file")
+@click.pass_context
+def release(ctx, package_id, file, name):
+    '''Upload the contents of the current directory as a release'''
+    deflated = zipfile.ZIP_DEFLATED
+    def makezip(d, archive):
+        for (path, dirs, files) in os.walk(d):
+            for f in files:
+                if ".zip" not in f:
+                    archive.write(os.path.join(path, f))
+        return archive
+
+    def upload(ctx, package_id, archive):
+        sign = requests.get('https://secure.transcriptic.com/upload/sign',
+                            params={
+                                'name': archive
+                            },
+                            headers={
+                                'X-User-Email': ctx.obj.email,
+                                'X-User-Token': ctx.obj.token,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            })
+
+        info = json.loads(sign.content)
+
+        url    = 'https://transcriptic-uploads.s3.amazonaws.com'
+        files  = {'file': open(os.path.basename(archive), 'rb')}
+        data   = OrderedDict([
+                ('key', info['key']),
+                ('AWSAccessKeyId', 'AKIAJVJ67EJYCQXO7ZSQ'),
+                ('acl', 'private'),
+                ('success_action_status', '201'),
+                ('policy', info['policy']),
+                ('signature', info['signature']),
+            ])
+
+        response = requests.post(url, data=data, files=files)
+        response_tree = ET.fromstring(response.content)
+        loc = dict((i.tag, i.text) for i in response_tree)
+        up = ctx.obj.post('/packages/%s/releases/' % package_id,
+                     data = {"release":{
+                                "binary_attachment_url": loc["Key"]
+                        }})
+        print up
+
+    if not file:
+        with open('manifest.json', 'rU') as manifest:
+            filename = 'release_v%s' %json.load(manifest)['version']
+        if os.path.isfile(filename + ".zip"):
+            new = click.prompt("You already have a release for this version in this folder, make another one? [y/n]",
+                         default = "Y")
+            if new == "Y":
+                num_existing = sum([1 for x in os.listdir('.') if filename in x])
+                filename = filename + "-" + str(num_existing)
+            else:
+                return
+        click.echo("Creating archive with all files in this directory...")
+        zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
+        archive = makezip('.', zf)
+        zf.close()
+        upload(ctx, package_id, filename + ".zip")
+
+    else:
+        upload(ctx, package_id, file)
+
+
+
+@cli.command()
 @click.pass_context
 def packages(ctx):
     '''List packages in your organizaiton'''
@@ -153,7 +228,9 @@ def new_package(ctx, description, name):
                        "  Please choose a different package name." % name)
             return
     new_pack = ctx.obj.post('/packages/',
-        data = json.dumps({"description": description, "name": name}))
+                            data = json.dumps({"description": description,
+                                               "name": name
+                                              }))
     if new_pack.status_code == 201:
         click.echo("New package %s created.  "
                    "The package ID is %s." % (name, new_pack.json()['id']))
