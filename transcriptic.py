@@ -236,14 +236,14 @@ def packages(ctx):
                        '{:^40}'.format(pack['id']))
             click.echo('{:-^80}'.format(''))
 
-@cli.command()
+@cli.command("new-package")
 @click.option('--description', '-d', required=True, help="A description for your package.")
 @click.option('--name', '-n', required=True, help="Title of your package "
                                                   "(no special characters or "
                                                   "spaces allowed).")
 @click.pass_context
 def new_package(ctx, description, name):
-    '''List packages in your organization'''
+    '''Create a new protocol package'''
     existing = ctx.obj.get('/packages/')
     for p in existing.json():
         if name == p['name'].split('.')[-1]:
@@ -287,7 +287,7 @@ def projects(ctx, i):
 
 @cli.command()
 def init():
-    '''Initialize a directory with a blank manifest.json file'''
+    '''Initialize directory with blank manifest.json file'''
     manifest_data = {
         "version": "1.0.0",
         "format": "python",
@@ -321,7 +321,7 @@ def init():
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
 def analyze(ctx, file, test):
-    '''Analyze your run'''
+    '''Analyze autoprotocol'''
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
@@ -361,7 +361,7 @@ def price(response):
 @cli.command()
 @click.argument('protocol_name')
 def preview(protocol_name):
-    '''Preview the Autoprotocol output of a run (without submitting or analyzing)'''
+    '''Preview the Autoprotocol output of a script'''
     with click.open_file('manifest.json', 'r') as f:
         try:
             manifest = json.loads(f.read())
