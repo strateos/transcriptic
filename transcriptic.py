@@ -173,11 +173,15 @@ def release(ctx, package_id, file, name):
         response = requests.post(url, data=data, files=files)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
-        up = ctx.obj.post('/packages/%s/releases/' % package_id,
-                     data = {"release":{
-                                "binary_attachment_url": loc["Key"]
-                        }})
-        print up
+        up = ctx.obj.post('/packages/%s/releases' % package_id,
+                     data = {"release":
+                                {
+                                    "binary_attachment_url": loc["Key"]
+                                }
+                            }
+                        )
+        print up.request.headers
+
 
     if not file:
         with open('manifest.json', 'rU') as manifest:
