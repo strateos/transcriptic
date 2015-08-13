@@ -255,8 +255,9 @@ def new_package(ctx, description, name):
                                                "name": name
                                               }))
     if new_pack.status_code == 201:
-        click.echo("New package %s created.  "
-                   "The package ID is %s." % (name, new_pack.json()['id']))
+        click.echo("New package %s created with id %s. \n"
+                   "View it at %s" % (name, new_pack.json()['id'],
+                                       ctx.obj.url('packages/%s' % new_pack.json()['id'])))
     else:
         click.echo("There was an error creating this package.")
 
@@ -342,6 +343,7 @@ def analyze(ctx, file, test):
     else:
         click.echo("Unknown error: %s" % response.text)
 
+
 def price(response):
     def count(thing, things, num):
         click.echo("  %s %s" % (num, thing if num == 1 else things))
@@ -374,8 +376,8 @@ def preview(protocol_name):
     except StopIteration:
         click.echo("Error: The protocol name '%s' does not match any protocols "
                    "that can be previewed from within this directory.  \nCheck "
-                   "either your spelling or your manifest.json file and try "
-                   "again." % protocol_name)
+                   "either your protocol's spelling or your manifest.json file "
+                   "and try again." % protocol_name)
         return
     try:
         command = p['command_string']
