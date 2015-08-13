@@ -9,6 +9,7 @@ import boto
 from collections import OrderedDict
 import zipfile
 import os
+import time
 import xml.etree.ElementTree as ET
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
@@ -173,14 +174,25 @@ def release(ctx, package_id, file, name):
         response = requests.post(url, data=data, files=files)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
-        up = ctx.obj.post('/packages/%s/releases' % package_id,
-                     data = {"release":
-                                {
-                                    "binary_attachment_url": loc["Key"]
-                                }
-                            }
-                        )
-        print up.request.headers
+        up = ctx.obj.post('/packages/%s/releases/' % package_id,
+                             data =  json.dumps({"release": {
+                                                     "binary_attachment_url": loc["Key"]
+                                                     }
+                                                 }),
+                             headers={"Origin": "https://secure.transcriptic.com/",
+                                      "Content-Type": "application/json"})
+        re = json.loads(up.content)['id']
+        click.echo("Validating package...")
+        time.sleep(20)
+        status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re, int(time.time())))
+        published = json.loads(status.content)['published']
+        errors = status.json()['validation_errors']
+        if not errors:
+            click.echo("Package uploaded successfully! "
+                       "Visit %s to publish." % ctx.obj.url('/packages/%s' % package_id))
+        else:
+            click.echo("Package upload unsuccessful. "
+                       "The following error was returned: %s" % (',').join(e.get('message', '[Unknown]') for e in errors))
 
 
     if not file:
@@ -198,6 +210,7 @@ def release(ctx, package_id, file, name):
         zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
         archive = makezip('.', zf)
         zf.close()
+        click.echo('Uploading to package with id %s' % package_id)
         upload(ctx, package_id, filename + ".zip")
 
     else:
