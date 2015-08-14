@@ -9,6 +9,8 @@ import zipfile
 import os
 import time
 import xml.etree.ElementTree as ET
+import re
+
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
@@ -52,6 +54,7 @@ class Config:
         default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
+
     def get(self, path, **kwargs):
         default_headers = {
             'X-User-Email': self.email,
@@ -61,6 +64,7 @@ class Config:
             }
         default_headers.update(kwargs.pop('headers', {}))
         return requests.get(self.url(path), headers=default_headers, **kwargs)
+
 
 
 @click.group()
@@ -367,10 +371,18 @@ def init():
         ]
     }
     if isfile('manifest.json'):
+<<<<<<< HEAD
         click.confirm("This directory already contains a manifest.json file, "
                       "would you like to overwrite it with an empty one? ",
                       default = False,
                       abort = True)
+=======
+        ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
+        abort = ow.lower() in ["y", "yes"]
+        if not abort:
+            click.echo('Aborting initialization...')
+            return
+>>>>>>> added formatter to transcriptic CLI
     with open('manifest.json', 'w+') as f:
         click.echo('Creating empty manifest.json...')
         f.write(json.dumps(manifest_data, indent=2))
@@ -380,6 +392,7 @@ def init():
 @cli.command()
 @click.argument('file', default='-')
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
+@click.option('--all', help='Analyze all runs in package')
 @click.pass_context
 def analyze(ctx, file, test):
     '''Analyze autoprotocol'''
@@ -581,3 +594,72 @@ def get_package_name(ctx, id):
                    % id)
         return
     return package_name
+
+
+def parse_json(json_file):
+    try:
+        return json.load(open(json_file))
+    except ValueError as e:
+        click.echo('Invalid json: %s' % e)
+        return None
+
+
+def get_protocol_list(json_file):
+    protocol_list = []
+    manifest = parse_json(json_file)
+    for protocol in manifest["protocols"]:
+        protocol_list.append(protocol["name"])
+    return protocol_list
+
+
+def pull(nested_dict):
+    if "type" in nested_dict and "inputs" not in nested_dict:
+        return nested_dict
+    else:
+        inputs = {}
+        if "type" in nested_dict and "inputs" in nested_dict:
+            for param, input in nested_dict["inputs"].items():
+                inputs[str(param)] = pull(input)
+            return inputs
+        else:
+            return nested_dict
+
+
+def regex_manifest(protocol, input):
+    '''Special input types, gets updated as more input types are added'''
+    if "type" in input and input["type"] == "choice":
+        if "options" in input:
+            pattern = '\[(.*?)\]'
+            match = re.search(pattern, str(input["options"]))
+            if not match:
+                click.echo("Must have bracketed options." +
+                                   " Error in: " + protocol["name"])
+        else:
+            click.echo("Must have options for 'choice' input type." +
+                               " Error in: " + protocol["name"])
+
+
+def iter_json(manifest):
+    all_types = {}
+    for protocol in manifest["protocols"]:
+        types = {}
+        for param, input in protocol["inputs"].items():
+            types[param] = pull(input)
+            if isinstance(input, dict):
+                if input["type"] == "group" or input["type"] == "group+":
+                    for i, j in input.items():
+                        if isinstance(j, dict):
+                            for k, l in j.items():
+                                regex_manifest(protocol, l)
+                else:
+                    regex_manifest(protocol, input)
+        all_types[protocol["name"]] = types
+    return all_types
+
+
+@cli.command()
+@click.argument('manifest', default='manifest.json')
+def format(manifest):
+    '''Check autoprotocol format of manifest.json'''
+    manifest = parse_json(manifest)
+    iter_json(manifest)
