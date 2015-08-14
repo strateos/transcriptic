@@ -31,9 +31,10 @@ class AutoprotocolParser(object):
                                                         self.well_list(opts['wells']), opts['object'])
 
     def autopick(self, opts):
-        return "Pick %d colonies from well %s of plate %s" % (len(opts['to']),
+        return "Pick %d colonies from well %s of plate %s into wells [%s]" % (len(opts['to']),
                                                               self.well(opts['from']),
-                                                              self.platename(opts['from']))
+                                                              self.platename(opts['from']),
+                                                              self.well_list(opts['to']))
 
     def cover(self, opts):
         return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
@@ -94,7 +95,7 @@ class AutoprotocolParser(object):
     def spread(self, opts):
         return ["Spread %s of bacteria from well %s of %s "
                "to well %s of agar plate %s" % (opts['volume'], self.well(opts['from']),
-                self.platename(opts['to']), self.well(opts['from']), self.platename(opts['from']))]
+                self.platename(opts['from']), self.well(opts['to']), self.platename(opts['to']))]
 
     def stamp(self, opts):
         stamps = []
