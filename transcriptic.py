@@ -201,10 +201,10 @@ def upl(ctx, package, archive):
         loc = dict((i.tag, i.text) for i in response_tree)
         up = ctx.obj.post('/packages/%s/releases/' % package_id,
                           data = json.dumps({"release":
-                                                 {
-                                                  "binary_attachment_url": loc["Key"]
-                                                  }
-                                              }),
+                                             {
+                                              "binary_attachment_url": loc["Key"]
+                                              }
+                                            }),
                           headers= {
                             "Origin": "https://secure.transcriptic.com/",
                             "Content-Type": "application/json"
@@ -225,7 +225,8 @@ def upl(ctx, package, archive):
                                    e in errors)))
         else:
             click.echo("Package uploaded successfully! \n"
-                       "Visit %s to publish." % ctx.obj.url('packages/%s' % package_id))
+                       "Visit %s to publish." % ctx.obj.url('packages/%s' %
+                                                             package_id))
     else:
         return
 
@@ -240,7 +241,9 @@ def packages(ctx, i):
     if response.status_code == 200:
         for pack in response.json():
             package_names[pack['name']] = pack['id']
-    if not i:
+    if i:
+        return package_names
+    else:
         click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
                    '{:^40}'.format("PACKAGE ID"))
         click.echo('{:-^80}'.format(''))
@@ -248,8 +251,6 @@ def packages(ctx, i):
             click.echo('{:<40}'.format(name) + "|" +
                        '{:^40}'.format(id))
             click.echo('{:-^80}'.format(''))
-    else:
-        return package_names
 
 @cli.command("new-package")
 @click.option('--description', '-d', required=True, help="A description for your package.")
@@ -272,9 +273,37 @@ def new_package(ctx, description, name):
     if new_pack.status_code == 201:
         click.echo("New package %s created with id %s. \n"
                    "View it at %s" % (name, new_pack.json()['id'],
-                                       ctx.obj.url('packages/%s' % new_pack.json()['id'])))
+                                       ctx.obj.url('packages/%s' %
+                                                    new_pack.json()['id'])))
     else:
         click.echo("There was an error creating this package.")
+
+
+@click.pass_context
+def get_package_id(ctx, name):
+    package_names = ctx.invoke(packages, i=True)
+    if package_names.get(name):
+        package_id = package_names[name]
+    elif name in package_names.values():
+        package_id = name
+    else:
+        click.echo("The package %s does not exist in your organization." % name)
+        return
+    return package_id
+
+
+@click.pass_context
+def get_package_name(ctx, id):
+    package_names = ctx.invoke(packages, i=True)
+    if package_names.get(id):
+        package_name = id
+    elif id in package_names.values():
+        package_name = [n for n, i in package_names.items() if i == id][0]
+    else:
+        click.echo("The id you've entered (%s) is invalid." % id)
+        return
+    return package_name
+
 
 @cli.command()
 @click.pass_context
@@ -299,6 +328,7 @@ def projects(ctx, i):
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
+
 
 
 @cli.command()
@@ -331,6 +361,7 @@ def init():
         click.echo('Creating empty manifest.json...')
         f.write(json.dumps(manifest_data, indent=2))
         click.echo("manifest.json created")
+
 
 @cli.command()
 @click.argument('file', default='-')
