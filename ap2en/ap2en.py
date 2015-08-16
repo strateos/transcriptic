@@ -120,9 +120,10 @@ class AutoprotocolParser(object):
                                                            self.platename(m['well']),
                                                            m['repetitions'], self.unit(m['volume'])))
                 elif pip == "transfer":
-                    pipettes.append(["Transfer %s to %s" % (p['from'], p['to']) for
+                    # DO TO: Cover one tip transfers
+                    pipettes.extend(["Transfer %s from %s to %s %s" % (self.unit(p['volume']), p['from'], p['to'], ("with one tip" if len(g[pip]) > 1 else "") ) for
                                                             p in g[pip]
-                                    ][0])
+                                    ])
                 elif pip == "distribute":
                     pipettes.append("Distribute from %s into %s" %
                                     (g[pip]['from'],
@@ -130,7 +131,6 @@ class AutoprotocolParser(object):
                                                 d in g[pip]['to']], 20)))
                 elif pip == "consolidate":
                     pipettes.append("Consolidate %s into %s" % (self.well_list([c['well'] for c in g[pip]['from']], 20), g[pip]['to']))
-
         return pipettes
 
 
