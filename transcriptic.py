@@ -169,7 +169,12 @@ def init():
 def analyze(ctx, file, test):
     '''Analyze your run'''
     with click.open_file(file, 'r') as f:
-        protocol = json.loads(f.read())
+        try:
+            protocol = json.loads(f.read())
+        except ValueError:
+            click.echo("Could not analyze since your manifest.json file is "
+                       "improperly formatted.")
+            return
     response = \
         ctx.obj.post(
             'analyze_run',
@@ -214,11 +219,21 @@ def preview(protocol_name):
     except StopIteration:
         click.echo("The protocol name '%s' does not match any protocols that can be previewed from within this directory.  Check either your spelling or your manifest.json file and try again." % protocol_name)
         return
-    command = p['command_string']
+    try:
+        command = p['command_string']
+    except KeyError:
+        click.echo("Your manifest.json file does not have a \"command_string\""
+                   " key.")
+        return
     from subprocess import call
     import tempfile
     with tempfile.NamedTemporaryFile() as fp:
-        fp.write(json.dumps(p['preview']))
+        try:
+            fp.write(json.dumps(p['preview']))
+        except KeyError:
+            click.echo("The manifest.json you're trying to preview doesn't "
+                       "contain a \"preview\" section")
+            return
         fp.flush()
         call(["bash", "-c", command + " " + fp.name])
 
