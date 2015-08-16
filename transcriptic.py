@@ -86,14 +86,15 @@ def cli(ctx, apiroot, config, organization):
 @click.argument('file', default='-')
 @click.option('--project', '-p',
               metavar='PROJECT_ID',
-              required=True, help='Project to submit the run to')
+              required=True, help='Project id or name to submit the run to. '
+                                   'use transcriptic projects command to list'
+                                   ' existing projects.')
 @click.option('--title', '-t', help='Optional title of your run')
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
     project = get_project_id(ctx, project)
-    print project
     if project:
         with click.open_file(file, 'r') as f:
             protocol = json.loads(f.read())
@@ -107,6 +108,8 @@ def submit(ctx, file, project, title, test):
                 "test_mode": test
                 }))
         if response.status_code == 201:
+            click.echo(u"\u2713 Protocol submitted")
+            price(response.json())
             click.echo(
                 "Run created: %s" %
                 ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
@@ -143,18 +146,6 @@ def projects(ctx, i):
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
-
-
-@click.pass_context
-def get_project_id(ctx, name):
-    projs = ctx.invoke(projects, i=True)
-    id = [i for n, i in projs.items() if (n == name or i == name)]
-    if id:
-        return id[0]
-    else:
-        click.echo("A project with the name %s was not found in your "
-                   "organization." % name)
-        return
 
 
 @cli.command()
@@ -203,27 +194,28 @@ def analyze(ctx, file, test):
         )
     if response.status_code == 200:
         click.echo(u"\u2713 Protocol analyzed")
+        price(response.json())
 
-        def count(thing, things, num):
-            click.echo("  %s %s" % (num, thing if num == 1 else things))
-        result = response.json()
-        count("instruction", "instructions", len(result['instructions']))
-        count("container", "containers", len(result['refs']))
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-        click.echo("  %s" %
-                   locale.currency(float(result['total_cost']), grouping=True))
-        for w in result['warnings']:
-            message = w['message']
-            if 'instruction' in w['context']:
-                context = "instruction %s" % w['context']['instruction']
-            else:
-                context = json.dumps(w['context'])
-            click.echo("WARNING (%s): %s" % (context, message))
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
         click.echo("Unknown error: %s" % response.text)
 
+def price(response):
+    def count(thing, things, num):
+        click.echo("  %s %s" % (num, thing if num == 1 else things))
+    count("instruction", "instructions", len(response['instructions']))
+    count("container", "containers", len(response['refs']))
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    click.echo("  %s" %
+               locale.currency(float(response['total_cost']), grouping=True))
+    for w in response['warnings']:
+        message = w['message']
+        if 'instruction' in w['context']:
+            context = "instruction %s" % w['context']['instruction']
+        else:
+            context = json.dumps(w['context'])
+        click.echo("WARNING (%s): %s" % (context, message))
 
 @cli.command()
 @click.argument('protocol_name')
@@ -318,3 +310,13 @@ def login(ctx, api_root):
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
+@click.pass_context
+def get_project_id(ctx, name):
+    projs = ctx.invoke(projects, i=True)
+    id = projs.get(name) or name
+    if id:
+        return id
+    else:
+        click.echo("A project with the name %s was not found in your "
+                   "organization." % name)
+        return
