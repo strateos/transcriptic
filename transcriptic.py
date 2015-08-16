@@ -130,14 +130,12 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
-@click.argument('package_id')
-@click.option('--file', '-f', help="Upload existing archive in this directory as a package.")
 @click.option('--name', '-n', help="Optional name for your zip file")
+@click.option('--upload', '-u', help="Upload release to specifid package")
 @click.pass_context
-def release(ctx, package_id, file, name):
-    '''Upload the contents of the current directory as a release'''
+def release(ctx, name, upload):
+    '''Compress the contents of the current directory to upload as a release'''
     deflated = zipfile.ZIP_DEFLATED
-    package_names = ctx.invoke(packages, i=True)
     def makezip(d, archive):
         for (path, dirs, files) in os.walk(d):
             for f in files:
@@ -145,34 +143,33 @@ def release(ctx, package_id, file, name):
                     archive.write(os.path.join(path, f))
         return archive
 
-    if file:
-        click.echo("Uploading %s to package %s" % (file, package_names.get(package_id)))
-        ctx.invoke(upload, ctx, package_id, file)
-    else:
-        with open('manifest.json', 'rU') as manifest:
-            filename = 'release_v%s' %json.load(manifest)['version']
-        if os.path.isfile(filename + ".zip"):
-            new = click.prompt("You already have a release for this "
-                               "version number in this directory, make "
-                               "another one? [y/n]",
-                         default = "y")
-            if new == "y":
-                num_existing = sum([1 for x in os.listdir('.') if filename in x])
-                filename = filename + "-" + str(num_existing)
-            else:
-                return
-        click.echo("Compressing all files in this directory for upload...")
-        zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
-        archive = makezip('.', zf)
-        zf.close()
-        ctx.invoke(upload, package=package_id, archive=filename + ".zip")
+    with open('manifest.json', 'rU') as manifest:
+        filename = 'release_v%s' %json.load(manifest)['version']
+    if os.path.isfile(filename + ".zip"):
+        new = click.prompt("You already have a release for this "
+                           "version number in this directory, make "
+                           "another one? [y/n]",
+                     default = "y")
+        if new == "y":
+            num_existing = sum([1 for x in os.listdir('.') if filename in x])
+            filename = filename + "-" + str(num_existing)
+        else:
+            return
+    click.echo("Compressing all files in this directory for upload...")
+    zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
+    archive = makezip('.', zf)
+    zf.close()
+    if upload:
+        package_id = get_package_id(ctx, upload)
+        ctx.invoke(upl, package=package_id, archive=filename + ".zip")
 
 
-@cli.command()
-@click.argument('package')
-@click.argument('archive')
+@cli.command("upload")
+@click.argument('archive', required=True, type=click.Path(exists=True))
+@click.argument('package', required=True)
 @click.pass_context
-def upload(ctx, package, archive):
+def upl(ctx, package, archive):
+    """Upload an existing archive to an existing package"""
     package_id = get_package_id(ctx, package)
     if package_id:
         sign = requests.get('https://secure.transcriptic.com/upload/sign',
@@ -227,7 +224,7 @@ def upload(ctx, package, archive):
                         (',').join(e.get('message', '[Unknown]') for
                                    e in errors)))
         else:
-            click.echo("Package uploaded successfully! "
+            click.echo("Package uploaded successfully! \n"
                        "Visit %s to publish." % ctx.obj.url('packages/%s' % package_id))
     else:
         return
@@ -261,7 +258,7 @@ def packages(ctx, i):
                                                   "spaces allowed).")
 @click.pass_context
 def new_package(ctx, description, name):
-    '''Create a new protocol package'''
+    '''Create a new empty protocol package'''
     existing = ctx.obj.get('/packages/')
     for p in existing.json():
         if name == p['name'].split('.')[-1]:
