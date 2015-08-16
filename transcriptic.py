@@ -93,7 +93,12 @@ def cli(ctx, apiroot, config, organization):
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
     with click.open_file(file, 'r') as f:
-        protocol = json.loads(f.read())
+        try:
+            protocol = json.loads(f.read())
+        except ValueError:
+            click.echo("Error: Could not submit since your manifest.json file is "
+                       "improperly formatted.")
+            return
     if test:
         test = True
     response = ctx.obj.post(
@@ -109,7 +114,7 @@ def submit(ctx, file, project, title, test):
             ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
         return response.json()['id']
     elif response.status_code == 404:
-        click.echo("Couldn't create run (404). Are you sure the project %s "
+        click.echo("Error: Couldn't create run (404). \nAre you sure the project %s "
                    "exists, and that you have access to it?" %
                    ctx.obj.url(project))
     elif response.status_code == 422:
@@ -153,7 +158,8 @@ def init():
         ]
     }
     if isfile('manifest.json'):
-        ow = input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
+        ow = input("This directory already contains a manifest.json file,\n"
+                   "would you like to overwrite it with an empty one? ")
         abort = ow.lower() in ["y", "yes"]
         if not abort:
             click.echo('Aborting initialization...')
@@ -172,7 +178,7 @@ def analyze(ctx, file, test):
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            click.echo("Could not analyze since your manifest.json file is "
+            click.echo("Error: Could not analyze since your manifest.json file is "
                        "improperly formatted.")
             return
     response = \
@@ -212,17 +218,21 @@ def preview(protocol_name):
         try:
             manifest = json.loads(f.read())
         except ValueError:
-            click.echo("Your manifest.json file is improperly formatted.  Please double check your brackets and commas!")
+            click.echo("Error: Your manifest.json file is improperly formatted. "
+                       "Please double check your brackets and commas!")
             return
     try:
         p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
     except StopIteration:
-        click.echo("The protocol name '%s' does not match any protocols that can be previewed from within this directory.  Check either your spelling or your manifest.json file and try again." % protocol_name)
+        click.echo("Error: The protocol name '%s' does not match any protocols "
+                   "that can be previewed from within this directory.  \nCheck "
+                   "either your spelling or your manifest.json file and try "
+                   "again." % protocol_name)
         return
     try:
         command = p['command_string']
     except KeyError:
-        click.echo("Your manifest.json file does not have a \"command_string\""
+        click.echo("Error: Your manifest.json file does not have a \"command_string\""
                    " key.")
         return
     from subprocess import call
@@ -231,7 +241,7 @@ def preview(protocol_name):
         try:
             fp.write(json.dumps(p['preview']))
         except KeyError:
-            click.echo("The manifest.json you're trying to preview doesn't "
+            click.echo("Error: The manifest.json you're trying to preview doesn't "
                        "contain a \"preview\" section")
             return
         fp.flush()
@@ -244,9 +254,26 @@ def preview(protocol_name):
 def run(protocol_name, args):
     '''Run a protocol by passing it a config file (without submitting or analyzing)'''
     with click.open_file('manifest.json', 'r') as f:
-        manifest = json.loads(f.read())
-    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
-    command = p['command_string']
+        try:
+            manifest = json.loads(f.read())
+        except ValueError:
+            click.echo("Error: Your manifest.json file is improperly formatted. "
+                       "Please double check your brackets and commas!")
+            return
+    try:
+        p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+    except StopIteration:
+        click.echo("Error: The protocol name '%s' does not match any protocols "
+                   "that can be previewed from within this directory.  \nCheck "
+                   "either your spelling or your manifest.json file and try "
+                   "again." % protocol_name)
+        return
+    try:
+        command = p['command_string']
+    except KeyError:
+        click.echo("Error: Your manifest.json file does not have a \"command_string\""
+                   " key.")
+        return
     from subprocess import call
     call(["bash", "-c", command + " " + ' '.join(args)])
 
@@ -280,7 +307,7 @@ def login(ctx, api_root):
     )
 
     if len(user['organizations']) < 1:
-        click.echo("You don't appear to belong to any organizations. Visit %s "
+        click.echo("Error: You don't appear to belong to any organizations. \nVisit %s "
                    "and create an organization." % api_root)
         sys.exit(1)
     if len(user['organizations']) == 1:
