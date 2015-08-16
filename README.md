@@ -27,7 +27,8 @@ $ pip install transcriptic --upgrade
 
 Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --help`
 
-##### Login to your Transcriptic account
+## Mandatory first step:
+**Log in to your Transcriptic account**
 **\*Before using the runner, you'll need to log in to Transcriptic to fetch your
 access key information. This will be saved in `~/.transcriptic` for future
 commands.**\*
@@ -39,12 +40,9 @@ Password:
 Logged in as sanger@transcriptic.com (cambridge)
 ```
 
-##### Ititialize a Directory With a `manifest.json` File
-The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
-```
-$ transcriptic init
-```
-##### Analyze a Protocol
+## The Basics
+
+**Analyze a Protocol**
 Submit a protocol to Transcriptic to check its validity.
 ```
 $ python my_protocol.py | transcriptic analyze
@@ -53,52 +51,62 @@ $ python my_protocol.py | transcriptic analyze
   1 container
 ```
 
-##### Submit a Protocol to Transcriptic
+**Submit a Protocol to Transcriptic**
 ```
 $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run"
 Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 ```
 
-##### Submit a Protocol to Transcriptic in Test Mode
+**Submit a Protocol to Transcriptic in Test Mode**
 ```
 $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run" --test
 ```
 
+**Preview a Protocol**
+Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
+```
+$ transcriptic preview MyProtocol
+```
+
 ### Packaging and Releasing
 
-#### Create a new empty package
+**Create a new empty package**
 ```
 $ trancriptic new-package --name "my_package" --description "This is a description for my package of protocols"
 ```
 
-#### List existing package names and ids
+**List existing package names and ids**
 ```
 $ transcriptic packages
 ```
 
-#### Compress all files in working directory for release
+**Ititialize a Directory With a `manifest.json` File**
+The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
+```
+$ transcriptic init
+```
+
+**Compress all files in working directory for release**
 ```
 $ transcriptic release
 ```
 
-#### Compress all files in working directory for release and upload to a specific package
+**Compress all files in working directory for release and upload to a specific package**
 ```
 $ transcriptic release --upload my_package
 ```
 
-#### Upload an existing compressed release to a package
+**Upload an existing compressed release to a package**
 ```
 $ transcriptic upload release_v1.0.0.zip my_package
 ```
 
 
-**See below for using the preview command to preview the Autoprotocol output of a protocol outlined in a manifest.json file**
-
-## Using the Runner with autoprotocol.harness and a `manifest.json` file
+### Preview a Protocol
 
 The [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) library helps you generate Autoprotocol with easy to use functions. [autoprotocol.harness](https://github.com/autoprotocol/autoprotocol-python/blob/master/autoprotocol/harness.py) parses a set of typed input parameters contained in a `manifest.json` file and passes them back to the specified script when you run `transcriptic preview` (see above).  Input types also define protocol browser UI elements on transcriptic's website.
 
-##### Example
+**Example
 The example below assumes the following file structure:
 ```
 protocols/
@@ -165,7 +173,7 @@ if __name__ == "__main__":
   run(sample_protocol, protocol_name="SampleProtocol")
 ```
 
-#### preview the protocol's output on the command line:
+**preview a protocol's output on the command line:**
 ```
 $ transcriptic preview SampleProtocol
 ```
