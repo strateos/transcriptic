@@ -46,7 +46,7 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        default_headers.update(kwargs.get('headers', {}))
+        default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
     def get(self, path, **kwargs):
@@ -56,7 +56,7 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        default_headers.update(kwargs.get('headers', {}))
+        default_headers.update(kwargs.pop('headers', {}))
         return requests.get(self.url(path), headers=default_headers, **kwargs)
 
 
@@ -92,44 +92,70 @@ def cli(ctx, apiroot, config, organization):
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
-    with click.open_file(file, 'r') as f:
-        protocol = json.loads(f.read())
-    if test:
-        test = True
-    response = ctx.obj.post(
-        '%s/runs' % project,
-        data=json.dumps({
-            "title": title,
-            "protocol": protocol,
-            "test_mode": test
-            }))
-    if response.status_code == 201:
-        click.echo(
-            "Run created: %s" %
-            ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
-        return response.json()['id']
-    elif response.status_code == 404:
-        click.echo("Couldn't create run (404). Are you sure the project %s "
-                   "exists, and that you have access to it?" %
-                   ctx.obj.url(project))
-    elif response.status_code == 422:
-        click.echo("Error creating run: %s" % response.text)
-    else:
-        click.echo("Unknown error: %s" % response.text)
+    project = get_project_id(ctx, project)
+    print project
+    if project:
+        with click.open_file(file, 'r') as f:
+            protocol = json.loads(f.read())
+        if test:
+            test = True
+        response = ctx.obj.post(
+            '%s/runs' % project,
+            data=json.dumps({
+                "title": title,
+                "protocol": protocol,
+                "test_mode": test
+                }))
+        if response.status_code == 201:
+            click.echo(
+                "Run created: %s" %
+                ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
+            return response.json()['id']
+        elif response.status_code == 404:
+            click.echo("Couldn't create run (404). Are you sure the project %s "
+                       "exists, and that you have access to it?" %
+                       ctx.obj.url(project))
+        elif response.status_code == 422:
+            click.echo("Error creating run: %s" % response.text)
+        else:
+            click.echo("Unknown error: %s" % response.text)
 
 @cli.command()
 @click.pass_context
-def projects(ctx):
+@click.option("-i")
+def projects(ctx, i):
     '''List the projects in your organization'''
     response = ctx.obj.get('')
+    proj_names = {}
     if response.status_code == 200:
-        click.echo('{:^35}'.format("PROJECT NAME") + "|" +
-                   '{:^35}'.format("PROJECT ID"))
-        click.echo('{:-^70}'.format(''))
         for proj in response.json()['projects']:
-            click.echo('{:<35}'.format(proj['name']) + "|" +
-                       '{:^35}'.format(proj['url']))
+            proj_names[proj['name']] =  proj['id']
+        if i:
+            return proj_names
+        else:
+            click.echo('{:^35}'.format("PROJECT NAME") + "|" +
+                       '{:^35}'.format("PROJECT ID"))
             click.echo('{:-^70}'.format(''))
+            for name, i in proj_names.items():
+                click.echo('{:<35}'.format(name) + "|" +
+                           '{:^35}'.format(i))
+                click.echo('{:-^70}'.format(''))
+    else:
+        click.echo("There was an error listing the projects in your "
+                   "organization.  Make sure your login details are correct.")
+
+
+@click.pass_context
+def get_project_id(ctx, name):
+    projs = ctx.invoke(projects, i=True)
+    id = [i for n, i in projs.items() if (n == name or i == name)]
+    if id:
+        return id[0]
+    else:
+        click.echo("A project with the name %s was not found in your "
+                   "organization." % name)
+        return
+
 
 @cli.command()
 def init():
@@ -291,3 +317,4 @@ def login(ctx, api_root):
     ctx.obj = Config(api_root, email, token, organization)
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
+
