@@ -137,6 +137,7 @@ def submit(ctx, file, project, title, test):
 def release(ctx, package_id, file, name):
     '''Upload the contents of the current directory as a release'''
     deflated = zipfile.ZIP_DEFLATED
+    package_names = ctx.invoke(packages, i=True)
     def makezip(d, archive):
         for (path, dirs, files) in os.walk(d):
             for f in files:
@@ -144,7 +145,36 @@ def release(ctx, package_id, file, name):
                     archive.write(os.path.join(path, f))
         return archive
 
-    def upload(ctx, package_id, archive):
+    if file:
+        click.echo("Uploading %s to package %s" % (file, package_names.get(package_id)))
+        ctx.invoke(upload, ctx, package_id, file)
+    else:
+        with open('manifest.json', 'rU') as manifest:
+            filename = 'release_v%s' %json.load(manifest)['version']
+        if os.path.isfile(filename + ".zip"):
+            new = click.prompt("You already have a release for this "
+                               "version number in this directory, make "
+                               "another one? [y/n]",
+                         default = "y")
+            if new == "y":
+                num_existing = sum([1 for x in os.listdir('.') if filename in x])
+                filename = filename + "-" + str(num_existing)
+            else:
+                return
+        click.echo("Compressing all files in this directory for upload...")
+        zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
+        archive = makezip('.', zf)
+        zf.close()
+        ctx.invoke(upload, package=package_id, archive=filename + ".zip")
+
+
+@cli.command()
+@click.argument('package')
+@click.argument('archive')
+@click.pass_context
+def upload(ctx, package, archive):
+    package_id = get_package_id(ctx, package)
+    if package_id:
         sign = requests.get('https://secure.transcriptic.com/upload/sign',
                             params={
                                 'name': archive
@@ -190,51 +220,39 @@ def release(ctx, package_id, file, name):
         published = json.loads(status.content)['published']
         errors = status.json()['validation_errors']
         if errors:
-            click.echo("Package upload unsuccessful. "
+            click.echo("Package upload to %s unsuccessful. "
                        "The following error was "
                        "returned: %s" %
-                       (',').join(e.get('message', '[Unknown]') for e in errors))
+                       (get_package_name(ctx, package_id),
+                        (',').join(e.get('message', '[Unknown]') for
+                                   e in errors)))
         else:
             click.echo("Package uploaded successfully! "
                        "Visit %s to publish." % ctx.obj.url('packages/%s' % package_id))
-
-
-    if not file:
-        upload(ctx, package_id, file)
     else:
-        with open('manifest.json', 'rU') as manifest:
-            filename = 'release_v%s' %json.load(manifest)['version']
-        if os.path.isfile(filename + ".zip"):
-            new = click.prompt("You already have a release for this "
-                               "version number in this directory, make "
-                               "another one? [y/n]",
-                         default = "y")
-            if new == "y":
-                num_existing = sum([1 for x in os.listdir('.') if filename in x])
-                filename = filename + "-" + str(num_existing)
-            else:
-                return
-        click.echo("Creating archive with all files within this directory...")
-        zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
-        archive = makezip('.', zf)
-        zf.close()
-        click.echo('Uploading to package with id %s' % package_id)
-        upload(ctx, package_id, filename + ".zip")
+        return
 
 
 @cli.command()
 @click.pass_context
-def packages(ctx):
+@click.option("-i")
+def packages(ctx, i):
     '''List packages in your organizaiton'''
     response = ctx.obj.get('/packages/')
+    package_names = {}
     if response.status_code == 200:
+        for pack in response.json():
+            package_names[pack['name']] = pack['id']
+    if not i:
         click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
                    '{:^40}'.format("PACKAGE ID"))
         click.echo('{:-^80}'.format(''))
-        for pack in response.json():
-            click.echo('{:<40}'.format(pack['name']) + "|" +
-                       '{:^40}'.format(pack['id']))
+        for name, id in package_names.items():
+            click.echo('{:<40}'.format(name) + "|" +
+                       '{:^40}'.format(id))
             click.echo('{:-^80}'.format(''))
+    else:
+        return package_names
 
 @cli.command("new-package")
 @click.option('--description', '-d', required=True, help="A description for your package.")
@@ -484,6 +502,7 @@ def login(ctx, api_root):
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
+
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
@@ -494,3 +513,29 @@ def get_project_id(ctx, name):
         click.echo("A project with the name %s was not found in your "
                    "organization." % name)
         return
+
+
+@click.pass_context
+def get_package_id(ctx, name):
+    package_names = ctx.invoke(packages, i=True)
+    if package_names.get(name):
+        package_id = package_names[name]
+    elif name in package_names.values():
+        package_id = name
+    else:
+        click.echo("The package %s does not exist in your organization." % name)
+        return
+    return package_id
+
+
+@click.pass_context
+def get_package_name(ctx, id):
+    package_names = ctx.invoke(packages, i=True)
+    if package_names.get(id):
+        package_name = id
+    elif id in package_names.values():
+        package_name = [n for n, i in package_names.items() if i == id][0]
+    else:
+        click.echo("The id you've entered (%s) is invalid." % id)
+        return
+    return package_name
