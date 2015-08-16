@@ -158,15 +158,14 @@ def init():
         ]
     }
     if isfile('manifest.json'):
-        ow = input("This directory already contains a manifest.json file,\n"
-                   "would you like to overwrite it with an empty one? ")
-        abort = ow.lower() in ["y", "yes"]
-        if not abort:
-            click.echo('Aborting initialization...')
-            return
+        click.confirm("This directory already contains a manifest.json file, "
+                      "would you like to overwrite it with an empty one? ",
+                      default = False,
+                      abort = True)
     with open('manifest.json', 'w+') as f:
         click.echo('Creating empty manifest.json...')
         f.write(json.dumps(manifest_data, indent=2))
+        click.echo("manifest.json created")
 
 @cli.command()
 @click.argument('file', default='-')
