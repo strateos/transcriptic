@@ -46,7 +46,7 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        default_headers.update(kwargs.get('headers', {}))
+        default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
     def get(self, path, **kwargs):
@@ -56,7 +56,7 @@ class Config:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             }
-        default_headers.update(kwargs.get('headers', {}))
+        default_headers.update(kwargs.pop('headers', {}))
         return requests.get(self.url(path), headers=default_headers, **kwargs)
 
 
@@ -86,12 +86,16 @@ def cli(ctx, apiroot, config, organization):
 @click.argument('file', default='-')
 @click.option('--project', '-p',
               metavar='PROJECT_ID',
-              required=True, help='Project to submit the run to')
+              required=True, help='Project id or name to submit the run to. '
+                                   'use transcriptic projects command to list'
+                                   ' existing projects.')
 @click.option('--title', '-t', help='Optional title of your run')
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
+
+    project = get_project_id(ctx, project)
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
@@ -122,19 +126,31 @@ def submit(ctx, file, project, title, test):
     else:
         click.echo("Unknown error: %s" % response.text)
 
+
 @cli.command()
 @click.pass_context
-def projects(ctx):
+@click.option("-i")
+def projects(ctx, i):
     '''List the projects in your organization'''
     response = ctx.obj.get('')
+    proj_names = {}
     if response.status_code == 200:
-        click.echo('{:^35}'.format("PROJECT NAME") + "|" +
-                   '{:^35}'.format("PROJECT ID"))
-        click.echo('{:-^70}'.format(''))
         for proj in response.json()['projects']:
-            click.echo('{:<35}'.format(proj['name']) + "|" +
-                       '{:^35}'.format(proj['url']))
+            proj_names[proj['name']] =  proj['id']
+        if i:
+            return proj_names
+        else:
+            click.echo('{:^35}'.format("PROJECT NAME") + "|" +
+                       '{:^35}'.format("PROJECT ID"))
             click.echo('{:-^70}'.format(''))
+            for name, i in proj_names.items():
+                click.echo('{:<35}'.format(name) + "|" +
+                           '{:^35}'.format(i))
+                click.echo('{:-^70}'.format(''))
+    else:
+        click.echo("There was an error listing the projects in your "
+                   "organization.  Make sure your login details are correct.")
+
 
 @cli.command()
 def init():
@@ -187,27 +203,28 @@ def analyze(ctx, file, test):
         )
     if response.status_code == 200:
         click.echo(u"\u2713 Protocol analyzed")
+        price(response.json())
 
-        def count(thing, things, num):
-            click.echo("  %s %s" % (num, thing if num == 1 else things))
-        result = response.json()
-        count("instruction", "instructions", len(result['instructions']))
-        count("container", "containers", len(result['refs']))
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-        click.echo("  %s" %
-                   locale.currency(float(result['total_cost']), grouping=True))
-        for w in result['warnings']:
-            message = w['message']
-            if 'instruction' in w['context']:
-                context = "instruction %s" % w['context']['instruction']
-            else:
-                context = json.dumps(w['context'])
-            click.echo("WARNING (%s): %s" % (context, message))
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
         click.echo("Unknown error: %s" % response.text)
 
+def price(response):
+    def count(thing, things, num):
+        click.echo("  %s %s" % (num, thing if num == 1 else things))
+    count("instruction", "instructions", len(response['instructions']))
+    count("container", "containers", len(response['refs']))
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    click.echo("  %s" %
+               locale.currency(float(response['total_cost']), grouping=True))
+    for w in response['warnings']:
+        message = w['message']
+        if 'instruction' in w['context']:
+            context = "instruction %s" % w['context']['instruction']
+        else:
+            context = json.dumps(w['context'])
+        click.echo("WARNING (%s): %s" % (context, message))
 
 @cli.command()
 @click.argument('protocol_name')
@@ -332,3 +349,14 @@ def login(ctx, api_root):
     ctx.obj = Config(api_root, email, token, organization)
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
+
+@click.pass_context
+def get_project_id(ctx, name):
+    projs = ctx.invoke(projects, i=True)
+    id = projs.get(name) or name
+    if id:
+        return id
+    else:
+        click.echo("A project with the name %s was not found in your "
+                   "organization." % name)
+        return
