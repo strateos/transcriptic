@@ -2,7 +2,11 @@ import sys
 import json
 from os.path import expanduser, isfile
 import locale
+<<<<<<< HEAD
 import ap2en
+=======
+from ap2en import ap2en
+>>>>>>> importing ap2en?
 import click
 import requests
 from collections import OrderedDict
