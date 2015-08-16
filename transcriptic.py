@@ -155,10 +155,11 @@ def release(ctx, name, upload):
             filename = filename + "-" + str(num_existing)
         else:
             return
-    click.echo("Compressing all files in this directory for upload...")
+    click.echo("Compressing all files in this directory...")
     zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
     archive = makezip('.', zf)
     zf.close()
+    click.echo("Archive %s created." % (filename + ".zip"))
     if upload:
         package_id = get_package_id(ctx, upload)
         ctx.invoke(upl, package=package_id, archive=filename + ".zip")
@@ -171,7 +172,13 @@ def release(ctx, name, upload):
 def upl(ctx, package, archive):
     """Upload an existing archive to an existing package"""
     package_id = get_package_id(ctx, package)
-    if package_id:
+    if not package_id:
+        return
+    click.echo("Uploading %s to %s" % (archive, get_package_name(ctx,package_id)))
+    with click.progressbar(None, 100, "Upload Progress",
+                            show_eta = False, width=70,
+                            fill_char = "|", empty_char= "-") as bar:
+        bar.update(10)
         sign = requests.get('https://secure.transcriptic.com/upload/sign',
                             params={
                                 'name': archive
@@ -184,7 +191,7 @@ def upl(ctx, package, archive):
                             })
 
         info = json.loads(sign.content)
-
+        bar.update(30)
         url    = 'https://transcriptic-uploads.s3.amazonaws.com'
         files  = {'file': open(os.path.basename(archive), 'rb')}
         data   = OrderedDict([
@@ -195,8 +202,8 @@ def upl(ctx, package, archive):
                 ('policy', info['policy']),
                 ('signature', info['signature']),
             ])
-
         response = requests.post(url, data=data, files=files)
+        bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
         up = ctx.obj.post('/packages/%s/releases/' % package_id,
@@ -210,25 +217,25 @@ def upl(ctx, package, archive):
                             "Content-Type": "application/json"
                           })
         re = json.loads(up.content)['id']
-        click.echo("Validating package...")
+        bar.update(20)
+        # click.echo("\nValidating package...")
         time.sleep(20)
         status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re,
                                                                 int(time.time())))
         published = json.loads(status.content)['published']
         errors = status.json()['validation_errors']
+        bar.update(30)
         if errors:
-            click.echo("Package upload to %s unsuccessful. "
+            click.echo("\nPackage upload to %s unsuccessful. "
                        "The following error was "
                        "returned: %s" %
                        (get_package_name(ctx, package_id),
                         (',').join(e.get('message', '[Unknown]') for
                                    e in errors)))
         else:
-            click.echo("Package uploaded successfully! \n"
+            click.echo("\nPackage uploaded successfully! \n"
                        "Visit %s to publish." % ctx.obj.url('packages/%s' %
                                                              package_id))
-    else:
-        return
 
 
 @cli.command()
@@ -546,24 +553,19 @@ def get_project_id(ctx, name):
 @click.pass_context
 def get_package_id(ctx, name):
     package_names = ctx.invoke(packages, i=True)
-    if package_names.get(name):
-        package_id = package_names[name]
-    elif name in package_names.values():
-        package_id = name
-    else:
+    package_id = package_names.get(name) or name
+    if name not in package_names.keys():
         click.echo("The package %s does not exist in your organization." % name)
-        return
+        package_id = None
     return package_id
+
 
 
 @click.pass_context
 def get_package_name(ctx, id):
-    package_names = ctx.invoke(packages, i=True)
-    if package_names.get(id):
-        package_name = id
-    elif id in package_names.values():
-        package_name = [n for n, i in package_names.items() if i == id][0]
-    else:
-        click.echo("The id you've entered (%s) is invalid." % id)
-        return
+    package_names = {v: k for k, v in ctx.invoke(packages, i=True).items()}
+    package_name = package_names.get(id) or id
+    if id not in package_names.keys():
+        click.echo("The id %s does not match any package in your organization."
+                   % id)
     return package_name
