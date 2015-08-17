@@ -161,20 +161,25 @@ def release(ctx, name, upload):
     zf.close()
     click.echo("Archive %s created." % (filename + ".zip"))
     if upload:
-        package_id = get_package_id(ctx, upload)
-        ctx.invoke(upl, package=package_id, archive=filename + ".zip")
+        package_id = get_package_id(ctx, upload) or get_package_name(ctx, upload)
+        ctx.invoke(upl, archive=(filename + ".zip"), package=package_id)
 
 
 @cli.command("upload")
 @click.argument('archive', required=True, type=click.Path(exists=True))
 @click.argument('package', required=True)
 @click.pass_context
-def upl(ctx, package, archive):
+def upl(ctx, archive, package):
     """Upload an existing archive to an existing package"""
-    package_id = get_package_id(ctx, package)
-    if not package_id:
+    try:
+        package_id = get_package_id(ctx, package.lower()) or get_package_name(ctx, package.lower())
+    except AttributeError:
+        click.echo("Error: Invalid package id or name.")
         return
-    click.echo("Uploading %s to %s" % (archive, get_package_name(ctx,package_id)))
+
+    click.echo("Uploading %s to %s" % (archive,
+                                       (get_package_name(ctx,package_id.lower()) or
+                                        get_package_id(ctx, package_id.lower()))))
     with click.progressbar(None, 100, "Upload Progress",
                             show_eta = False, width=70,
                             fill_char = "|", empty_char= "-") as bar:
@@ -216,9 +221,16 @@ def upl(ctx, package, archive):
                             "Origin": "https://secure.transcriptic.com/",
                             "Content-Type": "application/json"
                           })
-        re = json.loads(up.content)['id']
+        try:
+            re = json.loads(up.content)['id']
+        except ValueError:
+            click.echo("\nError: There was a problem uploading your release. Verify"
+                       " that your manifest.json file is properly formatted and"
+                       " that all previews in your manifest produce valid "
+                       "Autoprotocol by using the `transcriptic preview` "
+                       "and/or `transcriptic analyze` commands.")
+            return
         bar.update(20)
-        # click.echo("\nValidating package...")
         time.sleep(20)
         status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re,
                                                                 int(time.time())))
@@ -237,7 +249,6 @@ def upl(ctx, package, archive):
                        "Visit %s to publish." % ctx.obj.url('packages/%s' %
                                                              package_id))
 
-
 @cli.command()
 @click.pass_context
 @click.option("-i")
@@ -247,7 +258,7 @@ def packages(ctx, i):
     package_names = {}
     if response.status_code == 200:
         for pack in response.json():
-            package_names[pack['name']] = pack['id']
+            package_names[str(pack['name']).lower()] = str(pack['id'])
     if i:
         return package_names
     else:
@@ -286,32 +297,6 @@ def new_package(ctx, description, name):
         click.echo("There was an error creating this package.")
 
 
-@click.pass_context
-def get_package_id(ctx, name):
-    package_names = ctx.invoke(packages, i=True)
-    if package_names.get(name):
-        package_id = package_names[name]
-    elif name in package_names.values():
-        package_id = name
-    else:
-        click.echo("The package %s does not exist in your organization." % name)
-        return
-    return package_id
-
-
-@click.pass_context
-def get_package_name(ctx, id):
-    package_names = ctx.invoke(packages, i=True)
-    if package_names.get(id):
-        package_name = id
-    elif id in package_names.values():
-        package_name = [n for n, i in package_names.items() if i == id][0]
-    else:
-        click.echo("The id you've entered (%s) is invalid." % id)
-        return
-    return package_name
-
-
 @cli.command()
 @click.pass_context
 @click.option("-i")
@@ -323,7 +308,7 @@ def projects(ctx, i):
         for proj in response.json()['projects']:
             proj_names[proj['name']] =  proj['id']
         if i:
-            return proj_names
+            return {k.lower(): v for k,v in proj_names.items()}
         else:
             click.echo('{:^35}'.format("PROJECT NAME") + "|" +
                        '{:^35}'.format("PROJECT ID"))
@@ -335,7 +320,6 @@ def projects(ctx, i):
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
-
 
 
 @cli.command()
@@ -501,7 +485,7 @@ def login(ctx, api_root):
             'Content-Type': 'application/json',
             })
     if r.status_code != 200:
-        click.echo("Error logging into Transcriptic: %s" % r.text)
+        click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
     user = r.json()
     token = (
@@ -553,19 +537,22 @@ def get_project_id(ctx, name):
 @click.pass_context
 def get_package_id(ctx, name):
     package_names = ctx.invoke(packages, i=True)
-    package_id = package_names.get(name) or name
-    if name not in package_names.keys():
+    package_names = {k.lower(): v for k,v in package_names.items()}
+    package_id = package_names.get(name)
+    package_id = name if not package_id and name in package_names.values() else None
+    if not package_id and __name__ == "__main__":
         click.echo("The package %s does not exist in your organization." % name)
-        package_id = None
+        return
     return package_id
-
 
 
 @click.pass_context
 def get_package_name(ctx, id):
     package_names = {v: k for k, v in ctx.invoke(packages, i=True).items()}
-    package_name = package_names.get(id) or id
-    if id not in package_names.keys():
+    package_name = package_names.get(id)
+    package_name = id if not package_name and id in package_names.values() else None
+    if not package_name and __name__ == "__main__":
         click.echo("The id %s does not match any package in your organization."
                    % id)
+        return
     return package_name
