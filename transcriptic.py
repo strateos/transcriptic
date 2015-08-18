@@ -66,7 +66,6 @@ class Config:
         return requests.get(self.url(path), headers=default_headers, **kwargs)
 
 
-
 @click.group()
 @click.option('--apiroot', default=None)
 @click.option('--config',
@@ -371,18 +370,10 @@ def init():
         ]
     }
     if isfile('manifest.json'):
-<<<<<<< HEAD
         click.confirm("This directory already contains a manifest.json file, "
                       "would you like to overwrite it with an empty one? ",
                       default = False,
                       abort = True)
-=======
-        ow = raw_input('This directory already contains a manifest.json file, would you like to overwrite it with an empty one? ')
-        abort = ow.lower() in ["y", "yes"]
-        if not abort:
-            click.echo('Aborting initialization...')
-            return
->>>>>>> added formatter to transcriptic CLI
     with open('manifest.json', 'w+') as f:
         click.echo('Creating empty manifest.json...')
         f.write(json.dumps(manifest_data, indent=2))
