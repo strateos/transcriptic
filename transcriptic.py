@@ -2,9 +2,13 @@ import sys
 import json
 from os.path import expanduser, isfile
 import locale
-
 import click
 import requests
+from collections import OrderedDict
+import zipfile
+import os
+import time
+import xml.etree.ElementTree as ET
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
@@ -12,7 +16,6 @@ try:
     input = raw_input
 except NameError:
     pass
-
 
 class Config:
     def __init__(self, api_root, email, token, organization):
@@ -94,7 +97,6 @@ def cli(ctx, apiroot, config, organization):
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
-
     project = get_project_id(ctx, project)
     with click.open_file(file, 'r') as f:
         try:
@@ -128,6 +130,173 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
+@click.argument('package', required=False)
+@click.option('--name', '-n', help="Optional name for your zip file")
+# @click.option('--upload', '-u', help="Upload release to specified package")
+@click.pass_context
+def release(ctx, name=None, package=None):
+    '''Compress the contents of the current directory to upload as a release'''
+    deflated = zipfile.ZIP_DEFLATED
+    def makezip(d, archive):
+        for (path, dirs, files) in os.walk(d):
+            for f in files:
+                if ".zip" not in f:
+                    archive.write(os.path.join(path, f))
+        return archive
+
+    with open('manifest.json', 'rU') as manifest:
+        filename = 'release_v%s' %json.load(manifest)['version'] or name
+    if os.path.isfile(filename + ".zip"):
+        new = click.prompt("You already have a release for this "
+                           "version number in this directory, make "
+                           "another one? [y/n]",
+                     default = "y")
+        if new == "y":
+            num_existing = sum([1 for x in os.listdir('.') if filename in x])
+            filename = filename + "-" + str(num_existing)
+        else:
+            return
+    click.echo("Compressing all files in this directory...")
+    zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
+    archive = makezip('.', zf)
+    zf.close()
+    click.echo("Archive %s created." % (filename + ".zip"))
+    if package:
+        package_id = get_package_id(ctx, package) or get_package_name(ctx, package)
+        ctx.invoke(upl, archive=(filename + ".zip"), package=package_id)
+
+
+@cli.command("upload")
+@click.argument('archive', required=True, type=click.Path(exists=True))
+@click.argument('package', required=True)
+@click.pass_context
+def upl(ctx, archive, package):
+    """Upload an existing archive to an existing package"""
+    try:
+        package_id = get_package_id(ctx, package.lower()) or get_package_name(ctx, package.lower())
+        click.echo("Uploading %s to %s" % (archive,
+                                           (get_package_name(ctx,package_id.lower()) or
+                                            get_package_id(ctx, package_id.lower()))))
+    except AttributeError:
+        click.echo("Error: Invalid package id or name.")
+        return
+
+    with click.progressbar(None, 100, "Upload Progress",
+                            show_eta = False, width=70,
+                            fill_char = "|", empty_char= "-") as bar:
+        bar.update(10)
+        sign = requests.get('https://secure.transcriptic.com/upload/sign',
+                            params={
+                                'name': archive
+                            },
+                            headers={
+                                'X-User-Email': ctx.obj.email,
+                                'X-User-Token': ctx.obj.token,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            })
+
+        info = json.loads(sign.content)
+        bar.update(30)
+        url    = 'https://transcriptic-uploads.s3.amazonaws.com'
+        files  = {'file': open(os.path.basename(archive), 'rb')}
+        data   = OrderedDict([
+                ('key', info['key']),
+                ('AWSAccessKeyId', 'AKIAJVJ67EJYCQXO7ZSQ'),
+                ('acl', 'private'),
+                ('success_action_status', '201'),
+                ('policy', info['policy']),
+                ('signature', info['signature']),
+            ])
+        response = requests.post(url, data=data, files=files)
+        bar.update(20)
+        response_tree = ET.fromstring(response.content)
+        loc = dict((i.tag, i.text) for i in response_tree)
+        up = ctx.obj.post('/packages/%s/releases/' % package_id,
+                          data = json.dumps({"release":
+                                             {
+                                              "binary_attachment_url": loc["Key"]
+                                              }
+                                            }),
+                          headers= {
+                            "Origin": "https://secure.transcriptic.com/",
+                            "Content-Type": "application/json"
+                          })
+        try:
+            re = json.loads(up.content)['id']
+        except ValueError:
+            click.echo("\nError: There was a problem uploading your release. Verify"
+                       " that your manifest.json file is properly formatted and"
+                       " that all previews in your manifest produce valid "
+                       "Autoprotocol by using the `transcriptic preview` "
+                       "and/or `transcriptic analyze` commands.")
+            return
+        bar.update(20)
+        time.sleep(20)
+        status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re,
+                                                                int(time.time())))
+        published = json.loads(status.content)['published']
+        errors = status.json()['validation_errors']
+        bar.update(30)
+        if errors:
+            click.echo("\nPackage upload to %s unsuccessful. "
+                       "The following error was "
+                       "returned: %s" %
+                       (get_package_name(ctx, package_id),
+                        (',').join(e.get('message', '[Unknown]') for
+                                   e in errors)))
+        else:
+            click.echo("\nPackage uploaded successfully! \n"
+                       "Visit %s to publish." % ctx.obj.url('packages/%s' %
+                                                             package_id))
+
+@cli.command()
+@click.pass_context
+@click.option("-i")
+def packages(ctx, i):
+    '''List packages in your organizaiton'''
+    response = ctx.obj.get('/packages/')
+    package_names = {}
+    if response.status_code == 200:
+        for pack in response.json():
+            package_names[str(pack['name']).lower()] = str(pack['id'])
+    if i:
+        return package_names
+    else:
+        click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                   '{:^40}'.format("PACKAGE ID"))
+        click.echo('{:-^80}'.format(''))
+        for name, id in package_names.items():
+            click.echo('{:<40}'.format(name) + "|" +
+                       '{:^40}'.format(id))
+            click.echo('{:-^80}'.format(''))
+
+@cli.command("new-package")
+@click.argument('name')
+@click.argument('description')
+@click.pass_context
+def new_package(ctx, description, name):
+    '''Create a new empty protocol package'''
+    existing = ctx.obj.get('/packages/')
+    for p in existing.json():
+        if name == p['name'].split('.')[-1]:
+            click.echo("You already have an existing package with the name \"%s\"."
+                       "  Please choose a different package name." % name)
+            return
+    new_pack = ctx.obj.post('/packages/',
+                            data = json.dumps({"description": description,
+                                               "name": name
+                                              }))
+    if new_pack.status_code == 201:
+        click.echo("New package %s created with id %s \n"
+                   "View it at %s" % (name, new_pack.json()['id'],
+                                       ctx.obj.url('packages/%s' %
+                                                    new_pack.json()['id'])))
+    else:
+        click.echo("There was an error creating this package.")
+
+
+@cli.command()
 @click.pass_context
 @click.option("-i")
 def projects(ctx, i):
@@ -138,7 +307,7 @@ def projects(ctx, i):
         for proj in response.json()['projects']:
             proj_names[proj['name']] =  proj['id']
         if i:
-            return proj_names
+            return {k.lower(): v for k,v in proj_names.items()}
         else:
             click.echo('{:^35}'.format("PROJECT NAME") + "|" +
                        '{:^35}'.format("PROJECT ID"))
@@ -152,9 +321,33 @@ def projects(ctx, i):
                    "organization.  Make sure your login details are correct.")
 
 
+@cli.command("new-project")
+@click.argument('name')
+@click.pass_context
+def new_project(ctx, name):
+    '''Create a new empty project'''
+    existing = ctx.obj.get('')
+    for p in existing.json()['projects']:
+        if name == p['name'].split('.')[-1]:
+            click.echo("You already have an existing project with the name \"%s\"."
+                       "  Please choose a different project name." % name)
+            return
+    new_proj = ctx.obj.post('',
+                            data= json.dumps({
+                                "name": name
+                             })
+                            )
+    if new_proj.status_code == 201:
+        click.echo("New project '%s' created with id %s  \nView it at %s" %
+                    (name, new_proj.json()['id'],
+                    ctx.obj.url('projects/%s' % new_proj.json()['id'])))
+    else:
+        click.echo("There was an error creating this package.")
+
+
 @cli.command()
 def init():
-    '''Initialize a directory with a blank manifest.json file'''
+    '''Initialize directory with blank manifest.json file'''
     manifest_data = {
         "version": "1.0.0",
         "format": "python",
@@ -183,12 +376,13 @@ def init():
         f.write(json.dumps(manifest_data, indent=2))
         click.echo("manifest.json created")
 
+
 @cli.command()
 @click.argument('file', default='-')
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
 def analyze(ctx, file, test):
-    '''Analyze your run'''
+    '''Analyze autoprotocol'''
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
@@ -204,11 +398,11 @@ def analyze(ctx, file, test):
     if response.status_code == 200:
         click.echo(u"\u2713 Protocol analyzed")
         price(response.json())
-
     elif response.status_code == 422:
         click.echo("Error in protocol: %s" % response.text)
     else:
         click.echo("Unknown error: %s" % response.text)
+
 
 def price(response):
     def count(thing, things, num):
@@ -229,7 +423,7 @@ def price(response):
 @cli.command()
 @click.argument('protocol_name')
 def preview(protocol_name):
-    '''Preview the Autoprotocol output of a run (without submitting or analyzing)'''
+    '''Preview the Autoprotocol output of a script'''
     with click.open_file('manifest.json', 'r') as f:
         try:
             manifest = json.loads(f.read())
@@ -242,8 +436,8 @@ def preview(protocol_name):
     except StopIteration:
         click.echo("Error: The protocol name '%s' does not match any protocols "
                    "that can be previewed from within this directory.  \nCheck "
-                   "either your spelling or your manifest.json file and try "
-                   "again." % protocol_name)
+                   "either your protocol's spelling or your manifest.json file "
+                   "and try again." % protocol_name)
         return
     try:
         command = p['command_string']
@@ -314,7 +508,7 @@ def login(ctx, api_root):
             'Content-Type': 'application/json',
             })
     if r.status_code != 200:
-        click.echo("Error logging into Transcriptic: %s" % r.text)
+        click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
     user = r.json()
     token = (
@@ -350,6 +544,7 @@ def login(ctx, api_root):
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
+
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
@@ -360,3 +555,29 @@ def get_project_id(ctx, name):
         click.echo("A project with the name %s was not found in your "
                    "organization." % name)
         return
+
+
+@click.pass_context
+def get_package_id(ctx, name):
+    package_names = ctx.invoke(packages, i=True)
+    package_names = {k.lower(): v for k,v in package_names.items()}
+    package_id = package_names.get(name)
+    if not package_id:
+        package_id = name if name in package_names.values() else None
+    if not package_id and __name__ == "__main__":
+        click.echo("The package %s does not exist in your organization." % name)
+        return
+    return package_id
+
+
+@click.pass_context
+def get_package_name(ctx, id):
+    package_names = {v: k for k, v in ctx.invoke(packages, i=True).items()}
+    package_name = package_names.get(id)
+    if not package_name:
+        package_name = id if id in package_names.values() else None
+    if not package_name and __name__ == "__main__":
+        click.echo("The id %s does not match any package in your organization."
+                   % id)
+        return
+    return package_name
