@@ -272,10 +272,8 @@ def packages(ctx, i):
             click.echo('{:-^80}'.format(''))
 
 @cli.command("new-package")
-@click.option('--description', '-d', required=True, help="A description for your package.")
-@click.option('--name', '-n', required=True, help="Title of your package "
-                                                  "(no special characters or "
-                                                  "spaces allowed).")
+@click.argument('name')
+@click.argument('description')
 @click.pass_context
 def new_package(ctx, description, name):
     '''Create a new empty protocol package'''
@@ -290,7 +288,7 @@ def new_package(ctx, description, name):
                                                "name": name
                                               }))
     if new_pack.status_code == 201:
-        click.echo("New package %s created with id %s. \n"
+        click.echo("New package %s created with id %s \n"
                    "View it at %s" % (name, new_pack.json()['id'],
                                        ctx.obj.url('packages/%s' %
                                                     new_pack.json()['id'])))
@@ -321,6 +319,30 @@ def projects(ctx, i):
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
+
+
+@cli.command("new-project")
+@click.argument('name')
+@click.pass_context
+def new_project(ctx, name):
+    '''Create a new empty project'''
+    existing = ctx.obj.get('')
+    for p in existing.json()['projects']:
+        if name == p['name'].split('.')[-1]:
+            click.echo("You already have an existing project with the name \"%s\"."
+                       "  Please choose a different project name." % name)
+            return
+    new_proj = ctx.obj.post('',
+                            data= json.dumps({
+                                "name": name
+                             })
+                            )
+    if new_proj.status_code == 201:
+        click.echo("New project '%s' created with id %s  \nView it at %s" %
+                    (name, new_proj.json()['id'],
+                    ctx.obj.url('projects/%s' % new_proj.json()['id'])))
+    else:
+        click.echo("There was an error creating this package.")
 
 
 @cli.command()
