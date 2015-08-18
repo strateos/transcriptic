@@ -383,7 +383,6 @@ def init():
 @cli.command()
 @click.argument('file', default='-')
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
-@click.option('--all', help='Analyze all runs in package')
 @click.pass_context
 def analyze(ctx, file, test):
     '''Analyze autoprotocol'''
