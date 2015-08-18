@@ -1,7 +1,10 @@
 # Transcriptic Runner
 
 The Transcriptic Runner is a command-line tool for interacting with the
-Transcriptic API to submit and analyze protocols.
+Transcriptic API to submit and analyze protocols as well as upload them as packages to Transcriptic's website.
+
+For more information on uploading and packaging releases, see the [Transcriptic Developer Hub](http://developers.transcriptic.com/v1.0/docs/package-creation-quickstart#packaging-and-uploading)
+
 
 ## Installation
 
@@ -67,33 +70,44 @@ Previewing a protocol supplies a script with parameters supplied in the "preview
 ```
 $ transcriptic preview MyProtocol
 ```
+### Project Management
+**List Existing Projects within Your Organization**
+```
+$ transcriptic projects
+```
+
+**Create a New Project**
+```
+$ transcriptic new-project "Genotype All The Things"
+```
 
 ### Packaging and Releasing
 
-**Create a new empty package**
+**Create a New Empty Package**
 ```
-$ trancriptic new-package --name "my_package" --description "This is a description for my package of protocols"
+$ trancriptic new-package "my_package" "This is a description for my package of protocols"
 ```
 
-**List existing package names and ids**
+**List Existing Package Names and ids**
 ```
 $ transcriptic packages
 ```
 
-**Ititialize a Directory With a `manifest.json` File**
+**Ititialize a Directory With an empty manifest template**
 The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
 ```
 $ transcriptic init
 ```
 
-**Compress all files in working directory for release**
+**Compress All Files in Working Directory for Release**
 ```
 $ transcriptic release
 ```
+passing a --name argument allows you to name your release, otherwise it will be named `release_<version from manifest>` automatically
 
 **Compress all files in working directory for release and upload to a specific package**
 ```
-$ transcriptic release --upload my_package
+$ transcriptic release my_package
 ```
 
 **Upload an existing compressed release to a package**
@@ -173,12 +187,12 @@ if __name__ == "__main__":
   run(sample_protocol, protocol_name="SampleProtocol")
 ```
 
-**preview a protocol's output on the command line:**
+**Preview a Protocol's Output on the Command Line:**
 ```
 $ transcriptic preview SampleProtocol
 ```
 
-#### Run a protocol and view its output on the command line by passing it an external .json file with parameters and refs (instead of using your `manifest.json`'s "preview" section):
+**Run a protocol and view its output on the command line by passing it an external .json file with parameters and refs (instead of using your `manifest.json`'s "preview" section)**:
 ```
 $ transcriptic run SampleProtocol protocol_params.json
 ```
@@ -195,4 +209,3 @@ autoprotocol==2.1.0
 
 A release consists of everything within the protocols_folder folder **(but do not zip the folder itself: the manifest.json file must be at the top level of the archive.)**
 
-For more information on uploading and packaging releases, see the [Transcriptic Developer Hub](http://developers.transcriptic.com/v1.0/docs/package-creation-quickstart#packaging-and-uploading)
