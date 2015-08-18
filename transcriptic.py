@@ -130,10 +130,11 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
+@click.argument('package', required=False)
 @click.option('--name', '-n', help="Optional name for your zip file")
-@click.option('--upload', '-u', help="Upload release to specifid package")
+# @click.option('--upload', '-u', help="Upload release to specified package")
 @click.pass_context
-def release(ctx, name, upload):
+def release(ctx, name=None, package=None):
     '''Compress the contents of the current directory to upload as a release'''
     deflated = zipfile.ZIP_DEFLATED
     def makezip(d, archive):
@@ -144,7 +145,7 @@ def release(ctx, name, upload):
         return archive
 
     with open('manifest.json', 'rU') as manifest:
-        filename = 'release_v%s' %json.load(manifest)['version']
+        filename = 'release_v%s' %json.load(manifest)['version'] or name
     if os.path.isfile(filename + ".zip"):
         new = click.prompt("You already have a release for this "
                            "version number in this directory, make "
@@ -160,8 +161,8 @@ def release(ctx, name, upload):
     archive = makezip('.', zf)
     zf.close()
     click.echo("Archive %s created." % (filename + ".zip"))
-    if upload:
-        package_id = get_package_id(ctx, upload) or get_package_name(ctx, upload)
+    if package:
+        package_id = get_package_id(ctx, package) or get_package_name(ctx, package)
         ctx.invoke(upl, archive=(filename + ".zip"), package=package_id)
 
 
@@ -173,13 +174,13 @@ def upl(ctx, archive, package):
     """Upload an existing archive to an existing package"""
     try:
         package_id = get_package_id(ctx, package.lower()) or get_package_name(ctx, package.lower())
+        click.echo("Uploading %s to %s" % (archive,
+                                           (get_package_name(ctx,package_id.lower()) or
+                                            get_package_id(ctx, package_id.lower()))))
     except AttributeError:
         click.echo("Error: Invalid package id or name.")
         return
 
-    click.echo("Uploading %s to %s" % (archive,
-                                       (get_package_name(ctx,package_id.lower()) or
-                                        get_package_id(ctx, package_id.lower()))))
     with click.progressbar(None, 100, "Upload Progress",
                             show_eta = False, width=70,
                             fill_char = "|", empty_char= "-") as bar:
@@ -539,7 +540,8 @@ def get_package_id(ctx, name):
     package_names = ctx.invoke(packages, i=True)
     package_names = {k.lower(): v for k,v in package_names.items()}
     package_id = package_names.get(name)
-    package_id = name if not package_id and name in package_names.values() else None
+    if not package_id:
+        package_id = name if name in package_names.values() else None
     if not package_id and __name__ == "__main__":
         click.echo("The package %s does not exist in your organization." % name)
         return
@@ -550,7 +552,8 @@ def get_package_id(ctx, name):
 def get_package_name(ctx, id):
     package_names = {v: k for k, v in ctx.invoke(packages, i=True).items()}
     package_name = package_names.get(id)
-    package_name = id if not package_name and id in package_names.values() else None
+    if not package_name:
+        package_name = id if id in package_names.values() else None
     if not package_name and __name__ == "__main__":
         click.echo("The id %s does not match any package in your organization."
                    % id)
