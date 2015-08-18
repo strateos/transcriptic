@@ -596,10 +596,8 @@ def parse_json(json_file):
 
 
 def get_protocol_list(json_file):
-    protocol_list = []
     manifest = parse_json(json_file)
-    for protocol in manifest["protocols"]:
-        protocol_list.append(protocol["name"])
+    protocol_list = [p['name'] for p in manifest['protocols']]
     return protocol_list
 
 
@@ -623,15 +621,24 @@ def regex_manifest(protocol, input):
             pattern = '\[(.*?)\]'
             match = re.search(pattern, str(input["options"]))
             if not match:
-                click.echo("Must have bracketed options." +
-                                   " Error in: " + protocol["name"])
+                click.echo("Error in %s: input type \"choice\" options must be in the "
+                           "form of: \n[\n  {\n  \"value\": <choice value>, \n  \"label\": "
+                           "<choice label>\n  },\n  ...\n]" % protocol['name'])
+                raise RuntimeError
         else:
             click.echo("Must have options for 'choice' input type." +
                                " Error in: " + protocol["name"])
+            raise RuntimeError
 
 
 def iter_json(manifest):
     all_types = {}
+    try:
+        protocol = manifest['protocols']
+    except TypeError:
+        click.echo("Error: Your manifest.json file doesn't contain valid JSON and"
+                   " cannot be formatted.")
+        raise RuntimeError
     for protocol in manifest["protocols"]:
         types = {}
         for param, input in protocol["inputs"].items():
@@ -653,4 +660,8 @@ def iter_json(manifest):
 def format(manifest):
     '''Check autoprotocol format of manifest.json'''
     manifest = parse_json(manifest)
-    iter_json(manifest)
+    try:
+        iter_json(manifest)
+        click.echo("No manifest formatting errors found.")
+    except RuntimeError:
+        pass
