@@ -100,7 +100,10 @@ def cli(ctx, apiroot, config, organization):
 @click.pass_context
 def submit(ctx, file, project, title, test):
     '''Submit your run to the project specified'''
-    project = get_project_id(ctx, project)
+    project = get_project_id(project)
+    if not project:
+        return
+
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
@@ -551,13 +554,14 @@ def login(ctx, api_root):
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
-    id = projs.get(name) or name
-    if id:
-        return id
-    else:
-        click.echo("A project with the name %s was not found in your "
-                   "organization." % name)
-        return
+    id = projs.get(name.lower())
+    if not id:
+        id = name if name in projs.values() else None
+        if not id:
+            click.echo("A project with the name or id '%s' was not found in your "
+                       "organization." % name)
+            return
+    return id
 
 
 @click.pass_context
