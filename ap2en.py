@@ -1,4 +1,4 @@
-from autoprotocol.util import quad_ind_to_num
+import autoprotocol.util
 
 
 PLURAL_UNITS = ["microliter", "nanoliter", "milliliter", "second", "minute",
