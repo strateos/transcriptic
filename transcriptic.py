@@ -168,7 +168,7 @@ def release(ctx, name=None, package=None):
     zf.close()
     click.echo("Archive %s created." % (filename + ".zip"))
     if package:
-        package_id = get_package_id(ctx, package) or get_package_name(ctx, package)
+        package_id = get_package_id(package) or get_package_name(package)
         ctx.invoke(upl, archive=(filename + ".zip"), package=package_id)
 
 
@@ -179,10 +179,10 @@ def release(ctx, name=None, package=None):
 def upl(ctx, archive, package):
     """Upload an existing archive to an existing package"""
     try:
-        package_id = get_package_id(ctx, package.lower()) or get_package_name(ctx, package.lower())
+        package_id = get_package_id(package.lower()) or get_package_name(package.lower())
         click.echo("Uploading %s to %s" % (archive,
-                                           (get_package_name(ctx,package_id.lower()) or
-                                            get_package_id(ctx, package_id.lower()))))
+                                           (get_package_name(package_id.lower()) or
+                                            get_package_id(package_id.lower()))))
     except AttributeError:
         click.echo("Error: Invalid package id or name.")
         return
@@ -248,7 +248,7 @@ def upl(ctx, archive, package):
             click.echo("\nPackage upload to %s unsuccessful. "
                        "The following error was "
                        "returned: %s" %
-                       (get_package_name(ctx, package_id),
+                       (get_package_name(package_id),
                         (',').join(e.get('message', '[Unknown]') for
                                    e in errors)))
         else:
