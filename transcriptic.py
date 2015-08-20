@@ -469,7 +469,11 @@ def preview(protocol_name):
 @click.pass_context
 def summarize(ctx, file):
     with click.open_file(file, 'r') as f:
-        protocol = json.loads(f.read())
+        try:
+            protocol = json.loads(f.read())
+        except ValueError:
+            click.echo("The autoprotocol you're trying to summarize is invalid.")
+            return
     ap2en.AutoprotocolParser(protocol)
 
 

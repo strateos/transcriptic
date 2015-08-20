@@ -75,7 +75,7 @@ class AutoprotocolParser(object):
 
     def provision(self, opts):
         for t in opts['to']:
-            return "Provision %s of resource with ID %s to well %s of plate %s" % \
+            return "Provision %s of resource with ID %s to well %s of container %s" % \
                 (self.unit(t['volume']), opts['resource_id'], self.well(t['well']), self.platename(t['well']))
 
     def sanger_sequence(self, opts):
@@ -120,7 +120,6 @@ class AutoprotocolParser(object):
                                                            self.platename(m['well']),
                                                            m['repetitions'], self.unit(m['volume'])))
                 elif pip == "transfer":
-                    # DO TO: Cover one tip transfers
                     pipettes.extend(["Transfer %s from %s to %s %s" % (self.unit(p['volume']), p['from'], p['to'], ("with one tip" if len(g[pip]) > 1 else "") ) for
                                                             p in g[pip]
                                     ])
