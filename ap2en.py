@@ -31,7 +31,7 @@ class AutoprotocolParser(object):
                                                         self.well_list(opts['wells']), opts['object'])
 
     def autopick(self, opts):
-        return "Pick %d colonies from well %s of plate %s into wells [%s]" % (len(opts['to']),
+        return "Pick %d colonies from well %s of plate %s into %s" % (len(opts['to']),
                                                               self.well(opts['from']),
                                                               self.platename(opts['from']),
                                                               self.well_list(opts['to']))
@@ -74,9 +74,11 @@ class AutoprotocolParser(object):
         return ["Oligosynthesize sequence '%s' into '%s'" % (o['sequence'], o['destination']) for o in opts['oligos']]
 
     def provision(self, opts):
+        provisions = []
         for t in opts['to']:
-            return "Provision %s of resource with ID %s to well %s of container %s" % \
-                (self.unit(t['volume']), opts['resource_id'], self.well(t['well']), self.platename(t['well']))
+            provisions.append("Provision %s of resource with ID %s to well %s of container %s" % \
+                (self.unit(t['volume']), opts['resource_id'], self.well(t['well']), self.platename(t['well'])))
+        return provisions
 
     def sanger_sequence(self, opts):
         seq = "Sanger sequence %s of plate %s" % (self.well_list(opts['wells']), opts['object'])
@@ -120,8 +122,13 @@ class AutoprotocolParser(object):
                                                            self.platename(m['well']),
                                                            m['repetitions'], self.unit(m['volume'])))
                 elif pip == "transfer":
-                    pipettes.extend(["Transfer %s from %s to %s %s" % (self.unit(p['volume']), p['from'], p['to'], ("with one tip" if len(g[pip]) > 1 else "") ) for
-                                                            p in g[pip]
+                    pipettes.extend(["Transfer %s from %s "
+                                     "to %s %s" %
+                                     (self.unit(p['volume']),
+                                      p['from'],
+                                      p['to'],
+                                      ("with one tip" if len(g[pip]) > 1 else "")
+                                      ) for p in g[pip]
                                     ])
                 elif pip == "distribute":
                     pipettes.append("Distribute from %s into %s" %
