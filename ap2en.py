@@ -60,9 +60,11 @@ class AutoprotocolParser(object):
                                              self.unit(opts['duration'])))
 
     def incubate(self, opts):
-        return "Incubate %s at %s for %s" % (opts['object'],
+        shaking = " (shaking)" if opts['shaking'] else ""
+        return "Incubate %s at %s for %s%s" % (opts['object'],
                                              TEMP_DICT[opts['where']],
-                                             self.unit(opts['duration']))
+                                             self.unit(opts['duration']),
+                                             shaking)
 
     def image_plate(self, opts):
         return "Take an image of %s" % opts['object']
