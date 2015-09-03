@@ -238,7 +238,7 @@ def upl(ctx, archive, package):
                        "and/or `transcriptic analyze` commands.")
             return
         bar.update(20)
-        time.sleep(20)
+        time.sleep(10)
         status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re,
                                                                 int(time.time())))
         published = json.loads(status.content)['published']
