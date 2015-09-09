@@ -70,6 +70,13 @@ Previewing a protocol supplies a script with parameters supplied in the "preview
 ```
 $ transcriptic preview MyProtocol
 ```
+
+**Translate a Protocol to English**
+Pipe any valid autoprotocol to `transcriptic summarize` to get a summary of each step
+```
+$ transcriptic preview MyProtocol | transcriptic summarize
+```
+
 ### Project Management
 **List Existing Projects within Your Organization**
 ```
