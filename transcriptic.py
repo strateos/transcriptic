@@ -265,7 +265,7 @@ def packages(ctx, i):
     package_names = {}
     if response.status_code == 200:
         for pack in response.json():
-            package_names[str(pack['name']).lower()] = str(pack['id'])
+            package_names[str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
     if i:
         return package_names
     else:
@@ -291,7 +291,7 @@ def new_package(ctx, description, name):
             return
     new_pack = ctx.obj.post('/packages/',
                             data = json.dumps({"description": description,
-                                               "name": name
+                                               "name": "%s%s" % ("com.%s." % ctx.obj.organization, name)
                                               }))
     if new_pack.status_code == 201:
         click.echo("New package %s created with id %s \n"
