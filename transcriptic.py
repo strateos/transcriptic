@@ -2,6 +2,7 @@ import sys
 import json
 from os.path import expanduser, isfile
 import locale
+import ap2en
 import click
 import requests
 from collections import OrderedDict
@@ -138,7 +139,6 @@ def submit(ctx, file, project, title, test):
 @cli.command()
 @click.argument('package', required=False)
 @click.option('--name', '-n', help="Optional name for your zip file")
-# @click.option('--upload', '-u', help="Upload release to specified package")
 @click.pass_context
 def release(ctx, name=None, package=None):
     '''Compress the contents of the current directory to upload as a release'''
@@ -238,7 +238,7 @@ def upl(ctx, archive, package):
                        "and/or `transcriptic analyze` commands.")
             return
         bar.update(20)
-        time.sleep(20)
+        time.sleep(10)
         status = ctx.obj.get('/packages/%s/releases/%s?_=%s' % (package_id, re,
                                                                 int(time.time())))
         published = json.loads(status.content)['published']
@@ -462,6 +462,19 @@ def preview(protocol_name):
             return
         fp.flush()
         call(["bash", "-c", command + " " + fp.name])
+
+
+@cli.command()
+@click.argument('file', default='-')
+@click.pass_context
+def summarize(ctx, file):
+    with click.open_file(file, 'r') as f:
+        try:
+            protocol = json.loads(f.read())
+        except ValueError:
+            click.echo("The autoprotocol you're trying to summarize is invalid.")
+            return
+    ap2en.AutoprotocolParser(protocol)
 
 
 @cli.command()
