@@ -218,20 +218,20 @@ def upl(ctx, archive, package):
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
-        up = ctx.obj.post('/packages/%s/releases/' % package_id,
-                          data = json.dumps({"release":
-                                             {
-                                              "binary_attachment_url": loc["Key"]
-                                              }
-                                            }),
-                          headers= {
-                            "Origin": "https://secure.transcriptic.com/",
-                            "Content-Type": "application/json"
-                          })
         try:
+            up = ctx.obj.post('/packages/%s/releases/' % package_id,
+                              data = json.dumps({"release":
+                                                 {
+                                                  "binary_attachment_url": loc["Key"]
+                                                  }
+                                                }),
+                              headers= {
+                                "Origin": "https://secure.transcriptic.com/",
+                                "Content-Type": "application/json"
+                              })
             re = json.loads(up.content)['id']
         except ValueError:
-            click.echo("\nError: There was a problem uploading your release. Verify"
+            click.echo("\nError: There was a problem uploading your release. \nVerify"
                        " that your manifest.json file is properly formatted and"
                        " that all previews in your manifest produce valid "
                        "Autoprotocol by using the `transcriptic preview` "
