@@ -44,14 +44,25 @@ Logged in as sanger@transcriptic.com (cambridge)
 ```
 
 ## The Basics
+**Preview Protocol Output**
+
+Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
+```
+$ transcriptic preview MyProtocol
+```
 
 **Analyze a Protocol**
-Submit a protocol to Transcriptic to check its validity.
+
+To check whether your Autoprotocol is valid using Transcriptic's server-side checker, pipe any script that prints Autoprotocol to STDOUT to `transcriptic analyze`:
 ```
 $ python my_protocol.py | transcriptic analyze
 ✓ Protocol analyzed
   2 instructions
   1 container
+```
+alternatively:
+```
+$ transcriptic preview MyProtocol | transcriptic analyze
 ```
 
 **Submit a Protocol to Transcriptic**
@@ -65,13 +76,8 @@ Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
 $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run" --test
 ```
 
-**Preview a Protocol**
-Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
-```
-$ transcriptic preview MyProtocol
-```
-
 **Translate a Protocol to English**
+
 Pipe any valid autoprotocol to `transcriptic summarize` to get a summary of each step
 ```
 $ transcriptic preview MyProtocol | transcriptic summarize
@@ -101,6 +107,7 @@ $ transcriptic packages
 ```
 
 **Ititialize a Directory With an empty manifest template**
+
 The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
 ```
 $ transcriptic init
@@ -162,6 +169,7 @@ A manifest.json file contains metadata about protocols required when uploading a
           "type": "volume",
           "description": "Volume to transfer",
           "default": "12:microliter"
+        }
       },
       "preview": {
         "refs": {
