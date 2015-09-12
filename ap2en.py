@@ -18,9 +18,9 @@ class AutoprotocolParser(object):
         parsed_output = []
         for i in self.instructions:
             try:
-                output = eval("self." + i['op'])(i)
+                output = getattr(self, i['op'])(i)
                 parsed_output.extend(output) if isinstance(output, list) else parsed_output.append(output)
-            except NameError:
+            except AttributeError:
                 parsed_output.append("[Unknown instruction]")
         for i, p in enumerate(parsed_output):
             print "%d. %s" % (i+1, p)
