@@ -274,7 +274,7 @@ def packages(ctx, i):
             else:
                 package_names['theirs'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
     if i:
-        return package_names['yours'] + package_names['theirs']
+        return dict(package_names['yours'].items() + package_names['theirs'].items())
     else:
         for category, packages in package_names.items():
             if category == "yours":
