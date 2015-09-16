@@ -11,6 +11,7 @@ import os
 import time
 import xml.etree.ElementTree as ET
 import re
+from collections import OrderedDict
 
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
@@ -262,20 +263,31 @@ def upl(ctx, archive, package):
 def packages(ctx, i):
     '''List packages in your organizaiton'''
     response = ctx.obj.get('/packages/')
-    package_names = {}
+    # there's probably a better way to do this
+    package_names = OrderedDict(sorted({"yours": {}, "theirs": {}}.items(), key=lambda t: len(t[0])))
+
     if response.status_code == 200:
         for pack in response.json():
-            package_names[str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
+            if pack.get('owner'):
+                if pack['owner']['email'] == ctx.obj.email:
+                    package_names['yours'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
+            else:
+                package_names['theirs'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
     if i:
-        return package_names
+        return dict(package_names['yours'].items() + package_names['theirs'].items())
     else:
-        click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
-                   '{:^40}'.format("PACKAGE ID"))
-        click.echo('{:-^80}'.format(''))
-        for name, id in package_names.items():
-            click.echo('{:<40}'.format(name) + "|" +
-                       '{:^40}'.format(id))
+        for category, packages in package_names.items():
+            if category == "yours":
+                click.echo('\n{:^80}'.format("YOUR PACKAGES:"))
+            else:
+                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
+            click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                       '{:^40}'.format("PACKAGE ID"))
             click.echo('{:-^80}'.format(''))
+            for name, id in packages.items():
+                click.echo('{:<40}'.format(name) + "|" +
+                           '{:^40}'.format(id))
+                click.echo('{:-^80}'.format(''))
 
 @cli.command("new-package")
 @click.argument('name')
