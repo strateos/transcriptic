@@ -341,8 +341,9 @@ def projects(ctx, i):
 
 @cli.command("new-project")
 @click.argument('name')
+@click.option('dev', '-d', help="Create a pilot project", is_flag=True)
 @click.pass_context
-def new_project(ctx, name):
+def new_project(ctx, name, dev):
     '''Create a new empty project'''
     existing = ctx.obj.get('')
     for p in existing.json()['projects']:
@@ -350,15 +351,14 @@ def new_project(ctx, name):
             click.echo("You already have an existing project with the name \"%s\"."
                        "  Please choose a different project name." % name)
             return
-    new_proj = ctx.obj.post('',
-                            data= json.dumps({
-                                "name": name
-                             })
-                            )
+    proj_data = {"name": name}
+    if dev:
+        proj_data["is_developer"] = True
+    new_proj = ctx.obj.post('', data= json.dumps(proj_data))
     if new_proj.status_code == 201:
-        click.echo("New project '%s' created with id %s  \nView it at %s" %
-                    (name, new_proj.json()['id'],
-                    ctx.obj.url('projects/%s' % new_proj.json()['id'])))
+        click.echo("New%s project '%s' created with id %s  \nView it at %s" %
+                    (" pilot" if dev else "", name, new_proj.json()['id'],
+                    ctx.obj.url('%s' % (new_proj.json()['id']))))
     else:
         click.echo("There was an error creating this package.")
 
