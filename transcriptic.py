@@ -328,19 +328,32 @@ def projects(ctx, i):
     '''List the projects in your organization'''
     response = ctx.obj.get('')
     proj_names = {}
+    proj_cats = {"reg": {}, "pilot": {}}
     if response.status_code == 200:
         for proj in response.json()['projects']:
             proj_names[proj['name']] =  proj['id']
+            if proj["is_developer"]:
+                proj_cats["pilot"][proj['name']] =  proj['id']
+            else:
+                proj_cats["reg"][proj['name']] =  proj['id']
         if i:
             return {k.lower(): v for k,v in proj_names.items()}
         else:
-            click.echo('{:^35}'.format("PROJECT NAME") + "|" +
-                       '{:^35}'.format("PROJECT ID"))
-            click.echo('{:-^70}'.format(''))
-            for name, i in proj_names.items():
-                click.echo('{:<35}'.format(name) + "|" +
-                           '{:^35}'.format(i))
-                click.echo('{:-^70}'.format(''))
+            for cat, packages in proj_cats.items():
+                if cat == "reg":
+                    click.echo('\n{:^80}'.format("PROJECTS:"))
+                    click.echo('{:^40}'.format("PROJECT NAME") + "|" +
+                               '{:^40}'.format("PROJECT ID"))
+                    click.echo('{:-^80}'.format(''))
+                elif cat == "pilot" and packages:
+                    click.echo('\n{:^80}'.format("PILOT PROJECTS:"))
+                    click.echo('{:^40}'.format("PROJECT NAME") + "|" +
+                               '{:^40}'.format("PROJECT ID"))
+                    click.echo('{:-^80}'.format(''))
+                for name, i in packages.items():
+                    click.echo('{:<40}'.format(name) + "|" +
+                               '{:^40}'.format(i))
+                    click.echo('{:-^80}'.format(''))
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
@@ -348,7 +361,7 @@ def projects(ctx, i):
 
 @cli.command("new-project")
 @click.argument('name')
-@click.option('dev', '-d', help="Create a pilot project", is_flag=True)
+@click.option('--dev', '-d', help="Create a pilot project", is_flag=True)
 @click.pass_context
 def new_project(ctx, name, dev):
     '''Create a new empty project'''
@@ -372,7 +385,7 @@ def new_project(ctx, name, dev):
 
 @cli.command("delete-project")
 @click.argument('name')
-@click.option('force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
+@click.option('--force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_project(ctx, name, force):
     '''Delete an existing package'''
@@ -385,7 +398,6 @@ def delete_project(ctx, name, force):
         dele = ctx.obj.delete('%s' % id, data=json.dumps({"id": id}))
 
         click.echo("Project deleted.")
-
 
 
 @cli.command()
