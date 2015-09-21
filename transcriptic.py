@@ -27,12 +27,20 @@ class Config:
         self.email = email
         self.token = token
         self.organization = organization
+        self.default_headers = {
+            'X-User-Email': self.email,
+            'X-User-Token': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            }
+
 
     @staticmethod
     def from_file(path):
         with click.open_file(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             return Config(**cfg)
+
 
     def save(self, path):
         with click.open_file(expanduser(path), 'w') as f:
@@ -43,29 +51,27 @@ class Config:
                 'api_root': self.api_root,
                 }, indent=2))
 
+
     def url(self, path):
         return "%s/%s/%s" % (self.api_root, self.organization, path)
 
+
     def post(self, path, **kwargs):
-        default_headers = {
-            'X-User-Email': self.email,
-            'X-User-Token': self.token,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            }
+        default_headers = self.default_headers
         default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
 
     def get(self, path, **kwargs):
-        default_headers = {
-            'X-User-Email': self.email,
-            'X-User-Token': self.token,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            }
+        default_headers = self.default_headers
         default_headers.update(kwargs.pop('headers', {}))
         return requests.get(self.url(path), headers=default_headers, **kwargs)
+
+
+    def delete(self, path, **kwargs):
+        default_headers = self.default_headers
+        default_headers.update(kwargs.pop('headers', {}))
+        return requests.delete(self.url(path), headers=default_headers, **kwargs)
 
 
 @click.group()
@@ -89,6 +95,7 @@ def cli(ctx, apiroot, config, organization):
             click.echo("Error reading config file, running "
                        "`transcriptic login` ...")
             ctx.invoke(login)
+
 
 @cli.command()
 @click.argument('file', default='-')
@@ -363,6 +370,24 @@ def new_project(ctx, name, dev):
         click.echo("There was an error creating this package.")
 
 
+@cli.command("delete-project")
+@click.argument('name')
+@click.option('force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
+@click.pass_context
+def delete_project(ctx, name, force):
+    '''Delete an existing package'''
+    id = get_project_id(name)
+    if id:
+        if not force:
+            click.confirm("Are you sure you want to permanently delete '%s'?" % get_project_name(id),
+                          default=False,
+                          abort=True)
+        dele = ctx.obj.delete('%s' % id, data=json.dumps({"id": id}))
+
+        click.echo("Project deleted.")
+
+
+
 @cli.command()
 def init():
     '''Initialize directory with blank manifest.json file'''
@@ -583,10 +608,23 @@ def get_project_id(ctx, name):
     if not id:
         id = name if name in projs.values() else None
         if not id:
-            click.echo("A project with the name or id '%s' was not found in your "
+            click.echo("A project with the name '%s' was not found in your "
                        "organization." % name)
             return
     return id
+
+
+@click.pass_context
+def get_project_name(ctx, id):
+    projs = {v:k for k,v in ctx.invoke(projects, i=True).items()}
+    name = projs.get(id)
+    if not name:
+        name = id if name in projs.keys() else None
+        if not name:
+            click.echo("A project with the id '%s' was not found in your "
+                       "organization." % name)
+            return
+    return name
 
 
 @click.pass_context
