@@ -145,7 +145,7 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
-@click.argument('package', required=False)
+@click.argument('package', required=False, metavar="PACKAGE")
 @click.option('--name', '-n', help="Optional name for your zip file")
 @click.pass_context
 def release(ctx, name=None, package=None):
@@ -181,8 +181,9 @@ def release(ctx, name=None, package=None):
 
 
 @cli.command("upload")
-@click.argument('archive', required=True, type=click.Path(exists=True))
-@click.argument('package', required=True)
+@click.argument('archive', required=True, type=click.Path(exists=True),
+                 metavar="ARCHIVE")
+@click.argument('package', required=True, metavar="PACKAGE")
 @click.pass_context
 def upl(ctx, archive, package):
     """Upload an existing archive to an existing package"""
@@ -360,8 +361,8 @@ def projects(ctx, i):
 
 
 @cli.command("new-project")
-@click.argument('name')
-@click.option('--dev', '-d', help="Create a pilot project", is_flag=True)
+@click.argument('name', metavar="PROJECT_NAME")
+@click.option('--dev', '-d', '-pilot', help="Create a pilot project", is_flag=True)
 @click.pass_context
 def new_project(ctx, name, dev):
     '''Create a new empty project'''
@@ -384,7 +385,7 @@ def new_project(ctx, name, dev):
 
 
 @cli.command("delete-project")
-@click.argument('name')
+@click.argument('name', metavar="PROJECT_NAME")
 @click.option('--force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_project(ctx, name, force):
@@ -476,7 +477,7 @@ def price(response):
         click.echo("WARNING (%s): %s" % (context, message))
 
 @cli.command()
-@click.argument('protocol_name')
+@click.argument('protocol_name', metavar="PROTOCOL_NAME")
 def preview(protocol_name):
     '''Preview the Autoprotocol output of a script'''
     with click.open_file('manifest.json', 'r') as f:
@@ -527,7 +528,7 @@ def summarize(ctx, file):
 
 
 @cli.command()
-@click.argument('protocol_name')
+@click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.argument('args', nargs=-1)
 def run(protocol_name, args):
     '''Run a protocol by passing it a config file (without submitting or analyzing)'''
