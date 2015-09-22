@@ -334,7 +334,7 @@ def new_package(ctx, description, name):
 @click.option('--force', '-f', help="force delete a package without being prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_package(ctx, name, force):
-    '''Create a new empty protocol package'''
+    '''Delete an existing protocol package'''
     id = get_package_id(name)
     if id:
         if not force:
@@ -412,7 +412,7 @@ def new_project(ctx, name, dev):
 @click.option('--force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_project(ctx, name, force):
-    '''Delete an existing package'''
+    '''Delete an existing project'''
     id = get_project_id(name)
     if id:
         if not force:
@@ -547,6 +547,7 @@ def preview(protocol_name):
 @click.argument('file', default='-')
 @click.pass_context
 def summarize(ctx, file):
+    """Summarize Autoprotocol as a list of plain English steps (WIP)"""
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
