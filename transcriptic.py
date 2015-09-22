@@ -61,6 +61,11 @@ class Config:
         default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
+    def put(self, path, **kwargs):
+        default_headers = self.default_headers
+        default_headers.update(kwargs.pop('headers', {}))
+        return requests.put(self.url(path), headers=default_headers, **kwargs)
+
 
     def get(self, path, **kwargs):
         default_headers = self.default_headers
@@ -400,7 +405,14 @@ def delete_project(ctx, name, force):
                           default=False,
                           abort=True)
         dele = ctx.obj.delete('%s' % id, data=json.dumps({"id": id}))
-        click.echo("Project deleted.")
+        if dele.status_code == 200:
+            click.echo("Project deleted.")
+        else:
+            click.confirm("You cannot delete a project that contains runs.  Archive it instead?",
+                          default=False, abort=True)
+            arch = ctx.obj.put('%s' % id, data=json.dumps({"project": {"archived": True}}))
+            if arch.status_code == 200:
+                click.echo("Project archived.")
 
 
 @cli.command()
