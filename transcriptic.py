@@ -260,10 +260,10 @@ def upl(ctx, archive, package):
         bar.update(30)
         if errors:
             click.echo("\nPackage upload to %s unsuccessful. "
-                       "The following error was "
-                       "returned: %s" %
+                       "The following error(s) was "
+                       "returned: \n%s" %
                        (get_package_name(package_id),
-                        (',').join(e.get('message', '[Unknown]') for
+                        ('\n').join(e.get('message', '[Unknown]') for
                                    e in errors)))
         else:
             click.echo("\nPackage uploaded successfully! \n"
@@ -329,6 +329,21 @@ def new_package(ctx, description, name):
     else:
         click.echo("There was an error creating this package.")
 
+@cli.command("delete-package")
+@click.argument('name')
+@click.option('--force', '-f', help="force delete a package without being prompted if you're sure", is_flag=True)
+@click.pass_context
+def delete_package(ctx, name, force):
+    '''Create a new empty protocol package'''
+    id = get_package_id(name)
+    if id:
+        if not force:
+            click.confirm("Are you sure you want to permanently delete the package"
+                          " '%s'?  All releases within will be lost." %
+                          get_package_name(id), default=False, abort=True)
+            click.confirm("Are you really really sure?", default=True)
+        del_pack = ctx.obj.delete('/packages/%s' % id)
+        click.echo("Package deleted.")
 
 @cli.command()
 @click.pass_context
@@ -661,7 +676,7 @@ def get_package_id(ctx, name):
     package_id = package_names.get(name)
     if not package_id:
         package_id = name if name in package_names.values() else None
-    if not package_id and __name__ == "__main__":
+    if not package_id:
         click.echo("The package %s does not exist in your organization." % name)
         return
     return package_id
@@ -673,7 +688,7 @@ def get_package_name(ctx, id):
     package_name = package_names.get(id)
     if not package_name:
         package_name = id if id in package_names.values() else None
-    if not package_name and __name__ == "__main__":
+    if not package_name:
         click.echo("The id %s does not match any package in your organization."
                    % id)
         return
