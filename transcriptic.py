@@ -27,12 +27,20 @@ class Config:
         self.email = email
         self.token = token
         self.organization = organization
+        self.default_headers = {
+            'X-User-Email': self.email,
+            'X-User-Token': self.token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            }
+
 
     @staticmethod
     def from_file(path):
         with click.open_file(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             return Config(**cfg)
+
 
     def save(self, path):
         with click.open_file(expanduser(path), 'w') as f:
@@ -43,29 +51,32 @@ class Config:
                 'api_root': self.api_root,
                 }, indent=2))
 
+
     def url(self, path):
         return "%s/%s/%s" % (self.api_root, self.organization, path)
 
+
     def post(self, path, **kwargs):
-        default_headers = {
-            'X-User-Email': self.email,
-            'X-User-Token': self.token,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            }
+        default_headers = self.default_headers
         default_headers.update(kwargs.pop('headers', {}))
         return requests.post(self.url(path), headers=default_headers, **kwargs)
 
+    def put(self, path, **kwargs):
+        default_headers = self.default_headers
+        default_headers.update(kwargs.pop('headers', {}))
+        return requests.put(self.url(path), headers=default_headers, **kwargs)
+
 
     def get(self, path, **kwargs):
-        default_headers = {
-            'X-User-Email': self.email,
-            'X-User-Token': self.token,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            }
+        default_headers = self.default_headers
         default_headers.update(kwargs.pop('headers', {}))
         return requests.get(self.url(path), headers=default_headers, **kwargs)
+
+
+    def delete(self, path, **kwargs):
+        default_headers = self.default_headers
+        default_headers.update(kwargs.pop('headers', {}))
+        return requests.delete(self.url(path), headers=default_headers, **kwargs)
 
 
 @click.group()
@@ -89,6 +100,7 @@ def cli(ctx, apiroot, config, organization):
             click.echo("Error reading config file, running "
                        "`transcriptic login` ...")
             ctx.invoke(login)
+
 
 @cli.command()
 @click.argument('file', default='-')
@@ -138,7 +150,7 @@ def submit(ctx, file, project, title, test):
 
 
 @cli.command()
-@click.argument('package', required=False)
+@click.argument('package', required=False, metavar="PACKAGE")
 @click.option('--name', '-n', help="Optional name for your zip file")
 @click.pass_context
 def release(ctx, name=None, package=None):
@@ -174,8 +186,9 @@ def release(ctx, name=None, package=None):
 
 
 @cli.command("upload")
-@click.argument('archive', required=True, type=click.Path(exists=True))
-@click.argument('package', required=True)
+@click.argument('archive', required=True, type=click.Path(exists=True),
+                 metavar="ARCHIVE")
+@click.argument('package', required=True, metavar="PACKAGE")
 @click.pass_context
 def upl(ctx, archive, package):
     """Upload an existing archive to an existing package"""
@@ -279,11 +292,14 @@ def packages(ctx, i):
         for category, packages in package_names.items():
             if category == "yours":
                 click.echo('\n{:^80}'.format("YOUR PACKAGES:"))
-            else:
-                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
-            click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
                        '{:^40}'.format("PACKAGE ID"))
-            click.echo('{:-^80}'.format(''))
+                click.echo('{:-^80}'.format(''))
+            elif category == "theirs" and packages.values():
+                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
+                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                           '{:^40}'.format("PACKAGE ID"))
+                click.echo('{:-^80}'.format(''))
             for name, id in packages.items():
                 click.echo('{:<40}'.format(name) + "|" +
                            '{:^40}'.format(id))
@@ -321,28 +337,42 @@ def projects(ctx, i):
     '''List the projects in your organization'''
     response = ctx.obj.get('')
     proj_names = {}
+    proj_cats = {"reg": {}, "pilot": {}}
     if response.status_code == 200:
         for proj in response.json()['projects']:
             proj_names[proj['name']] =  proj['id']
+            if proj.get("is_developer"):
+                proj_cats["pilot"][proj['name']] =  proj['id']
+            else:
+                proj_cats["reg"][proj['name']] =  proj['id']
         if i:
             return {k.lower(): v for k,v in proj_names.items()}
         else:
-            click.echo('{:^35}'.format("PROJECT NAME") + "|" +
-                       '{:^35}'.format("PROJECT ID"))
-            click.echo('{:-^70}'.format(''))
-            for name, i in proj_names.items():
-                click.echo('{:<35}'.format(name) + "|" +
-                           '{:^35}'.format(i))
-                click.echo('{:-^70}'.format(''))
+            for cat, packages in proj_cats.items():
+                if cat == "reg":
+                    click.echo('\n{:^80}'.format("PROJECTS:"))
+                    click.echo('{:^40}'.format("PROJECT NAME") + "|" +
+                               '{:^40}'.format("PROJECT ID"))
+                    click.echo('{:-^80}'.format(''))
+                elif cat == "pilot" and packages.values():
+                    click.echo('\n{:^80}'.format("PILOT PROJECTS:"))
+                    click.echo('{:^40}'.format("PROJECT NAME") + "|" +
+                               '{:^40}'.format("PROJECT ID"))
+                    click.echo('{:-^80}'.format(''))
+                for name, i in packages.items():
+                    click.echo('{:<40}'.format(name) + "|" +
+                               '{:^40}'.format(i))
+                    click.echo('{:-^80}'.format(''))
     else:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
 
 
 @cli.command("new-project")
-@click.argument('name')
+@click.argument('name', metavar="PROJECT_NAME")
+@click.option('--dev', '-d', '-pilot', help="Create a pilot project", is_flag=True)
 @click.pass_context
-def new_project(ctx, name):
+def new_project(ctx, name, dev):
     '''Create a new empty project'''
     existing = ctx.obj.get('')
     for p in existing.json()['projects']:
@@ -350,17 +380,39 @@ def new_project(ctx, name):
             click.echo("You already have an existing project with the name \"%s\"."
                        "  Please choose a different project name." % name)
             return
-    new_proj = ctx.obj.post('',
-                            data= json.dumps({
-                                "name": name
-                             })
-                            )
+    proj_data = {"name": name}
+    if dev:
+        proj_data["is_developer"] = True
+    new_proj = ctx.obj.post('', data= json.dumps(proj_data))
     if new_proj.status_code == 201:
-        click.echo("New project '%s' created with id %s  \nView it at %s" %
-                    (name, new_proj.json()['id'],
-                    ctx.obj.url('projects/%s' % new_proj.json()['id'])))
+        click.echo("New%s project '%s' created with id %s  \nView it at %s" %
+                    (" pilot" if dev else "", name, new_proj.json()['id'],
+                    ctx.obj.url('%s' % (new_proj.json()['id']))))
     else:
         click.echo("There was an error creating this package.")
+
+
+@cli.command("delete-project")
+@click.argument('name', metavar="PROJECT_NAME")
+@click.option('--force', '-f', help="force delete a project without being prompted if you're sure", is_flag=True)
+@click.pass_context
+def delete_project(ctx, name, force):
+    '''Delete an existing package'''
+    id = get_project_id(name)
+    if id:
+        if not force:
+            click.confirm("Are you sure you want to permanently delete '%s'?" % get_project_name(id),
+                          default=False,
+                          abort=True)
+        dele = ctx.obj.delete('%s' % id, data=json.dumps({"id": id}))
+        if dele.status_code == 200:
+            click.echo("Project deleted.")
+        else:
+            click.confirm("You cannot delete a project that contains runs.  Archive it instead?",
+                          default=False, abort=True)
+            arch = ctx.obj.put('%s' % id, data=json.dumps({"project": {"archived": True}}))
+            if arch.status_code == 200:
+                click.echo("Project archived.")
 
 
 @cli.command()
@@ -439,7 +491,7 @@ def price(response):
         click.echo("WARNING (%s): %s" % (context, message))
 
 @cli.command()
-@click.argument('protocol_name')
+@click.argument('protocol_name', metavar="PROTOCOL_NAME")
 def preview(protocol_name):
     '''Preview the Autoprotocol output of a script'''
     with click.open_file('manifest.json', 'r') as f:
@@ -490,7 +542,7 @@ def summarize(ctx, file):
 
 
 @cli.command()
-@click.argument('protocol_name')
+@click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.argument('args', nargs=-1)
 def run(protocol_name, args):
     '''Run a protocol by passing it a config file (without submitting or analyzing)'''
@@ -583,10 +635,23 @@ def get_project_id(ctx, name):
     if not id:
         id = name if name in projs.values() else None
         if not id:
-            click.echo("A project with the name or id '%s' was not found in your "
+            click.echo("A project with the name '%s' was not found in your "
                        "organization." % name)
             return
     return id
+
+
+@click.pass_context
+def get_project_name(ctx, id):
+    projs = {v:k for k,v in ctx.invoke(projects, i=True).items()}
+    name = projs.get(id)
+    if not name:
+        name = id if name in projs.keys() else None
+        if not name:
+            click.echo("A project with the id '%s' was not found in your "
+                       "organization." % name)
+            return
+    return name
 
 
 @click.pass_context
