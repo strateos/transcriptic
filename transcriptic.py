@@ -287,11 +287,14 @@ def packages(ctx, i):
         for category, packages in package_names.items():
             if category == "yours":
                 click.echo('\n{:^80}'.format("YOUR PACKAGES:"))
-            else:
-                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
-            click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
                        '{:^40}'.format("PACKAGE ID"))
-            click.echo('{:-^80}'.format(''))
+                click.echo('{:-^80}'.format(''))
+            elif category == "theirs" and packages.values():
+                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
+                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
+                           '{:^40}'.format("PACKAGE ID"))
+                click.echo('{:-^80}'.format(''))
             for name, id in packages.items():
                 click.echo('{:<40}'.format(name) + "|" +
                            '{:^40}'.format(id))
@@ -333,7 +336,7 @@ def projects(ctx, i):
     if response.status_code == 200:
         for proj in response.json()['projects']:
             proj_names[proj['name']] =  proj['id']
-            if proj["is_developer"]:
+            if proj.get("is_developer"):
                 proj_cats["pilot"][proj['name']] =  proj['id']
             else:
                 proj_cats["reg"][proj['name']] =  proj['id']
@@ -346,7 +349,7 @@ def projects(ctx, i):
                     click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                                '{:^40}'.format("PROJECT ID"))
                     click.echo('{:-^80}'.format(''))
-                elif cat == "pilot" and packages:
+                elif cat == "pilot" and packages.values():
                     click.echo('\n{:^80}'.format("PILOT PROJECTS:"))
                     click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                                '{:^40}'.format("PROJECT ID"))
@@ -397,7 +400,6 @@ def delete_project(ctx, name, force):
                           default=False,
                           abort=True)
         dele = ctx.obj.delete('%s' % id, data=json.dumps({"id": id}))
-
         click.echo("Project deleted.")
 
 
