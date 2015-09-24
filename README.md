@@ -29,8 +29,7 @@ $ pip install transcriptic --upgrade
 ## Usage
 
 Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --help`
-
-![help](screenshots/help.png?raw=true)
+<div style="text-align:center"><img src="screenshots/help.png?raw=true"></div>
 
 ## Mandatory first step:
 **Log in to your Transcriptic account**
@@ -39,7 +38,7 @@ Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --hel
 access key information. This will be saved in `~/.transcriptic` for future
 commands.**\*
 
-![login](screenshots/transcripticlogin.png?raw=true)
+<div style="text-align:center"><img src="screenshots/transcripticlogin.png?raw=true"></div>
 
 ## The Basics
 ###Preview Protocol Output
@@ -102,7 +101,7 @@ Projects containing runs already can only be archived:
 
 ## Packaging and Releasing
 
-###Create a New Package**
+###Create a New Package
 
 ![new-package](screenshots/transcripticnew-package.png?raw=true)
 
@@ -110,7 +109,7 @@ Projects containing runs already can only be archived:
 
 ![packages](screenshots/transcripticpackages.png?raw=true)
 
-###Ititialize a Directory With an empty `manifest.json` template
+###Initialize a Directory With an empty `manifest.json` template
 
 The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
 
