@@ -42,13 +42,13 @@ commands.**\*
 ![login](screenshots/transcripticlogin.png?raw=true)
 
 ## The Basics
-**Preview Protocol Output**
+###Preview Protocol Output
 
 Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
 
 ![preview](screenshots/transcripticpreview.png?raw=true)
 
-**Analyze a Protocol**
+###Analyze a Protocol
 
 To check whether your Autoprotocol is valid using Transcriptic's server-side checker, pipe any script that prints Autoprotocol to STDOUT to `transcriptic analyze`:
 ```
@@ -62,14 +62,14 @@ alternatively:
 
 ![transcriptic analyze](screenshots/transcripticanalyze.png?raw=true)
 
-**Submit a Protocol to Transcriptic**
+###Submit a Protocol to a Project
 
 Supply a project name or id to submit a run to
 
 ![submit](screenshots/transcripticsubmit.png?raw=true)
 ![run](screenshots/projectpage2.png?raw=true)
 
-**Submit a Protocol to Transcriptic in Test Mode**
+###Submit a Protocol in Test Mode
 
 The `--test` flag allows a run to be submitted in test mode, meaning it will never be executed
 
@@ -77,22 +77,22 @@ The `--test` flag allows a run to be submitted in test mode, meaning it will nev
 $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run" --test
 ```
 
-**Translate a Protocol to English**
+###Translate a Autoprotocol to English
 
 Pipe any valid Autoprotocol to `transcriptic summarize` to get a summary of each step
 
 ![summarize](screenshots/transcripticsummarize.png?raw=true)
 
 ## Project Management
-**List Existing Projects within Your Organization**
+###List Existing Projects within Your Organization
 
 ![projects](screenshots/transcripticprojects.png?raw=true)
 
-**Create a New Project**
+###Create a New Project
 
 ![new-project](screenshots/transcripticnew-project.png?raw=true)
 
-**Delete a Project** 
+###Delete a Project
 
 ![delete-project](screenshots/transcripticdelete-project.png?raw=true)
 
@@ -102,40 +102,40 @@ Projects containing runs already can only be archived:
 
 ## Packaging and Releasing
 
-**Create a New Empty Package**
+###Create a New Package**
 
 ![new-package](screenshots/transcripticnew-package.png?raw=true)
 
-**List Existing Package Names and ids**
+###List Existing Packages
 
 ![packages](screenshots/transcripticpackages.png?raw=true)
 
-**Ititialize a Directory With an empty manifest template**
+###Ititialize a Directory With an empty `manifest.json` template
 
 The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
 
 ![init](screenshots/transcripticinit.png?raw=true)
 
-**Compress All Files in Working Directory for Release**
+###Compress All Files in Working Directory into a Release
 
 passing a `--name` argument allows you to name your release, otherwise it will be named `release_<version from manifest>` automatically
 
 ![release](screenshots/transcripticreleaseonly.png?raw=true)
 
-**Compress all files in working directory for release and upload to a specific package**
+###Compress All Files in Working Directory into a Release and Upload to a Package
 
 ![release](screenshots/transcripticrelease.png?raw=true)
 
-**Upload an existing compressed release to an existing package**
+###Upload an Existing Release to a Package
 
 ![upload](screenshots/transcripticupload.jpg?raw=true)
 
 
-### Example Package
+### More About Packages
 
 The [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) library helps you generate Autoprotocol with easy to use functions. [autoprotocol.harness](https://github.com/autoprotocol/autoprotocol-python/blob/master/autoprotocol/harness.py) parses a set of typed input parameters contained in a `manifest.json` file and passes them back to the specified script when you run `transcriptic preview` (see above).  Input types also define protocol browser UI elements on transcriptic's website.
 
-**Example
+###Example
 The example below assumes the following file structure:
 ```
 test_package/
