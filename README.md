@@ -45,6 +45,7 @@ commands.**\*
 **Preview Protocol Output**
 
 Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
+
 ![preview](screenshots/transcripticpreview.png?raw=true)
 
 **Analyze a Protocol**
@@ -130,7 +131,7 @@ passing a `--name` argument allows you to name your release, otherwise it will b
 ![upload](screenshots/transcripticupload.jpg?raw=true)
 
 
-### Preview a Protocol
+### Example Package
 
 The [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) library helps you generate Autoprotocol with easy to use functions. [autoprotocol.harness](https://github.com/autoprotocol/autoprotocol-python/blob/master/autoprotocol/harness.py) parses a set of typed input parameters contained in a `manifest.json` file and passes them back to the specified script when you run `transcriptic preview` (see above).  Input types also define protocol browser UI elements on transcriptic's website.
 
