@@ -89,21 +89,21 @@ Pipe any valid Autoprotocol to `transcriptic summarize` to get a summary of each
 
 ###Create a New Project
 
-<p align="center"><img src="project](screenshots/transcripticnew-project.png?raw=true"></p>
+<p align="center"><img src="screenshots/transcripticnew-project.png?raw=true"></p>
 
 ###Delete a Project
 
-<p align="center"><img src="project](screenshots/transcripticdelete-project.png?raw=true"></p>
+<p align="center"><img src="screenshots/transcripticdelete-project.png?raw=true"></p>
 
 Projects containing runs already can only be archived:
 
-<p align="center"><img src="project](screenshots/transcripticdelete-project-with-run.png?raw=true"></p>
+<p align="center"><img src="screenshots/transcripticdelete-project-with-run.png?raw=true"></p>
 
 ## Packaging and Releasing
 
 ###Create a New Package
 
-<p align="center"><img src="package](screenshots/transcripticnew-package.png?raw=true"></p>
+<p align="center"><img src="screenshots/transcripticnew-package.png?raw=true"></p>
 
 ###List Existing Packages
 
