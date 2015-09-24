@@ -30,26 +30,22 @@ $ pip install transcriptic --upgrade
 
 Access help by typing `$ transcriptic --help` or `$ transcriptic [COMMAND] --help`
 
+![help](screenshots/help.png?raw=true)
+
 ## Mandatory first step:
 **Log in to your Transcriptic account**
+
 **\*Before using the runner, you'll need to log in to Transcriptic to fetch your
 access key information. This will be saved in `~/.transcriptic` for future
 commands.**\*
 
-```
-$ transcriptic login
-Email: sanger@transcriptic.com
-Password:
-Logged in as sanger@transcriptic.com (cambridge)
-```
+![login](screenshots/transcripticlogin.png?raw=true)
 
 ## The Basics
 **Preview Protocol Output**
 
 Previewing a protocol supplies a script with parameters supplied in the "preview" section of a `manifest.json` file.  Read more about this below.
-```
-$ transcriptic preview MyProtocol
-```
+![preview](screenshots/transcripticpreview.png?raw=true)
 
 **Analyze a Protocol**
 
@@ -60,74 +56,78 @@ $ python my_protocol.py | transcriptic analyze
   2 instructions
   1 container
 ```
+
 alternatively:
-```
-$ transcriptic preview MyProtocol | transcriptic analyze
-```
+
+![transcriptic analyze](screenshots/transcripticanalyze.png?raw=true)
 
 **Submit a Protocol to Transcriptic**
-```
-$ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run"
-Run created: https://secure.transcriptic.com/cambridge/sequencing/r1xa043277aekj
-```
+
+Supply a project name or id to submit a run to
+
+![submit](screenshots/transcripticsubmit.png?raw=true)
+![run](screenshots/projectpage2.png?raw=true)
 
 **Submit a Protocol to Transcriptic in Test Mode**
+
+The `--test` flag allows a run to be submitted in test mode, meaning it will never be executed
+
 ```
 $ python my_protocol.py | transcriptic submit --project "sequencing" --title "Sequencing run" --test
 ```
 
 **Translate a Protocol to English**
 
-Pipe any valid autoprotocol to `transcriptic summarize` to get a summary of each step
-```
-$ transcriptic preview MyProtocol | transcriptic summarize
-```
+Pipe any valid Autoprotocol to `transcriptic summarize` to get a summary of each step
 
-### Project Management
+![summarize](screenshots/transcripticsummarize.png?raw=true)
+
+## Project Management
 **List Existing Projects within Your Organization**
-```
-$ transcriptic projects
-```
+
+![projects](screenshots/transcripticprojects.png?raw=true)
 
 **Create a New Project**
-```
-$ transcriptic new-project "Genotype All The Things"
-```
 
-### Packaging and Releasing
+![new-project](screenshots/transcripticnew-project.png?raw=true)
+
+**Delete a Project** 
+
+![delete-project](screenshots/transcripticdelete-project.png?raw=true)
+
+Projects containing runs already can only be archived:
+
+![delete-project](screenshots/transcripticdelete-project-with-run.png?raw=true)
+
+## Packaging and Releasing
 
 **Create a New Empty Package**
-```
-$ trancriptic new-package "my_package" "This is a description for my package of protocols"
-```
+
+![new-package](screenshots/transcripticnew-package.png?raw=true)
 
 **List Existing Package Names and ids**
-```
-$ transcriptic packages
-```
+
+![packages](screenshots/transcripticpackages.png?raw=true)
 
 **Ititialize a Directory With an empty manifest template**
 
 The init command creates an empty `manifest.json` file with the proper structure within the current directory.  Read below or [here](https://developers.transcriptic.com/v1.0/docs/the-manifest) to find out more about what a manifest does.   Command will prompt to overwrite if your folder already contains a file called `manifest.json`.
-```
-$ transcriptic init
-```
+
+![init](screenshots/transcripticinit.png?raw=true)
 
 **Compress All Files in Working Directory for Release**
-```
-$ transcriptic release
-```
-passing a --name argument allows you to name your release, otherwise it will be named `release_<version from manifest>` automatically
+
+passing a `--name` argument allows you to name your release, otherwise it will be named `release_<version from manifest>` automatically
+
+![release](screenshots/transcripticreleaseonly.png?raw=true)
 
 **Compress all files in working directory for release and upload to a specific package**
-```
-$ transcriptic release my_package
-```
 
-**Upload an existing compressed release to a package**
-```
-$ transcriptic upload release_v1.0.0.zip my_package
-```
+![release](screenshots/transcripticrelease.png?raw=true)
+
+**Upload an existing compressed release to an existing package**
+
+![upload](screenshots/transcripticupload.jpg?raw=true)
 
 
 ### Preview a Protocol
@@ -137,90 +137,24 @@ The [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) l
 **Example
 The example below assumes the following file structure:
 ```
-protocols/
-  manifest.json
-  requirements.txt
-  my_protocols/
-    __init__.py
-    sample_protocol.py
+test_package/
+	manifest.json
+	requirements.txt
+	test.py
 ```
+
 
 A manifest.json file contains metadata about protocols required when uploading a package to Transcriptic. A package can contain many protocols but for our example it will contain just one.  The `"inputs"` stanza defines expected parameter types which translate into the proper UI elements for that type when you upload the package to Transcriptic.  Read more about the manifest file [here](http://developers.transcriptic.com/v1.0/docs/the-manifest).  The preview section serves to provide your script with hard-coded parameters and refs for local testing:
-```json
-{
-  "version": "1.0.0",
-  "format": "python",
-  "license": "MIT",
-  "protocols": [
-    {
-      "name": "SampleProtocol",
-      "command_string": "python -m my_protocols.sample_protocol",
-      "description": "this is a sample protocol",
-      "inputs": {
-        "source_sample": {
-          "type": "aliquot",
-          "description": "A sample source aliquot",
-        },
-        "dest_sample": {
-          "type": "aliquot",
-          "description": "A sample destination aliquot"
-        },
-        "transfer_vol": {
-          "type": "volume",
-          "description": "Volume to transfer",
-          "default": "12:microliter"
-        }
-      },
-      "preview": {
-        "refs": {
-          "sample_plate": {
-            "type": "96-pcr",
-            "discard": true
-          }
-        },
-        "parameters": {
-          "source_sample": "sample_plate/A1",
-          "dest_sample": "sample_plate/A2",
-          "transfer_vol": "5:microliter"
-        }
-      },
-      "dependencies": []
-    }
-  ]
-}
-```
 
-The following is what your `sample_protocol.py` file would look like.  Note that there is no need to declare a Protocol object within the script or print the protocol to standard out, both of these things are taken care of by `autoprotocol.harness`.  **The `protocol_name` parameter in `autoprotocol.harness.run()` must match the name of that protocol within your manifest.json file**:
-```python
-def sample_protocol(protocol, params):
-  protocol.transfer(params["source_sample"],
-                    params["dest_sample"],
-                    params["transfer_vol"])
+![manifest](screenshots/manifest_json.png?raw=true)
 
-if __name__ == "__main__":
-  from autoprotocol.harness import run
-  run(sample_protocol, protocol_name="SampleProtocol")
-```
+The following is what your `test.py` file would look like.  Note that there is no need to declare a Protocol object within the script or print the protocol to standard out, both of these things are taken care of by `autoprotocol.harness`.  **The `protocol_name` parameter in `autoprotocol.harness.run()` must match the name of that protocol within your manifest.json file**:
 
-**Preview a Protocol's Output on the Command Line:**
-```
-$ transcriptic preview SampleProtocol
-```
+![test](screenshots/test_py.png?raw=true)
 
-**Run a protocol and view its output on the command line by passing it an external .json file with parameters and refs (instead of using your `manifest.json`'s "preview" section)**:
-```
-$ transcriptic run SampleProtocol protocol_params.json
-```
+A requirements.txt file is necessary for any modules your code relies on to run.  In the example below, the file specifies a specific commit SHA of the [autoprotocol-python](https://github.com/autoprotocol/autoprotocol-python) library.
 
-To submit the resulting protocol to transcriptic or analyze it, pipe that result to `transcriptic submit` or `transcriptic analyze` as above.
-```
-$ transcriptic preview SampleProtocol | transcriptic analyze
-```
+![requirements.txt](screenshots/requirements_txt.png?raw=true)
 
-When you're ready to upload a package to Transcriptic, make sure to include the version of autoprotocol and any other packages you might have used in your `requirements.txt` file:
-```
-autoprotocol==2.1.0
-```
-
-A release consists of everything within the protocols_folder folder **(but do not zip the folder itself: the manifest.json file must be at the top level of the archive.)**
+A release consists of everything within the protocols_folder folder **(but do not zip the folder itself: the manifest.json file must be at the top level of the archive.)**.  You can prepare a release automatically from within a directory by using the `transcript release` command as outlined above.
 
