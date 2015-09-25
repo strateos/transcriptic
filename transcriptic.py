@@ -472,8 +472,12 @@ def analyze(ctx, file, test):
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            click.echo("Error: Could not analyze since your manifest.json file is "
-                       "improperly formatted.")
+            click.echo("Error: The protocol you're trying to analyze is not "
+                       "properly formatted Autoprotocol "
+                       "Check that your manifest.json file is "
+                       "properly formatted \nand/or your script "
+                       "doesn't print anything other than pure Autoprotocol "
+                       "to standard out.")
             return
     response = \
         ctx.obj.post(
