@@ -103,11 +103,18 @@ class AutoprotocolParser(object):
 
     def stamp(self, opts):
         stamps = []
-        for t in opts['transfers']:
-            stamps.append("Transfer from %s quadrant %s to %s quadrant %s" %
-                          (self.platename(t['from']), self.well(t['from']),
-                           self.platename(t['to']), self.well(t['to']))
-                          )
+        for g in opts['groups']:
+            for pip in g:
+              if pip == "transfer":
+                stamps.extend(["stamp %s from source origin %s "
+                               "to destination origin %s %s (%s)" %
+                               (self.unit(p['volume']),
+                                p['from'],
+                                p['to'],
+                                ("with the same set of tips as previous" if (len(g[pip]) > 1 and i > 0) else ""),
+                                ("%s rows x %s columns" % (g['shape']['rows'], g['shape']['columns']))
+                                ) for i, p in enumerate(g[pip])
+                              ])
         return stamps
 
     def thermocycle(self, opts):
