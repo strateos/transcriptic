@@ -136,8 +136,8 @@ class AutoprotocolParser(object):
                                      (self.unit(p['volume']),
                                       p['from'],
                                       p['to'],
-                                      ("with one tip" if len(g[pip]) > 1 else "")
-                                      ) for p in g[pip]
+                                      ("with the same tip as previous" if (len(g[pip]) > 1 and i > 0) else "")
+                                      ) for i, p in enumerate(g[pip])
                                     ])
                 elif pip == "distribute":
                     pipettes.append("Distribute from %s into %s" %
