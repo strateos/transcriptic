@@ -281,9 +281,8 @@ def packages(ctx, i):
 
     if response.status_code == 200:
         for pack in response.json():
-            if pack.get('owner'):
-                if pack['owner']['email'] == ctx.obj.email:
-                    package_names['yours'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
+            if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
+                package_names['yours'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
             else:
                 package_names['theirs'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
     if i:
