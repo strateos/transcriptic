@@ -15,6 +15,7 @@ class AutoprotocolParser(object):
 
     def parse(self, obj):
         self.instructions = obj['instructions']
+        self.refs = obj['refs']
         parsed_output = []
         for i in self.instructions:
             try:
