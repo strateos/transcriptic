@@ -271,6 +271,35 @@ def upl(ctx, archive, package):
                                                              package_id))
 
 @cli.command()
+def protocols():
+    '''List protocols within your manifest'''
+    try:
+        with click.open_file('manifest.json', 'r') as f:
+            try:
+                manifest = json.loads(f.read())
+            except ValueError:
+                click.echo("Error: Your manifest.json file is improperly formatted. "
+                           "Please double check your brackets and commas!")
+                return
+            if 'protocols' not in manifest.keys() or not manifest['protocols']:
+                click.echo("Your manifest.json file doesn't contain any protocols or"
+                           " is improperly formatted.")
+                return
+            else:
+                click.echo('\n{:^60}'.format("Protocols within this manifest:"))
+                click.echo('{:-^60}'.format(''))
+                [click.echo("%s%s\n%s" % (p['name'],
+                                          (" (" + p.get('display_name') + ")")
+                                          if p.get('display_name') else "",
+                                          ('{:-^60}'.format(""))))
+                 for p in manifest["protocols"]]
+
+    except IOError:
+        click.echo("The current directory does not contain a manifest.json file.")
+        return
+
+
+@cli.command()
 @click.pass_context
 @click.option("-i")
 def packages(ctx, i):
