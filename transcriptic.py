@@ -310,28 +310,37 @@ def packages(ctx, i):
 
     if response.status_code == 200:
         for pack in response.json():
+            n = str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")
+            latest = str(pack['latest_version']) if pack['latest_version'] else "-"
             if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
-                package_names['yours'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
+                package_names['yours'][n] = {}
+                package_names['yours'][n]['id'] = str(pack['id'])
+                package_names['yours'][n]['latest'] = latest
             else:
-                package_names['theirs'][str(pack['name']).lower().replace("com.%s." % ctx.obj.organization, "")] = str(pack['id'])
+                package_names['theirs'][n] = {}
+                package_names['theirs'][n]['id'] = str(pack['id'])
+                package_names['theirs'][n]['latest'] = latest
     if i:
         return dict(package_names['yours'].items() + package_names['theirs'].items())
     else:
         for category, packages in package_names.items():
             if category == "yours":
-                click.echo('\n{:^80}'.format("YOUR PACKAGES:"))
-                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
-                       '{:^40}'.format("PACKAGE ID"))
-                click.echo('{:-^80}'.format(''))
+                click.echo('\n{:^90}'.format("YOUR PACKAGES:\n"))
+                click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
+                       '{:^30}'.format("PACKAGE ID")
+                       + "|" + '{:^30}'.format("LATEST PUBLISHED VERSION"))
+                click.echo('{:-^90}'.format(''))
             elif category == "theirs" and packages.values():
-                click.echo('\n{:^80}'.format("OTHER PACKAGES IN YOUR ORG:"))
-                click.echo('{:^40}'.format("PACKAGE NAME") + "|" +
-                           '{:^40}'.format("PACKAGE ID"))
-                click.echo('{:-^80}'.format(''))
-            for name, id in packages.items():
-                click.echo('{:<40}'.format(name) + "|" +
-                           '{:^40}'.format(id))
-                click.echo('{:-^80}'.format(''))
+                click.echo('\n{:^90}'.format("OTHER PACKAGES IN YOUR ORG:\n"))
+                click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
+                           '{:^30}'.format("PACKAGE ID") + "|" +
+                           '{:^30}'.format("LATEST PUBLISHED VERSION"))
+                click.echo('{:-^90}'.format(''))
+            for name, p in packages.items():
+                click.echo('{:<30}'.format(name) + "|" +
+                           '{:^30}'.format(p['id']) + "|" +
+                           '{:^30}'.format(p['latest']))
+                click.echo('{:-^90}'.format(''))
 
 @cli.command("new-package")
 @click.argument('name')
@@ -705,7 +714,7 @@ def get_project_name(ctx, id):
 @click.pass_context
 def get_package_id(ctx, name):
     package_names = ctx.invoke(packages, i=True)
-    package_names = {k.lower(): v for k,v in package_names.items()}
+    package_names = {k.lower(): v['id'] for k,v in package_names.items()}
     package_id = package_names.get(name)
     if not package_id:
         package_id = name if name in package_names.values() else None
@@ -717,7 +726,7 @@ def get_package_id(ctx, name):
 
 @click.pass_context
 def get_package_name(ctx, id):
-    package_names = {v: k for k, v in ctx.invoke(packages, i=True).items()}
+    package_names = {v['id']: k for k, v in ctx.invoke(packages, i=True).items()}
     package_name = package_names.get(id)
     if not package_name:
         package_name = id if id in package_names.values() else None
