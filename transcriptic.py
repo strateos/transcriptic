@@ -402,12 +402,12 @@ def projects(ctx, i):
         else:
             for cat, packages in proj_cats.items():
                 if cat == "reg":
-                    click.echo('\n{:^80}'.format("PROJECTS:"))
+                    click.echo('\n{:^80}'.format("PROJECTS:\n"))
                     click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                                '{:^40}'.format("PROJECT ID"))
                     click.echo('{:-^80}'.format(''))
                 elif cat == "pilot" and packages.values():
-                    click.echo('\n{:^80}'.format("PILOT PROJECTS:"))
+                    click.echo('\n{:^80}'.format("PILOT PROJECTS:\n"))
                     click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                                '{:^40}'.format("PROJECT ID"))
                     click.echo('{:-^80}'.format(''))
