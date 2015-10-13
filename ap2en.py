@@ -107,7 +107,7 @@ class AutoprotocolParser(object):
         for g in opts['groups']:
             for pip in g:
               if pip == "transfer":
-                stamps.extend(["stamp %s from source origin %s "
+                stamps.extend(["Stamp %s from source origin %s "
                                "to destination origin %s %s (%s)" %
                                (self.unit(p['volume']),
                                 p['from'],
