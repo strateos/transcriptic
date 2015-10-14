@@ -6,7 +6,8 @@ setup(
     py_modules=['transcriptic', 'ap2en'],
     install_requires=[
         'Click>=5.1',
-        'requests'
+        'requests',
+        'autoprotocol'
     ],
     entry_points='''
         [console_scripts]
