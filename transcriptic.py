@@ -525,7 +525,10 @@ def analyze(ctx, file, test):
         click.echo(u"\u2713 Protocol analyzed")
         price(response.json())
     elif response.status_code == 422:
-        click.echo("Error in protocol: %s" % response.text)
+        click.echo("Error%s in protocol:\n%s" %
+                   (("s" if len(response.json()['protocol']) > 1 else ""),
+                    "".join(["- " + e['message'] + "\n" for
+                    e in response.json()['protocol']])))
     else:
         click.echo("Unknown error: %s" % response.text)
 
