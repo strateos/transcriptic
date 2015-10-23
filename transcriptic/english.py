@@ -1,13 +1,11 @@
 import autoprotocol.util
 
-
 PLURAL_UNITS = ["microliter", "nanoliter", "milliliter", "second", "minute",
                 "hour", "g", "nanometer"]
 
 TEMP_DICT = {"cold_20": "-20 degrees celsius", "cold_80": "-80 degrees celsius",
              "warm_37": "37 degrees celsius", "cold_4": "4 degrees celsius",
              "warm_30": "30 degrees celsius", "ambient": "room temperature"}
-
 
 class AutoprotocolParser(object):
     def __init__(self, protocol_obj, parsed_output = None):
