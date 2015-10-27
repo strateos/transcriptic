@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='transcriptic',
-    version='2.0.0',
+    version='2.0.1',
     packages=['transcriptic'],
     setup_requires=['numpy'],
     install_requires=[
@@ -11,6 +11,7 @@ setup(
         'autoprotocol>=2.5',
         'pandas>=0.16',
         'matplotlib>=1.4',
+        'scikit-learn>=0.16',
         'scipy>=0.16',
         'numpy>=1.10'
     ],
