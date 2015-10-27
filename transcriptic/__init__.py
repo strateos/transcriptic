@@ -8,7 +8,7 @@ class AnalysisException(Exception):
   def __init__(self, message):
     self.message = message
   def __str__(self):
-    return repr(self.message)
+    return self.message
 
 def _check_ctx(force_ctx):
   if not ctx and not force_ctx:

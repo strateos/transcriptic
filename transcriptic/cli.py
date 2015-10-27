@@ -64,7 +64,6 @@ def submit(ctx, file, project, title, test):
   project = get_project_id(project)
   if not project:
     return
-  
   with click.open_file(file, 'r') as f:
     try:
       protocol = json.loads(f.read())
@@ -74,7 +73,6 @@ def submit(ctx, file, project, title, test):
       return
   if test:
     test_mode = True
-  
   response = ctx.obj.post('%s/runs' % project, data = json.dumps({
     "title": title,
     "protocol": protocol,
@@ -98,13 +96,6 @@ def submit(ctx, file, project, title, test):
 def release(ctx, name=None, package=None):
   '''Compress the contents of the current directory to upload as a release.'''
   deflated = zipfile.ZIP_DEFLATED
-  def makezip(d, archive):
-    for (path, dirs, files) in os.walk(d):
-      for f in files:
-        if ".zip" not in f:
-          archive.write(os.path.join(path, f))
-    return archive
-  
   with open('manifest.json', 'rU') as manifest:
     filename = 'release_v%s' %json.load(manifest)['version'] or name
   if os.path.isfile(filename + ".zip"):
@@ -118,7 +109,10 @@ def release(ctx, name=None, package=None):
       return
   click.echo("Compressing all files in this directory...")
   zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
-  archive = makezip('.', zf)
+  for (path, dirs, files) in os.walk('.'):
+      for f in files:
+          if ".zip" not in f:
+              zf.write(os.path.join(path, f))
   zf.close()
   click.echo("Archive %s created." % (filename + ".zip"))
   if package:
@@ -140,7 +134,6 @@ def upl(ctx, archive, package):
   except AttributeError:
     click.echo("Error: Invalid package id or name.")
     return
-  
   with click.progressbar(None, 100, "Upload Progress",
                           show_eta = False, width=70,
                           fill_char = "|", empty_char= "-") as bar:
@@ -153,7 +146,6 @@ def upl(ctx, archive, package):
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     })
-    
     info = json.loads(sign.content)
     bar.update(30)
     url    = 'https://transcriptic-uploads.s3.amazonaws.com'
@@ -223,7 +215,6 @@ def protocols():
                                   if p.get('display_name') else "",
                                   ('{:-^60}'.format(""))))
          for p in manifest["protocols"]]
-  
   except IOError:
     click.echo("The current directory does not contain a manifest.json file.")
     return
@@ -236,7 +227,6 @@ def packages(ctx, i):
   response = ctx.obj.get('packages/')
   # there's probably a better way to do this
   package_names = OrderedDict(sorted({"yours": {}, "theirs": {}}.items(), key=lambda t: len(t[0])))
-  
   if response.status_code == 200:
     for pack in response.json():
       n = str(pack['name']).lower().replace("com.%s." % ctx.obj.organization_id, "")
@@ -288,7 +278,7 @@ def new_package(ctx, description, name):
     "name": "%s%s" % ("com.%s." % ctx.obj.organization_id, name)
   }))
   if new_pack.status_code == 201:
-    click.echo("New package %s created with id %s \n"
+    click.echo("New package '%s' created with id %s \n"
                "View it at %s" % (name, new_pack.json()['id'], ctx.obj.url('packages/%s' % new_pack.json()['id'])))
   else:
     click.echo("There was an error creating this package.")
@@ -307,8 +297,12 @@ def delete_package(ctx, name, force):
         get_package_name(id), default = False, abort = True
       )
       click.confirm("Are you really really sure?", default = True)
-    del_pack = ctx.obj.delete('packages/%s' % id)
-    click.echo("Package deleted.")
+    del_pack = ctx.obj.delete_package(id)
+    if del_pack:
+      click.echo("Package deleted.")
+    else:
+      click.echo("There was a problem deleting this package.")
+
 
 @cli.command()
 @click.pass_context
@@ -354,8 +348,8 @@ def projects(ctx, i):
 def new_project(ctx, name, dev):
   '''Create a new empty project.'''
   existing = ctx.obj.projects()
-  for p in projects:
-    if name == p['name'].split('.')[-1]:
+  for p in existing:
+    if name == p.attributes['name'].split('.')[-1]:
       click.echo("You already have an existing project with the name \"%s\"."
                  "  Please choose a different project name." % name)
       return
@@ -363,7 +357,7 @@ def new_project(ctx, name, dev):
     new_proj = ctx.obj.create_project(name, is_developer = dev)
     click.echo(
       "New%s project '%s' created with id %s  \nView it at %s" % (
-        " pilot" if dev else "", name, new_proj.json()['id'], ctx.obj.url('%s' % (new_proj.json()['id']))
+        " pilot" if dev else "", name, new_proj.attributes['id'], ctx.obj.url('%s' % (new_proj.attributes['id']))
       )
     )
   except RuntimeError:
@@ -387,7 +381,7 @@ def delete_project(ctx, name, force):
       click.echo("Project deleted.")
     else:
       click.confirm(
-        "Could not delete project. This may because it contains runs. Try archiving it instead?",
+        "Could not delete project. This may be because it contains runs. Try archiving it instead?",
         default = False,
         abort = True
       )
@@ -397,33 +391,36 @@ def delete_project(ctx, name, force):
         click.echo("Could not archive project!")
 
 @cli.command()
-def init():
-  '''Write a blank manifest.json file to the current directory.'''
-  manifest_data = {
-    "version": "1.0.0",
-    "format": "python",
-    "license": "MIT",
-    "protocols": [{
+@click.argument('path', default='.')
+def init(path):
+  '''Initialize a directory with a manifest.json file.'''
+  manifest_data = OrderedDict(
+    version="1.0.0",
+    format="python",
+    license="MIT",
+    protocols = [{
       "name": "SampleProtocol",
-      "description": "This is a protocol.",
-      "command_string": "python sample_protocol.py",
-      "preview": {
-        "refs":{},
-        "parameters": {}
-      },
-      "inputs": {},
-      "dependencies": []
+      "display_name" :"Sample Protocol",
+      "description" :"This is a protocol.",
+      "command_string" :"python sample_protocol.py",
+      "inputs":{},
+      "preview": {"refs": {}, "parameters": {}},
     }]
-  }
-  if isfile('manifest.json'):
+  )
+  try:
+    os.makedirs(path)
+  except OSError:
+    click.echo("Specified directory already exists.")
+  if isfile('%s/manifest.json' % path):
     click.confirm("This directory already contains a manifest.json file, "
                   "would you like to overwrite it with an empty one? ",
                   default = False,
                   abort = True)
-  with open('manifest.json', 'w+') as f:
+  with open('%s/manifest.json' % path, 'w+') as f:
     click.echo('Creating empty manifest.json...')
-    f.write(json.dumps(manifest_data, indent=2))
+    f.write(json.dumps(dict(manifest_data), indent=2))
     click.echo("manifest.json created")
+
 
 @cli.command()
 @click.argument('file', default='-')
@@ -563,7 +560,6 @@ def login(ctx, api_root):
     sys.exit(1)
   user = r.json()
   token = (user.get('authentication_token') or user['test_mode_authentication_token'])
-  
   if len(user['organizations']) < 1:
     click.echo("Error: You don't appear to belong to any organizations. \nVisit %s "
                "and create an organization." % api_root)
@@ -579,7 +575,6 @@ def login(ctx, api_root):
       default = user['organizations'][0]['subdomain'],
       prompt_suffix='? '
     )
-  
   r = requests.get('%s/%s' % (api_root, organization), headers = {
     'X-User-Email': email,
     'X-User-Token': token,
@@ -622,7 +617,7 @@ def get_package_id(ctx, name):
   if not package_id:
     package_id = name if name in package_names.values() else None
   if not package_id:
-    click.echo("The package %s does not exist in your organization." % name)
+    click.echo("The package '%s' does not exist in your organization." % name)
     return
   return package_id
 
@@ -633,7 +628,7 @@ def get_package_name(ctx, id):
   if not package_name:
     package_name = id if id in package_names.values() else None
   if not package_name:
-    click.echo("The id %s does not match any package in your organization."
+    click.echo("The id '%s' does not match any package in your organization."
                % id)
     return
   return package_name
