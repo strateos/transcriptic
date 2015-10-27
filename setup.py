@@ -3,6 +3,8 @@ from setuptools import setup
 setup(
     name='transcriptic',
     version='2.0.0',
+    description='Transcriptic CLI & Python Client Library',
+    url='https://github.com/transcriptic/transcriptic',
     packages=['transcriptic'],
     setup_requires=['numpy'],
     install_requires=[
