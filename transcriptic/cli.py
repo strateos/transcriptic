@@ -76,7 +76,7 @@ def submit(ctx, file, project, title, test):
   response = ctx.obj.post('%s/runs' % project, data = json.dumps({
     "title": title,
     "protocol": protocol,
-    "test_mode": test_mode
+    "test_mode": test
   }))
   if response.status_code == 201:
     click.echo("Run created: %s" % ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
