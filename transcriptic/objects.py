@@ -24,6 +24,14 @@ class Instructions(object):
     instruct_dict["warp_list"] = op_warp_list
     self.df = pandas.DataFrame(instruct_dict)
 
+class Dataset(object):
+  def __init__(self, id, attributes, connection = False):
+    super(Dataset, self).__init__()
+    self.id = id
+    self.attributes = attributes
+    self.connection = connection
+    # self.df = pandas.DataFrame(attributes)
+
 class Run(object):
   def __init__(self, id, props, connection = False):
     super(Run, self).__init__()
@@ -32,12 +40,24 @@ class Run(object):
     self.instructions = Instructions(self.attributes["instructions"])
     self.connection = connection
 
+  def monitoring(self, instruction_id, data_type = 'pressure'):
+    req = self.connection.get("%s/runs/%s/%s/monitoring/%s" % (
+      self.attributes['project']['url'],
+      self.id,
+      self.attributes['instructions'][1]['id'],
+      data_type
+    ))
+    if req.status_code == 200:
+      response = req.json()
+      return pandas.DataFrame(response['results'])
+    else:
+      raise Exception(req.text)
+
   def data(self):
-    req = self.connection.get(url("%s/%s/runs/%s/data" % (
-      self.attributes['project']['organization']['subdomain'],
+    req = self.connection.get("%s/runs/%s/data" % (
       self.attributes['project']['url'],
       self.id
-    )))
+    ))
     if req.status_code == 200:
       response = req.json()
       return {k: Dataset(k, v) for k, v in response.iteritems()}
@@ -75,3 +95,17 @@ class Project(object):
       return Run(data['id'], data)
     else:
       raise Exception(req.text)
+
+class Aliquot(object):
+  def __init__(self, id, attributes, connection = False):
+    super(Aliquot, self).__init__()
+    self.id = id
+    self.attributes = attributes
+    self.connection = connection
+
+class Resource(object):
+  def __init__(self, id, attributes, connection = False):
+    super(Resource, self).__init__()
+    self.id = id
+    self.attributes = attributes
+    self.connection = connection
