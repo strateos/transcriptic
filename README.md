@@ -14,7 +14,7 @@ or
 
 ```
 $ git clone https://github.com/transcriptic/transcriptic.git
-$ cd runner
+$ cd transcriptic
 $ pip install .
 ```
 

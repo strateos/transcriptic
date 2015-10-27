@@ -4,6 +4,17 @@ import pandas
 from transcriptic.ipython import Render
 
 class Instructions(object):
+  '''
+  An instruction object contains raw instructions as JSON as well as list of
+  operations and warps generated from the raw instructions.
+
+  Parameters
+  ----------
+
+  raw_instructions : dict
+    raw instruction dictionary
+
+  '''
   def __init__(self, raw_instructions):
     self.raw_instructions = raw_instructions
     op_name_list = []
