@@ -89,7 +89,7 @@ def submit(ctx, file, project, title, test):
   else:
     click.echo("Unknown error: %s" % response.text)
 
-@cli.command()
+@cli.command('build-release')
 @click.argument('package', required=False, metavar="PACKAGE")
 @click.option('--name', '-n', help="Optional name for your zip file")
 @click.pass_context
@@ -117,15 +117,15 @@ def release(ctx, name=None, package=None):
   click.echo("Archive %s created." % (filename + ".zip"))
   if package:
     package_id = get_package_id(package) or get_package_name(package)
-    ctx.invoke(upl, archive=(filename + ".zip"), package=package_id)
+    ctx.invoke(upload_release, archive=(filename + ".zip"), package=package_id)
 
-@cli.command("upload")
+@cli.command("upload-release")
 @click.argument('archive', required=True, type=click.Path(exists=True),
                  metavar="ARCHIVE")
 @click.argument('package', required=True, metavar="PACKAGE")
 @click.pass_context
-def upl(ctx, archive, package):
-  """Upload an existing archive to an existing package."""
+def upload_release(ctx, archive, package):
+  """Upload a release archive to a package."""
   try:
     package_id = get_package_id(package.lower()) or get_package_name(package.lower())
     click.echo("Uploading %s to %s" % (archive,
@@ -261,11 +261,11 @@ def packages(ctx, i):
                    '{:^30}'.format(p['latest']))
         click.echo('{:-^90}'.format(''))
 
-@cli.command("new-package")
+@cli.command("create-package")
 @click.argument('name')
 @click.argument('description')
 @click.pass_context
-def new_package(ctx, description, name):
+def create_package(ctx, description, name):
   '''Create a new empty protocol package'''
   existing = ctx.obj.get('packages/')
   for p in existing.json():
@@ -341,11 +341,11 @@ def projects(ctx, i):
     click.echo("There was an error listing the projects in your "
                "organization.  Make sure your login details are correct.")
 
-@cli.command("new-project")
+@cli.command("create-project")
 @click.argument('name', metavar = "PROJECT_NAME")
 @click.option('--dev', '-d', '-pilot', help = "Create a pilot project", is_flag = True)
 @click.pass_context
-def new_project(ctx, name, dev):
+def create_project(ctx, name, dev):
   '''Create a new empty project.'''
   existing = ctx.obj.projects()
   for p in existing:
