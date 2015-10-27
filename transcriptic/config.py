@@ -1,6 +1,5 @@
 import requests
 import json
-import click
 import transcriptic
 from os.path import expanduser
 from transcriptic.objects import Project
@@ -25,12 +24,12 @@ class Connection:
 
   @staticmethod
   def from_file(path):
-    with click.open_file(expanduser(path), 'r') as f:
+    with open(expanduser(path), 'r') as f:
       cfg = json.loads(f.read())
       return Connection(**cfg)
 
   def save(self, path):
-    with click.open_file(expanduser(path), 'w') as f:
+    with open(expanduser(path), 'w') as f:
       f.write(json.dumps({
         'email': self.email,
         'token': self.token,
@@ -74,12 +73,10 @@ class Connection:
     else:
       raise RuntimeError(req.text)
 
-  def delete_project(self, project_id, force = False):
+  def delete_project(self, project_id):
     req = self.delete(project_id)
     if req.status_code == 200:
       return True
-    else:
-      raise RuntimeError(req.text)
 
   def archive_project(self, project_id):
     req = self.put(project_id, data = json.dumps({"project": {"archived": True}}))
@@ -112,11 +109,10 @@ class Connection:
     else:
       raise RuntimeError(req.text)
 
-  def delete_package(self, name, force = False):
-    pass
-
-  def create_release(self, archive, package):
-    pass
+  def delete_package(self, id):
+    req = self.delete('packages/%s' % id)
+    if req.status_code == 200:
+        return True
 
   def post(self, path, **kwargs):
     if self.verbose: print "POST %s" %  self.url(path)
