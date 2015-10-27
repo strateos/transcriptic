@@ -441,7 +441,7 @@ def analyze(ctx, file, test):
       return
 
   try:
-    analysis = api_analyze(protocol, test_mode = test, force_ctx = ctx.obj)
+    analysis = api_analyze(protocol, test_mode = test)
     click.echo(u"\u2713 Protocol analyzed")
     price(analysis)
   except Exception as e:
