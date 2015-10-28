@@ -61,7 +61,7 @@ def analyze(protocol, test_mode = False):
   else:
     raise Exception("[%d] %s" % (req.status_code, req.text))
 
-def submit(protocol, test_mode = False):
+def submit(protocol, project, title = None, test_mode = False):
   _check_ctx()
   req = ctx.post('%s/runs' % project, data = json.dumps({
     "title": title,
@@ -69,8 +69,7 @@ def submit(protocol, test_mode = False):
     "test_mode": test_mode
   }))
   if req.status_code == 201:
-    click.echo("Run created: %s" % ctx.url("%s/runs/%s" % (project, req.json()['id'])))
-    return response.json()['id']
+    return req.json()['id']
   elif req.status_code == 404:
     raise AnalysisException("Error: Couldn't create run (404). \nAre you sure the project %s "
                "exists, and that you have access to it?" % ctx.url(project))

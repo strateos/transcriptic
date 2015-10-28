@@ -73,7 +73,7 @@ def submit(ctx, file, project, title, test):
       return
 
   try:
-    run_id = api_submit(protocol, test_mode = test)
+    run_id = api_submit(protocol, project, title, test_mode = test)
     click.echo("Run created: %s" % ctx.obj.url("%s/runs/%s" % (project, run_id)))
   except Exception as e:
     click.echo(str(e))
