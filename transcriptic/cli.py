@@ -10,7 +10,7 @@ import os
 import time
 import xml.etree.ElementTree as ET
 import re
-from transcriptic import AnalysisException, analyze as api_analyze
+from transcriptic import AnalysisException, analyze as api_analyze, submit as api_submit
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.util import iter_json
@@ -71,23 +71,12 @@ def submit(ctx, file, project, title, test):
       click.echo("Error: Could not submit since your manifest.json file is "
                  "improperly formatted.")
       return
-  if test:
-    test_mode = True
-  response = ctx.obj.post('%s/runs' % project, data = json.dumps({
-    "title": title,
-    "protocol": protocol,
-    "test_mode": test
-  }))
-  if response.status_code == 201:
-    click.echo("Run created: %s" % ctx.obj.url("%s/runs/%s" % (project, response.json()['id'])))
-    return response.json()['id']
-  elif response.status_code == 404:
-    click.echo("Error: Couldn't create run (404). \nAre you sure the project %s "
-               "exists, and that you have access to it?" % ctx.obj.url(project))
-  elif response.status_code == 422:
-    click.echo("Error creating run: %s" % response.text)
-  else:
-    click.echo("Unknown error: %s" % response.text)
+
+  try:
+    run_id = api_submit(protocol, project, title, test_mode = test)
+    click.echo("Run created: %s" % ctx.obj.url("%s/runs/%s" % (project, run_id)))
+  except Exception as e:
+    click.echo(str(e))
 
 @cli.command('build-release')
 @click.argument('package', required=False, metavar="PACKAGE")
