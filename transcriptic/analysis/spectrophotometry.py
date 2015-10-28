@@ -1,34 +1,33 @@
-import os, requests, json, re
-import plotly.plotly as py
+# import plotly.plotly as py
 import pandas
 import matplotlib.pyplot as plt
 import plotly.tools as tls
 import numpy as np
 from plotly.graph_objs import *
-from IPython.display import HTML, Javascript, display
+from IPython.display import HTML, display
 from transcriptic.util import natural_sort
 
-# TODO: Update group_well params to take in list of wells ["A1","A2",...]
-# TODO: Plot Beer's Law chart, get expected volumes?
+
 class Absorbance(object):
-    """
-    Takes in dataset object and parses into absorbance object for easy
-    statistical analysis and visualization.
-    """
+    '''
+    An Absorbance object parses a dataset object and provides functions for
+    easy statistical analysis and visualization.
+
+    Parameters
+    ----------
+
+    dataset: dataset
+      Single dataset selected from datasets object.
+    group_labels: list[str]
+      Labels for each of the respective groups.
+    group_wells: list[int]
+      List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
+    control_abs: Absorbance object
+        Absorbance of object of water/control blank. If specified, will create adjusted dataframe df_adj
+        by subtracting from existing df.
+
+    '''
     def __init__(self, dataset, groups, group_well_list=None, control_abs=None, name=None):
-        """
-        Parameters
-        ----------
-        dataset: dataset
-          Single dataset selected from datasets object.
-        group_labels: list[str]
-          Labels for each of the respective groups.
-        group_wells: list[int]
-          List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
-        control_abs: Absorbance object
-            Absorbance of object of water/control blank. If specified, will create adjusted dataframe (df)adj)
-            by subtracting from existing df.
-        """
         self.name = name
         self.dataset = dataset
         self.control_abs = control_abs
