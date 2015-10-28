@@ -10,8 +10,8 @@
     :hidden:
 
     transcriptic
-    README
 
+.. include:: README.rst
 
 
 * :ref:`genindex`

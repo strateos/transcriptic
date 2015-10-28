@@ -267,8 +267,9 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 # on_rtd is whether we are on readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-if not on_rtd:  # only import and set the theme if we're building docs locally
+if not on_rtd or on_rtd:  # only import and set the theme if we're building docs locally
     html_theme_path = [alabaster.get_path()]
+    html_style = '/alabaster.css'
     html_theme = 'alabaster'
     html_sidebars = {
         '**': [
@@ -281,6 +282,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     }
     html_theme_options = {
       'logo': 'transcriptic-logo.png',
+      'logo_name': True,
+      'logo_text_align': 'center',
+      'description': "A command-line interface and Python client library for interacting with Transcriptic's API.",
       'github_user': 'transcriptic',
       'github_repo': 'transcriptic',
       'github_button': True,

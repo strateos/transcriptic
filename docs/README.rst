@@ -1,14 +1,6 @@
-README
-======
 
-Transcriptic CLI
-
-The Transcriptic CLI is a command-line tool for managing Transcriptic organizations, projects, runs, datasets and more.
-
-Transcriptic is the robotic cloud laboratory for the life sciences. `https://www.transcriptic.com <https://www.transcriptic.com/>`_
-
-Setup
------
+Installation
+------------
 
 .. code-block:: shell
 
@@ -40,7 +32,7 @@ Then, login to your Transcriptic account:
     Logged in as me@example.com (example-lab)
 
 
-Documentation
--------------
+Further Documentation
+---------------------
 
 See the `Transcriptic Developer Documentation <https://developers.transcriptic.com/docs/getting-started-with-the-cli/>`_ for detailed information about how to use this package, including learning about how to package protocols and build releases.
