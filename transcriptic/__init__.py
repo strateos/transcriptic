@@ -1,6 +1,6 @@
 import json
 import requests
-from transcriptic.objects import Run, Project, Aliquot, Resource
+from transcriptic.objects import Run, Project, Aliquot, Resource, Container
 
 ctx = None
 
@@ -38,12 +38,7 @@ def aliquot(id):
   return _get_object(id, Aliquot)
 
 def container(id):
-  _check_ctx()
-  req = ctx.get("containers/%s" % id)
-  if req.status_code == 200:
-    return req.json()
-  else:
-    raise Exception(req.json())
+  return _get_object(id, Container)
 
 def analyze(protocol, test_mode = False):
   _check_ctx()

@@ -95,6 +95,13 @@ class Aliquot(object):
     self.attributes = attributes
     self.connection = connection
 
+class Container(object):
+  def __init__(self, id, attributes, connection = False):
+    super(Container, self).__init__()
+    self.id = id
+    self.attributes = attributes
+    self.connection = connection
+
 class Resource(object):
   def __init__(self, id, attributes, connection = False):
     super(Resource, self).__init__()
