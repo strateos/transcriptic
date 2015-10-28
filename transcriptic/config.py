@@ -63,10 +63,10 @@ class Connection:
       )
 
   def create_project(self, title, is_developer = False):
-    req = self.post('', data = {
+    req = self.post('', data = json.dumps({
       'name': title,
       'is_developer': is_developer
-    })
+    }))
     if req.status_code == 201:
       data = req.json()
       return Project(data['id'], data, connection = self)
