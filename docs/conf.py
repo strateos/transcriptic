@@ -16,6 +16,14 @@ import alabaster
 import sys
 import os
 
+import mock
+
+MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
+                'sklearn.grid_search', 'sklearn.externals', 'plotly', 'plotly.graph_objs',
+                'matplotlib.gridspec', 'scikit-learn', 'pandas']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -314,15 +322,3 @@ if not on_rtd or on_rtd:  # only import and set the theme if we're building docs
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-from mock import Mock as MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return Mock()
-
-MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
-                'sklearn.grid_search', 'sklearn.externals', 'plotly', 'plotly.graph_objs',
-                'matplotlib.gridspec', 'scikit-learn']
-
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
