@@ -6,7 +6,6 @@ setup(
     url='https://github.com/transcriptic/transcriptic',
     version='2.0.1',
     packages=['transcriptic', 'transcriptic.analysis'],
-    setup_requires=['numpy'],
     install_requires=[
         'Click>=5.1',
         'requests',
