@@ -61,6 +61,24 @@ def analyze(protocol, test_mode = False):
   else:
     raise Exception("[%d] %s" % (req.status_code, req.text))
 
+def submit(protocol, test_mode = False):
+  _check_ctx()
+  req = ctx.post('%s/runs' % project, data = json.dumps({
+    "title": title,
+    "protocol": protocol,
+    "test_mode": test_mode
+  }))
+  if req.status_code == 201:
+    click.echo("Run created: %s" % ctx.url("%s/runs/%s" % (project, req.json()['id'])))
+    return response.json()['id']
+  elif req.status_code == 404:
+    raise AnalysisException("Error: Couldn't create run (404). \nAre you sure the project %s "
+               "exists, and that you have access to it?" % ctx.url(project))
+  elif req.status_code == 422:
+    raise AnalysisException("Error creating run: %s" % req.text)
+  else:
+    raise Exception("[%d] %s" % (req.status_code, req.text))
+
 def dataset(id, key = "*"):
   _check_ctx()
   req = ctx.get("data/%s.json?key=%s" % (id, key))

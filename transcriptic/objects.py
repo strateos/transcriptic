@@ -10,14 +10,6 @@ class Instructions(object):
     op_warp_list = []
     for instruction in raw_instructions:
       op_name_list.append(instruction["operation"]["op"])
-      """
-      if instruction["operation"]["op"] == "pipette":
-          temp_list = []
-          for warp in instruction["warps"]:
-              temp_list.append(Pipette_Warp(warp))
-      else:
-          op_warp_list.append(instruction["warps"])
-      """
       op_warp_list.append(instruction["warps"])
     instruct_dict = {}
     instruct_dict["name"] = op_name_list
