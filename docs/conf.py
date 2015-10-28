@@ -265,12 +265,10 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 
 # on_rtd is whether we are on readthedocs.org
-import os
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if not on_rtd:  # only import and set the theme if we're building docs locally
     html_theme_path = [alabaster.get_path()]
-    extensions = ['alabaster']
     html_theme = 'alabaster'
     html_sidebars = {
         '**': [
