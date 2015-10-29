@@ -152,7 +152,7 @@ def upload_release(ctx, archive, package):
     response_tree = ET.fromstring(response.content)
     loc = dict((i.tag, i.text) for i in response_tree)
     try:
-      up = ctx.obj.post('packages/%s/releases/' % package_id, data = json.dumps({
+      up = ctx.obj.post('developer/packages/%s/releases/' % package_id, data = json.dumps({
         "release": {
           "binary_attachment_url": loc["Key"]
         }
