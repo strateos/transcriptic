@@ -21,23 +21,23 @@ class PlateRead(object):
         self.name = name
         self.dataset = dataset
         self.control_reading = control_reading
+        self.op_type = op_type
         if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"])==0:
             raise RuntimeError("No data found in given dataset.")
         data_dict = get_dataset(self.dataset.attributes["id"])
-        self.op = self.dataset.attributes["instruction"]["operation"]["op"]
-        if self.op not in ["absorbance", "fluorescence", "luminsence"]:
+        if self.op_type not in ["absorbance", "fluorescence", "luminsence"]:
             raise RuntimeError("Data given is not from a spectrophotometry operation.")
 
 
         # Populate measurement params
         measure_params_dict = {}
         measure_params_dict["reader"] = self.dataset.attributes["warp"]["device_id"]
-        if self.op == "absorbance":
+        if self.op_type == "absorbance":
             measure_params_dict["wavelength"] = self.dataset.attributes["instruction"]["operation"]["wavelength"].split(":")[0] + "nm"
-        if self.op == "fluorescence":
+        if self.op_type == "fluorescence":
             measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"].split(":")[0] + "nm",
                  self.dataset.attributes["instruction"]["operation"]["emission"].split(":")[0] + "nm")
-        if self.op == "luminsence":
+        if self.op_type == "luminsence":
             measure_params_dict["wavelength"] = ""
 
         self.params = measure_params_dict
@@ -92,15 +92,14 @@ class PlateRead(object):
 
         self.cv = self.df.std()/self.df.mean()*100
 
-    def plot(self, mpl=False, **plt_kwargs):
+    def plot(self, mpl=False, plot_type="box", **plt_kwargs):
         """
         # Generates a matplotlib object
         """
         mpl_fig, ax = plt.subplots()
         nl = "\n" if mpl else "<br>"
-        ax.set_ylabel(self.op + nl + self.params["wavelength"])
-        ax.set_xlabel("Groups")
-        self.df.boxplot(ax=ax, return_type="dict")
+        ax.set_ylabel(self.op_type + nl + self.params["wavelength"])
+        self.df.plot(kind=plot_type, ax=ax)
         labels = [item.label.get_text() for item in ax.xaxis.get_major_ticks()]
         if mpl:
             return None
