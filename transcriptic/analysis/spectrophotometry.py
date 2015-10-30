@@ -33,10 +33,10 @@ class PlateRead(object):
         measure_params_dict = {}
         measure_params_dict["reader"] = self.dataset.attributes["warp"]["device_id"]
         if self.op == "absorbance":
-            measure_params_dict["wavelength"] = self.dataset.attributes["instruction"]["operation"]["wavelength"]
+            measure_params_dict["wavelength"] = self.dataset.attributes["instruction"]["operation"]["wavelength"].split(":")[0] + "nm"
         if self.op == "fluorescence":
-            measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"],
-                 self.dataset.attributes["instruction"]["operation"]["emission"])
+            measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"].split(":")[0] + "nm",
+                 self.dataset.attributes["instruction"]["operation"]["emission"].split(":")[0] + "nm")
         if self.op == "luminsence":
             measure_params_dict["wavelength"] = ""
 
@@ -92,18 +92,36 @@ class PlateRead(object):
 
         self.cv = self.df.std()/self.df.mean()*100
 
-    def plot(self, mpl=False):
-        # Generates matplotlib obj
+    def plot(self, mpl=False, **plt_kwargs):
+        """
+        # Generates a matplotlib object
+        """
         mpl_fig, ax = plt.subplots()
-        ax.set_ylabel("%s" % self.op + self.params["wavelength"])
+        nl = "\n" if mpl else "<br>"
+        ax.set_ylabel(self.op + nl + self.params["wavelength"])
         ax.set_xlabel("Groups")
         self.df.boxplot(ax=ax, return_type="dict")
-        #labels = [item.get_text() for item in ax.get_xticklabels()]
+        labels = [item.label.get_text() for item in ax.xaxis.get_major_ticks()]
         if mpl:
-            #return mpl_fig
             return None
         else:
-            return py.plot(tls.mpl_to_plotly(mpl_fig))
+            if not plt_kwargs:
+                plt_kwargs = {
+                    "layout": {
+                        "xaxis": {
+                            "tickmode": "array",
+                            "ticktext": labels,
+                            "tickvals": range(1, len(labels)+1),
+                            "tickangle": 0,
+                            "tickfont":{
+                                "size": 10
+                            },
+                        }
+                    }
+                }
+            pyfig = tls.mpl_to_plotly(mpl_fig)
+            pyfig.update(plt_kwargs)
+            return py.plot(pyfig)
 
 
 class Absorbance(PlateRead):
@@ -173,7 +191,7 @@ class Fluorescence(PlateRead):
 
     dataset: dataset
       Single dataset selected from datasets object.
-    group_labels: list[str]
+    groups: list[str]
       Labels for each of the respective groups.
     group_wells: list[int]
       List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
