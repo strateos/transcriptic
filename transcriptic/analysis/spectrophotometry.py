@@ -1,9 +1,9 @@
-# import plotly.plotly as py
+import plotly.plotly as py
+from plotly.graph_objs import *
 import pandas
 import matplotlib.pyplot as plt
 import plotly.tools as tls
 import numpy as np
-from plotly.graph_objs import *
 from IPython.display import HTML, display
 from transcriptic.util import natural_sort, humanize
 from transcriptic import dataset as get_dataset
@@ -24,19 +24,21 @@ class PlateRead(object):
         if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"])==0:
             raise RuntimeError("No data found in given dataset.")
         data_dict = get_dataset(self.dataset.attributes["id"])
-        if self.dataset.attributes["instruction"]["operation"]["op"] != op_type:
-            raise RuntimeError("Data given is not a %s operation." % op_type)
+        self.op = self.dataset.attributes["instruction"]["operation"]["op"]
+        if self.op not in ["absorbance", "fluorescence", "luminsence"]:
+            raise RuntimeError("Data given is not from a spectrophotometry operation.")
+
 
         # Populate measurement params
         measure_params_dict = {}
         measure_params_dict["reader"] = self.dataset.attributes["warp"]["device_id"]
-        if op_type == "absorbance":
+        if self.op == "absorbance":
             measure_params_dict["wavelength"] = self.dataset.attributes["instruction"]["operation"]["wavelength"]
-        elif op_type == "fluorescence":
-            measure_params_dict["wavelength"] = (
-                {"excitation": self.dataset.attributes["instruction"]["operation"]["excitation"],
-                 "emission": self.dataset.attributes["instruction"]["operation"]["emission"]
-                })
+        if self.op == "fluorescence":
+            measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"],
+                 self.dataset.attributes["instruction"]["operation"]["emission"])
+        if self.op == "luminsence":
+            measure_params_dict["wavelength"] = ""
 
         self.params = measure_params_dict
 
@@ -93,15 +95,15 @@ class PlateRead(object):
     def plot(self, mpl=False):
         # Generates matplotlib obj
         mpl_fig, ax = plt.subplots()
-        ax.set_ylabel("Absorbance " + self.params.wavelength)
+        ax.set_ylabel("%s" % self.op + self.params["wavelength"])
         ax.set_xlabel("Groups")
-        self.df.boxplot(ax=ax)
+        self.df.boxplot(ax=ax, return_type="dict")
         #labels = [item.get_text() for item in ax.get_xticklabels()]
         if mpl:
             #return mpl_fig
             return None
         else:
-            return plot(tls.mpl_to_plotly(mpl_fig))
+            return py.plot(tls.mpl_to_plotly(mpl_fig))
 
 
 class Absorbance(PlateRead):
