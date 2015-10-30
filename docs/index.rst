@@ -10,6 +10,8 @@
     :hidden:
 
     transcriptic
+    objects
+    analysis
 
 .. include:: README.rst
 

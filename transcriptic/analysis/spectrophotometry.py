@@ -16,6 +16,7 @@ class PlateRead(object):
 
     Refer to the Absorbance, Fluorescence and Luminescence objects for more
     information.
+
     '''
     def __init__(self, op_type, dataset, groups, group_well_list=None, control_reading=None, name=None):
         self.name = name
@@ -94,7 +95,14 @@ class PlateRead(object):
 
     def plot(self, mpl=False, plot_type="box", **plt_kwargs):
         """
-        # Generates a matplotlib object
+        Parameters
+        ----------
+        mpl : boolean
+            Set to True to render a matplotlib plot, otherwise a Plotly plot is rendered.
+        plot_type : {"box", "bar", "line", "hist"}
+            Type of plot to render.
+        \**plot_kwargs : dict
+            Optional dictionary of specifications for your plot type of choice.
         """
         mpl_fig, ax = plt.subplots()
         nl = "\n" if mpl else "<br>"
