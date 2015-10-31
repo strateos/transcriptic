@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import plotly.tools as tls
 import numpy as np
 from IPython.display import HTML, display
-from transcriptic.util import natural_sort, humanize
+from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
 
 
@@ -18,17 +18,18 @@ class PlateRead(object):
     information.
 
     '''
-    def __init__(self, op_type, dataset, groups, group_well_list=None, control_reading=None, name=None):
+    def __init__(self, op_type, dataset, group_labels, group_wells=None,
+                 control_reading=None, name=None):
         self.name = name
         self.dataset = dataset
         self.control_reading = control_reading
         self.op_type = op_type
-        if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"])==0:
+        if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"]) == 0:
             raise RuntimeError("No data found in given dataset.")
-        data_dict = get_dataset(self.dataset.attributes["id"])
         if self.op_type not in ["absorbance", "fluorescence", "luminsence"]:
             raise RuntimeError("Data given is not from a spectrophotometry operation.")
-
+        if self.op_type != self.dataset.attributes["instruction"]["operation"]["op"]:
+            raise RuntimeError("Data given is not a %s operation." % op_type)
 
         # Populate measurement params
         measure_params_dict = {}
@@ -50,42 +51,43 @@ class PlateRead(object):
         plate_info_dict["well_count"] = self.dataset.attributes["container_type"]["well_count"]
         self.params["plate"] = plate_info_dict
 
-        sorted_keys = natural_sort(data_dict.keys())
+        # Get dataset and parse into DataFrame
+        data_dict = get_dataset(self.dataset.attributes["id"])
         df_dict = {}
         well_count = self.dataset.attributes["container_type"]["well_count"]
         col_count = self.dataset.attributes["container_type"]["col_count"]
         # If no group well list specified, default to including all well data values in one group
-        if not group_well_list:
-            df_dict[groups[0]] = [x[0] for x in data_dict.values()]
+        if not group_wells:
+            df_dict[group_labels[0]] = [x[0] for x in data_dict.values()]
         # If given list of all int, assume one group with all wells in list
-        elif all(isinstance(i, int) for i in group_well_list):
-            if len(group_well_list) > len(data_dict):
+        elif all(isinstance(i, int) for i in group_wells):
+            if len(group_wells) > len(data_dict):
                 raise ValueError("Sum of group lengths exceeds total no. of wells.")
             try:
-                df_dict[groups[0]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in group_well_list]
+                df_dict[group_labels[0]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in group_wells]
             except:
                 raise ValueError("Well %s is not in the dataset" % well)
-        elif all(isinstance(i, list) for i in group_well_list):
-            if group_well_list and sum([len(i) for i in group_well_list]) > len(data_dict):
+        elif all(isinstance(i, list) for i in group_wells):
+            if group_wells and sum([len(i) for i in group_wells]) > len(data_dict):
                 raise ValueError("Sum of group lengths exceeds total no. of wells.")
-            for (idx, well_list) in enumerate(group_well_list):
+            for (idx, well_list) in enumerate(group_wells):
                 try:
-                    df_dict[groups[idx]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in well_list]
+                    df_dict[group_labels[idx]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in well_list]
                 except:
                     raise ValueError("Well %s is not in the dataset" % well)
         else:
             raise ValueError("Format Error: Group Well List should be a list of list of wells in robot format")
 
         # To ensure pandas dataframe compatiblity: Check that group len elements are of the same length, pad with NaN otherwise
-        if group_well_list and all(isinstance(i, list) for i in group_well_list):
-            group_len_list = [len(x) for x in group_well_list]
+        if group_wells and all(isinstance(i, list) for i in group_wells):
+            group_len_list = [len(x) for x in group_wells]
             if group_len_list.count(group_len_list[0]) != len(group_len_list):
                 max_len = max(group_len_list)
                 for (idx, group_len) in enumerate(group_len_list):
-                    while len(df_dict[groups[idx]]) < max_len:
-                        df_dict[groups[idx]].append(float("NaN"))
+                    while len(df_dict[group_labels[idx]]) < max_len:
+                        df_dict[group_labels[idx]].append(float("NaN"))
 
-        self.df = pandas.DataFrame(df_dict, columns=groups)
+        self.df = pandas.DataFrame(df_dict, columns=group_labels)
 
         # If control absorbance object specified, create df_abj variable by subtracting control df from original
         if control_reading:
@@ -97,12 +99,12 @@ class PlateRead(object):
         """
         Parameters
         ----------
-        mpl : boolean
-            Set to True to render a matplotlib plot, otherwise a Plotly plot is rendered.
-        plot_type : {"box", "bar", "line", "hist"}
-            Type of plot to render.
-        \**plot_kwargs : dict
-            Optional dictionary of specifications for your plot type of choice.
+        mpl : boolean, optional
+            Set to True to render a matplotlib plot, otherwise a Plotly plot is rendered
+        plot_type : {"box", "bar", "line", "hist"}, optional
+            Type of plot to render
+        \**plot_kwargs : dict, optional
+            Optional dictionary of specifications for your plot type of choice
         """
         mpl_fig, ax = plt.subplots()
         nl = "\n" if mpl else "<br>"
@@ -128,7 +130,7 @@ class PlateRead(object):
                 }
             pyfig = tls.mpl_to_plotly(mpl_fig)
             pyfig.update(plt_kwargs)
-            return py.plot(pyfig)
+            return py.iplot(pyfig)
 
 
 class Absorbance(PlateRead):
@@ -140,21 +142,41 @@ class Absorbance(PlateRead):
     ----------
 
     dataset: dataset
-      Single dataset selected from datasets object.
+        Single dataset selected from datasets object
     group_labels: list[str]
-      Labels for each of the respective groups.
+        Labels for each of the respective groups
     group_wells: list[int]
-      List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
-    control_abs: Absorbance object
-        Absorbance object of water/control blank. If specified, will create adjusted dataframe df_adj
-        by subtracting from existing df.
+        List of list of wells (robot form) belonging to each group in order.
+        E.g. [[1,3,5],[2,4,6]]
+    control_abs: Absorbance object, optional
+        Absorbance object of water/control blank. If specified, will create
+        adjusted dataframe df_adj by subtracting from existing df
+    name: str, optional
+        Name of absorbance object. Used in plotting functions
 
     '''
-    def __init__(self, dataset, groups, group_well_list=None, control_abs=None, name=None):
-
-        PlateRead.__init__(self, "absorbance", dataset, groups, group_well_list, control_abs, name)
+    def __init__(self, dataset, group_labels, group_wells=None,
+                 control_abs=None, name=None):
+        PlateRead.__init__(self, "absorbance", dataset, group_labels,
+                           group_wells, control_abs, name)
 
     def beers_law(self, conc_list=None, use_adj=True, **kwargs):
+        """"
+        Apply Beer-Lambert's law to a series of absorbance readings and get
+        an estimation of the linearity between the absorbance and concentration
+        values.
+
+        Parameters
+        ----------
+
+        conc_list: list[double], optional
+            List of concentrations of dye used
+        use_adj: Boolean, optional
+            Booelan option which determines if the adjusted absorbance readings
+            are used
+        \**plot_kwargs : dict
+            Optional dictionary of specifications for your plot type of choice
+        """
         if "title" not in kwargs:
             if self.name:
                 kwargs["title"] = "Beer's Law (%s)" % self.name
@@ -197,19 +219,23 @@ class Fluorescence(PlateRead):
     ----------
 
     dataset: dataset
-      Single dataset selected from datasets object.
-    groups: list[str]
-      Labels for each of the respective groups.
+        Single dataset selected from datasets object
+    group_labels: list[str]
+        Labels for each of the respective groups
     group_wells: list[int]
-      List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
-    control_fluor: Fluorescence object
-        Fluorescence object of water/control blank. If specified, will create adjusted dataframe df_adj
-        by subtracting from existing df.
+        List of list of wells (robot form) belonging to each group in order.
+        E.g. [[1,3,5],[2,4,6]]
+    control_fluor: Fluorescence object, optional
+        Fluorescence object of water/control blank. If specified, will create
+        adjusted dataframe df_adj by subtracting from existing df
+    name: str, optional
+        Name of fluorescence object. Used in plotting functions
 
     '''
-    def __init__(self, dataset, groups, group_well_list=None, control_fluor=None, name=None):
-
-        PlateRead.__init__(self, "fluorescence", dataset, groups, group_well_list, control_fluor, name)
+    def __init__(self, dataset, group_labels, group_wells=None,
+                 control_abs=None, name=None):
+        PlateRead.__init__(self, "fluorescence", dataset, group_labels,
+                           group_wells, control_abs, name)
 
 
 class Luminescence(PlateRead):
@@ -221,37 +247,55 @@ class Luminescence(PlateRead):
     ----------
 
     dataset: dataset
-      Single dataset selected from datasets object.
+        Single dataset selected from datasets object
     group_labels: list[str]
-      Labels for each of the respective groups.
+        Labels for each of the respective groups
     group_wells: list[int]
-      List of list of wells (robot form) belonging to each group in order. E.g. [[1,3,5],[2,4,6]]
-    control_lumi: Luminescence object
-        Luminescence object of water/control blank. If specified, will create adjusted dataframe df_adj
-        by subtracting from existing df.
+        List of list of wells (robot form) belonging to each group in order.
+        E.g. [[1,3,5],[2,4,6]]
+    control_lumi: Luminescence object, optional
+        Luminescence object of water/control blank. If specified, will create
+        adjusted dataframe df_adj by subtracting from existing df
+    name: str, optional
+        Name of luminescence object. Used in plotting functions
 
     '''
-    def __init__(self, dataset, groups, group_well_list=None, control_lumi=None, name=None):
+    def __init__(self, dataset, group_labels, group_wells=None,
+                 control_abs=None, name=None):
+        PlateRead.__init__(self, "luminescence", dataset, group_labels,
+                           group_wells, control_abs, name)
 
-        PlateRead.__init__(self, "luminescence", dataset, groups, group_well_list, control_lumi, name)
+
+def compare_standards(pr_obj, std_pr_obj):
+    ''''
+    Compare a sample plate read object with a standard plate read object to get
+    measures such as the Root-Mean-Square-Error (RMSE) and
+    Coefficient-of-Variation (CV).
 
 
-def compare_standards(abs_obj, std_abs_obj):
+    Parameters
+    ----------
+
+    pr_obj: PlateRead
+        Sample plate read object
+    std_pr_obj: PlateRead
+        Standard plate read object
+    '''
     # Compare against mean of standard absorbance
     # Check to ensure CVs are at least 2 apart
-    for indx in range(len(abs_obj.cv)):
-        cv_ratio = abs_obj.cv.iloc[indx]/std_abs_obj.cv.iloc[indx]
+    for indx in range(len(pr_obj.cv)):
+        cv_ratio = pr_obj.cv.iloc[indx]/std_pr_obj.cv.iloc[indx]
         if cv_ratio < 2:
-            print "Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (abs_obj.cv.index[indx], cv_ratio)
+            print "Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio)
     # RMSE (normalized wrt to standard mean)
-    RMSE = np.sqrt(np.square(abs_obj.df - std_abs_obj.df.mean())).mean() /  std_abs_obj.df.mean()*100
+    RMSE = np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean())).mean() /  std_pr_obj.df.mean()*100
     RMSE = pandas.DataFrame(RMSE, columns=["RMSE % (normalized to standard mean)"])
 
-    sampleVariance = pandas.DataFrame(abs_obj.df.var(), columns=["Sample Variance"])
-    sampleCV = pandas.DataFrame(abs_obj.cv, columns=["Sample (%) CV"])
+    sampleVariance = pandas.DataFrame(pr_obj.df.var(), columns=["Sample Variance"])
+    sampleCV = pandas.DataFrame(pr_obj.cv, columns=["Sample (%) CV"])
 
-    if abs_obj.name:
-        display(HTML("<b>Standards Comparison (%s)</b>" % abs_obj.name))
+    if pr_obj.name:
+        display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
     print sampleVariance
     print sampleCV
     print RMSE
