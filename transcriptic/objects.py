@@ -1,6 +1,7 @@
 import json
 import requests
 import pandas
+
 from transcriptic.ipython import Render
 
 class Instructions(object):
@@ -87,17 +88,10 @@ class Project(object):
     else:
       raise Exception(req.text)
 
-  def launch(protocol, title, test_mode = False):
-    req = self.connection.post("%s/runs" % self.id, data = json.dumps({
-      "title": title,
-      "protocol": protocol.as_dict(),
-      "test_mode": test_mode
-    }))
-    if req.status_code == 201:
-      data = req.json()
-      return Run(data['id'], data)
-    else:
-      raise Exception(req.text)
+  def submit(protocol, title, test_mode = False):
+    from transcriptic import submit as api_submit
+    req_json = api_submit(protocol, self.id, title, test_mode)
+    return Run(req_json['id'], req_json)
 
 class Aliquot(object):
   def __init__(self, id, attributes, connection = False):

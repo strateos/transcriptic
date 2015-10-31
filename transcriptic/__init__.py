@@ -64,7 +64,7 @@ def submit(protocol, project, title = None, test_mode = False):
     "test_mode": test_mode
   }))
   if req.status_code == 201:
-    return req.json()['id']
+    return req.json()
   elif req.status_code == 404:
     raise AnalysisException("Error: Couldn't create run (404). \nAre you sure the project %s "
                "exists, and that you have access to it?" % ctx.url(project))
