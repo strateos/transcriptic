@@ -233,9 +233,9 @@ class Fluorescence(PlateRead):
 
     '''
     def __init__(self, dataset, group_labels, group_wells=None,
-                 control_abs=None, name=None):
+                 control_fluor=None, name=None):
         PlateRead.__init__(self, "fluorescence", dataset, group_labels,
-                           group_wells, control_abs, name)
+                           group_wells, control_fluor, name)
 
 
 class Luminescence(PlateRead):
@@ -261,9 +261,9 @@ class Luminescence(PlateRead):
 
     '''
     def __init__(self, dataset, group_labels, group_wells=None,
-                 control_abs=None, name=None):
+                 control_lumi=None, name=None):
         PlateRead.__init__(self, "luminescence", dataset, group_labels,
-                           group_wells, control_abs, name)
+                           group_wells, control_lumi, name)
 
 
 def compare_standards(pr_obj, std_pr_obj):
