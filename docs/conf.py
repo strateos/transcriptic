@@ -22,19 +22,13 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
+# All imported modules containing C components must be mocked (added to the
+# MOCK_MODULES list below)
 MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
                 'sklearn.grid_search', 'sklearn.externals', 'plotly',
                 'plotly.graph_objs', 'matplotlib.gridspec', 'scikit-learn',
                 'pandas', 'plotly.plotly', 'plotly.tools', 'Ipython.display']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-import mock
-
-MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
-                'sklearn.grid_search', 'sklearn.externals', 'plotly', 'plotly.graph_objs',
-                'matplotlib.gridspec', 'scikit-learn', 'pandas']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

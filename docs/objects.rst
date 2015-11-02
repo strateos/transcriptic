@@ -36,9 +36,9 @@ Project.runs()
 ^^^^^^^^^^^^^^
 .. automethod:: transcriptic.objects.Project.runs
 
-Project.launch()
+Project.submit()
 ^^^^^^^^^^^^^^^^
-.. automethod:: transcriptic.objects.Project.launch
+.. automethod:: transcriptic.objects.Project.submit
 
 protocol.Aliquot
 ~~~~~~~~~~~~~~~~

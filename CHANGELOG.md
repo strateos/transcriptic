@@ -1,5 +1,17 @@
 ## `transcriptic` Changelog
 
+## Unreleased
+---
+
+## v2.0.2
+---
+
+Changed
+- Refactored analysis.spectrophotometry into `Fluorescence`, `Absorbance` and `Luminescence` classes that inherit from `PlateRead`
+
+Added
+- More documentation and related configuration
+
 ## v2.0.1
 ---
 Added
