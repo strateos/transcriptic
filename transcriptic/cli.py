@@ -443,7 +443,9 @@ def price(response):
   count("instruction", "instructions", len(response['instructions']))
   count("container", "containers", len(response['refs']))
   locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-  click.echo("  %s" % locale.currency(float(response['total_cost']), grouping=True))
+  click.echo("  Total Cost: %s" % locale.currency(float(response['total_cost']), grouping=True))
+  for quote_item in response['quote']['items']:
+      click.echo("  %s: %s" % (quote_item["title"], locale.currency(float(quote_item["cost"]), grouping=True)))
   for w in response['warnings']:
     message = w['message']
     if 'instruction' in w['context']:
