@@ -25,7 +25,7 @@ class Mock(MagicMock):
 MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
                 'sklearn.grid_search', 'sklearn.externals', 'plotly',
                 'plotly.graph_objs', 'matplotlib.gridspec', 'scikit-learn',
-                'pandas']
+                'pandas', 'plotly.plotly', 'plotly.tools', 'Ipython.display']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import mock
@@ -69,6 +69,7 @@ napoleon_use_param = True
 napoleon_use_rtype = True
 
 autodoc_member_order = 'bysource'
+autodoc_default_flags = ['members']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
