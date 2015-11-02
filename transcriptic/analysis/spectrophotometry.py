@@ -1,5 +1,4 @@
 import plotly.plotly as py
-from plotly.graph_objs import plot
 import pandas
 import matplotlib.pyplot as plt
 import plotly.tools as tls
