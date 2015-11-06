@@ -25,7 +25,7 @@ class PlateRead(object):
         self.op_type = op_type
         if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"]) == 0:
             raise RuntimeError("No data found in given dataset.")
-        if self.op_type not in ["absorbance", "fluorescence", "luminsence"]:
+        if self.op_type not in ["absorbance", "fluorescence", "luminescence"]:
             raise RuntimeError("Data given is not from a spectrophotometry operation.")
         if self.op_type != self.dataset.attributes["instruction"]["operation"]["op"]:
             raise RuntimeError("Data given is not a %s operation." % op_type)
@@ -38,7 +38,7 @@ class PlateRead(object):
         if self.op_type == "fluorescence":
             measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"].split(":")[0] + "nm",
                  self.dataset.attributes["instruction"]["operation"]["emission"].split(":")[0] + "nm")
-        if self.op_type == "luminsence":
+        if self.op_type == "luminescence":
             measure_params_dict["wavelength"] = ""
 
         self.params = measure_params_dict
