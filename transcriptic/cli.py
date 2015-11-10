@@ -381,6 +381,15 @@ def delete_project(ctx, name, force):
         click.echo("Could not archive project!")
 
 @cli.command()
+@click.argument('query', default=None)
+@click.pass_context
+def resources(ctx, query):
+    req = ctx.obj.resources(query)
+    print req
+
+
+
+@cli.command()
 @click.argument('path', default='.')
 def init(path):
   '''Initialize a directory with a manifest.json file.'''
