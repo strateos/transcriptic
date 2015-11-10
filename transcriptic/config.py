@@ -4,6 +4,7 @@ import transcriptic
 from os.path import expanduser
 from transcriptic.objects import Project
 
+
 class Connection:
   def __init__(
       self, email, token, organization_id = False, api_root = "https://secure.transcriptic.com", organization = False,
@@ -115,19 +116,19 @@ class Connection:
         return True
 
   def post(self, path, **kwargs):
-    if self.verbose: print "POST %s" %  self.url(path)
+    if self.verbose: print ("POST %s" %  self.url(path))
     return requests.post(self.url(path), headers = self._merge_headers(kwargs), **kwargs)
 
   def put(self, path, **kwargs):
-    if self.verbose: print "PUT %s" %  self.url(path)
+    if self.verbose: print ("PUT %s" %  self.url(path))
     return requests.put(self.url(path), headers = self._merge_headers(kwargs), **kwargs)
 
   def get(self, path, **kwargs):
-    if self.verbose: print "GET %s" %  self.url(path)
+    if self.verbose: print ("GET %s" %  self.url(path))
     return requests.get(self.url(path), headers = self._merge_headers(kwargs), **kwargs)
 
   def delete(self, path, **kwargs):
-    if self.verbose: print "DELETE %s" %  self.url(path)
+    if self.verbose: print ("DELETE %s" %  self.url(path))
     return requests.delete(self.url(path), headers = self._merge_headers(kwargs), **kwargs)
 
   def _merge_headers(self, kwargs):

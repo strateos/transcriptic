@@ -2,6 +2,11 @@ import json
 import requests
 from transcriptic.objects import Run, Project, Aliquot, Resource, Container
 
+import sys
+if sys.version_info[0] >= 3:
+    xrange = range
+    basestring = str
+
 ctx = None
 
 class AnalysisException(Exception):

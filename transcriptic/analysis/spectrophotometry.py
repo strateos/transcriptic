@@ -285,7 +285,7 @@ def compare_standards(pr_obj, std_pr_obj):
     for indx in range(len(pr_obj.cv)):
         cv_ratio = pr_obj.cv.iloc[indx]/std_pr_obj.cv.iloc[indx]
         if cv_ratio < 2:
-            print "Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio)
+            print ("Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio))
     # RMSE (normalized wrt to standard mean)
     RMSE = np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean())).mean() /  std_pr_obj.df.mean()*100
     RMSE = pandas.DataFrame(RMSE, columns=["RMSE % (normalized to standard mean)"])
@@ -295,6 +295,6 @@ def compare_standards(pr_obj, std_pr_obj):
 
     if pr_obj.name:
         display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
-    print sampleVariance
-    print sampleCV
-    print RMSE
+    print(sampleVariance)
+    print(sampleCV)
+    print(RMSE)
