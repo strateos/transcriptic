@@ -1,15 +1,20 @@
 import requests
 import json
 import transcriptic
+import os
 from os.path import expanduser
 from transcriptic.objects import Project
 
 
 class Connection:
   def __init__(
-      self, email, token, organization_id = False, api_root = "https://secure.transcriptic.com", organization = False,
+      self, email = None, token = None, organization_id = False, api_root = "https://secure.transcriptic.com", organization = False,
       cookie = False, verbose = False
     ):
+    if email is None:
+      email = os.environ['USER_EMAIL']
+      token = os.environ['USER_TOKEN']
+      organization_id = os.environ['USER_ORGANIZATION']
     self.api_root = api_root
     self.email = email
     self.token = token
