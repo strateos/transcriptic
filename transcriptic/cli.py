@@ -381,12 +381,23 @@ def delete_project(ctx, name, force):
         click.echo("Could not archive project!")
 
 @cli.command()
-@click.argument('query', default=None)
+@click.argument('query', default='*')
 @click.pass_context
 def resources(ctx, query):
+    '''Search catalog of provisionable resources'''
     req = ctx.obj.resources(query)
-    print req
-
+    if req["results"]:
+      click.echo("Results for '%s':" % query)
+      click.echo('{:-^80}'.format(''))
+    else:
+      click.echo("No results for '%s'." % query)
+    for i in req["results"]:
+      if i["provisionable"]:
+        name = i['name']
+        id = i['kit_items'][0]['resource_id']
+        click.echo('{:^40}'.format(name) + '|' +
+                   '{:^40}'.format(id))
+        click.echo('{:-^80}'.format(''))
 
 
 @cli.command()

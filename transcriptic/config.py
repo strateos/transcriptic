@@ -105,8 +105,8 @@ class Connection:
     else:
       raise RuntimeError(req.text)
 
-  def resources(self, query=None):
-    req = self.get("/_commercial/kits%s" % ("?q=%s&per_page=200" % query) if query else "")
+  def resources(self, query):
+    req = self.get("/_commercial/kits?q=%s&per_page=200" % query)
     return req.json()
 
   def create_package(self, name, description):
