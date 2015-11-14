@@ -27,7 +27,14 @@ class AutoprotocolParser(object):
 
     def absorbance(self, opts):
         return "Measure absorbance at %s for %s of plate %s" % (self.unit(opts['wavelength']),
-                                                        self.well_list(opts['wells']), opts['object'])
+                                                                self.well_list(opts['wells']), opts['object'])
+    def acoustic_transfer(self, opts):
+        transfers = []
+        for t in opts['groups'][0]['transfer']:
+            transfers.append("Acoustic transfer %s from %s to %s" % (self.unit(t["volume"]),
+                                                           t["from"],
+                                                           t["to"]))
+        return transfers
 
     def autopick(self, opts):
         return "Pick %d colonies from well %s of plate %s into %s" % (len(opts['to']),
