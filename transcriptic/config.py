@@ -45,7 +45,7 @@ class Connection:
 
   def url(self, path):
     if path.startswith("/"):
-      return "%s/%s" % (self.api_root, path)
+      return "%s%s" % (self.api_root, path)
     else:
       return "%s/%s/%s" % (self.api_root, self.organization_id, path)
 

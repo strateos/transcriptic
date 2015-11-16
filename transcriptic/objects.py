@@ -36,6 +36,10 @@ class Dataset(object):
     self.connection = connection
     # self.df = pandas.DataFrame(attributes)
 
+  def _repr_html_(self):
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" scrolling="no" seamless></iframe>""" % \
+      self.connection.url("/data/%s.embed" % self.id)
+
 class Run(object):
   def __init__(self, id, attributes, connection = False):
     super(Run, self).__init__()
@@ -64,14 +68,15 @@ class Run(object):
     ))
     if req.status_code == 200:
       response = req.json()
-      return {k: Dataset(k, v) for k, v in response.iteritems()}
+      return {k: Dataset(response[k]["id"], response[k], connection = self.connection) for k in response.keys()}
     elif req.status_code == 404:
       raise Exception("[404] No run found for ID " + id)
     else:
       raise Exception("[%d] %s" % (req.status_code, req.json()))
 
   def _repr_html_(self):
-    return Render(self)._repr_html_()
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" scrolling="no" seamless></iframe>""" % \
+      self.connection.url("%s/%s.embed" % (self.attributes['project']['url'], self.id))
 
 class Project(object):
   def __init__(self, id, attributes, connection = False):
