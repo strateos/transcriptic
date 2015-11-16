@@ -1,6 +1,6 @@
 import json
 import requests
-from transcriptic.objects import Run, Project, Aliquot, Resource, Container
+from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset
 
 import sys
 if sys.version_info[0] >= 3:
@@ -82,6 +82,7 @@ def dataset(id, key = "*"):
   _check_ctx()
   req = ctx.get("/data/%s.json?key=%s" % (id, key))
   if req.status_code == 200:
-    return req.json()
+    data = req.json()
+    return Dataset(id, data, connection = ctx)
   else:
     raise Exception("[%d] %s" % (req.status_code, req.text))

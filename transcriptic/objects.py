@@ -37,10 +37,10 @@ class Dataset(object):
     # self.df = pandas.DataFrame(attributes)
 
 class Run(object):
-  def __init__(self, id, props, connection = False):
+  def __init__(self, id, attributes, connection = False):
     super(Run, self).__init__()
     self.id = id
-    self.attributes = props
+    self.attributes = attributes
     self.instructions = Instructions(self.attributes["instructions"])
     self.connection = connection
 
