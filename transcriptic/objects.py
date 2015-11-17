@@ -37,7 +37,7 @@ class Dataset(object):
     # self.df = pandas.DataFrame(attributes)
 
   def _repr_html_(self):
-    return """<iframe src="%s" frameborder="0" allowtransparency="true" scrolling="no" seamless></iframe>""" % \
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" seamless></iframe>""" % \
       self.connection.url("/data/%s.embed" % self.id)
 
 class Run(object):
@@ -75,7 +75,7 @@ class Run(object):
       raise Exception("[%d] %s" % (req.status_code, req.json()))
 
   def _repr_html_(self):
-    return """<iframe src="%s" frameborder="0" allowtransparency="true" scrolling="no" seamless></iframe>""" % \
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" seamless></iframe>""" % \
       self.connection.url("%s/runs/%s.embed" % (self.attributes['project']['url'], self.id))
 
 class Project(object):
