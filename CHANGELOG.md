@@ -11,6 +11,11 @@ Changed
 
 Added
 - More documentation and related configuration
+- Python 3 support
+- Added cost breakdown to analyze CLI
+
+Fixed
+- bug with initializing runs with Project object
 
 ## v2.0.1
 ---

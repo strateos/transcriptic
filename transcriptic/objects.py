@@ -84,7 +84,7 @@ class Project(object):
     req = self.connection.get("%s/runs" % self.id)
     if req.status_code == 200:
       runs = req.json()
-      return [Run(run['id'], run) for run in runs]
+      return [Run(run['id'], run, self.connection) for run in runs]
     else:
       raise Exception(req.text)
 
