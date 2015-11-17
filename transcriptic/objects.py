@@ -76,7 +76,7 @@ class Run(object):
 
   def _repr_html_(self):
     return """<iframe src="%s" frameborder="0" allowtransparency="true" scrolling="no" seamless></iframe>""" % \
-      self.connection.url("%s/%s.embed" % (self.attributes['project']['url'], self.id))
+      self.connection.url("%s/runs/%s.embed" % (self.attributes['project']['url'], self.id))
 
 class Project(object):
   def __init__(self, id, attributes, connection = False):
