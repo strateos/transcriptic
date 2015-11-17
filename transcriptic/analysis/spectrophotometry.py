@@ -51,7 +51,7 @@ class PlateRead(object):
         self.params["plate"] = plate_info_dict
 
         # Get dataset and parse into DataFrame
-        data_dict = get_dataset(self.dataset.attributes["id"])
+        data_dict = get_dataset(self.dataset.attributes["id"]).attributes
         df_dict = {}
         well_count = self.dataset.attributes["container_type"]["well_count"]
         col_count = self.dataset.attributes["container_type"]["col_count"]
