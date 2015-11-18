@@ -106,7 +106,7 @@ class Connection:
       raise RuntimeError(req.text)
 
   def resources(self, query):
-    req = self.get("/_commercial/kits?q=%s&per_page=200" % query)
+    req = self.get("/_commercial/kits?q=%s&per_page=1000" % query)
     return req.json()
 
   def create_package(self, name, description):
