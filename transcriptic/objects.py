@@ -2,8 +2,6 @@ import json
 import requests
 import pandas
 
-from transcriptic.ipython import Render
-
 class ProtocolPreview(object):
   def __init__(self, protocol):
     self.protocol = protocol
