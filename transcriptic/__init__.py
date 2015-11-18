@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset, ProtocolPreview
@@ -48,6 +49,9 @@ def container(id):
 def preview(protocol):
   _check_ctx()
   return ProtocolPreview(protocol)
+
+def current_project():
+  return project(os.environ['USER_PROJECT'])
 
 def analyze(protocol, test_mode = False):
   _check_ctx()
