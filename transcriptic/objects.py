@@ -3,9 +3,9 @@ import requests
 import pandas
 
 class ProtocolPreview(object):
-  def __init__(self, protocol):
+  def __init__(self, protocol, connection):
     self.protocol = protocol
-    req = transcriptic.ctx.post("/preview", json = {
+    req = connection.post("/preview", json = {
       "protocol": json.dumps(protocol.as_dict())
     }, allow_redirects = False)
     if req.status_code == 302:
