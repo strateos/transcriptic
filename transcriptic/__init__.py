@@ -50,9 +50,6 @@ def preview(protocol):
   _check_ctx()
   return ProtocolPreview(protocol, connection = ctx)
 
-def current_project():
-  return project(os.environ['USER_PROJECT'])
-
 def analyze(protocol, test_mode = False):
   _check_ctx()
   req = ctx.post('analyze_run', data = json.dumps({
