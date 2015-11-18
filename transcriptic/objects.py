@@ -2,7 +2,20 @@ import json
 import requests
 import pandas
 
-from transcriptic.ipython import Render
+class ProtocolPreview(object):
+  def __init__(self, protocol, connection):
+    self.protocol = protocol
+    req = connection.post("/preview", json = {
+      "protocol": json.dumps(protocol.as_dict())
+    }, allow_redirects = False)
+    if req.status_code == 302:
+      self.preview_url = req.headers['Location']
+    else:
+      raise Exception("Cannot preview protocol.")
+
+  def _repr_html_(self):
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" style="height:500px;" seamless></iframe>""" %  \
+      self.preview_url
 
 class Instructions(object):
   '''
