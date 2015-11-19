@@ -1,6 +1,7 @@
+import os
 import json
 import requests
-from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset
+from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset, ProtocolPreview
 
 import sys
 if sys.version_info[0] >= 3:
@@ -44,6 +45,10 @@ def aliquot(id):
 
 def container(id):
   return _get_object(id, Container)
+
+def preview(protocol):
+  _check_ctx()
+  return ProtocolPreview(protocol, connection = ctx)
 
 def analyze(protocol, test_mode = False):
   _check_ctx()
