@@ -1,12 +1,10 @@
+from past.builtins import basestring
 import os
 import json
 import requests
 from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset, ProtocolPreview
 
 import sys
-if sys.version_info[0] >= 3:
-    xrange = range
-    basestring = str
 
 ctx = None
 

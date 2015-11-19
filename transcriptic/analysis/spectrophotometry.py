@@ -1,3 +1,8 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import plotly.plotly as py
 import pandas
 import matplotlib.pyplot as plt
@@ -57,7 +62,7 @@ class PlateRead(object):
         col_count = self.dataset.attributes["container_type"]["col_count"]
         # If no group well list specified, default to including all well data values in one group
         if not group_wells:
-            df_dict[group_labels[0]] = [x[0] for x in data_dict.values()]
+            df_dict[group_labels[0]] = [x[0] for x in list(data_dict.values())]
         # If given list of all int, assume one group with all wells in list
         elif all(isinstance(i, int) for i in group_wells):
             if len(group_wells) > len(data_dict):
@@ -119,7 +124,7 @@ class PlateRead(object):
                         "xaxis": {
                             "tickmode": "array",
                             "ticktext": labels,
-                            "tickvals": range(1, len(labels)+1),
+                            "tickvals": list(range(1, len(labels)+1)),
                             "tickangle": 0,
                             "tickfont":{
                                 "size": 10
@@ -206,7 +211,7 @@ class Absorbance(PlateRead):
             # Calculate R^2 from residuals
             ss_res = result[1]
             ss_tot = np.sum(np.square((plot_obj["values"] - plot_obj["values"].mean())))
-            print ("%s R^2: %s" % (self.name, (1-ss_res/ss_tot)))
+            print ("%s R^2: %s" % (self.name, (1-old_div(ss_res,ss_tot))))
 
 
 class Fluorescence(PlateRead):
@@ -283,7 +288,7 @@ def compare_standards(pr_obj, std_pr_obj):
     # Compare against mean of standard absorbance
     # Check to ensure CVs are at least 2 apart
     for indx in range(len(pr_obj.cv)):
-        cv_ratio = pr_obj.cv.iloc[indx]/std_pr_obj.cv.iloc[indx]
+        cv_ratio = old_div(pr_obj.cv.iloc[indx],std_pr_obj.cv.iloc[indx])
         if cv_ratio < 2:
             print ("Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio))
     # RMSE (normalized wrt to standard mean)
