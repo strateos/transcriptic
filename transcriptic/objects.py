@@ -1,3 +1,4 @@
+from builtins import object
 import json
 import requests
 import pandas
@@ -81,7 +82,7 @@ class Run(object):
     ))
     if req.status_code == 200:
       response = req.json()
-      return {k: Dataset(response[k]["id"], response[k], connection = self.connection) for k in response.keys()}
+      return {k: Dataset(response[k]["id"], response[k], connection = self.connection) for k in list(response.keys())}
     elif req.status_code == 404:
       raise Exception("[404] No run found for ID " + id)
     else:

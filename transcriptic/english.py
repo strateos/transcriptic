@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import autoprotocol.util
 
 PLURAL_UNITS = ["microliter", "nanoliter", "milliliter", "second", "minute",
@@ -22,7 +25,7 @@ class AutoprotocolParser(object):
             except AttributeError:
                 parsed_output.append("[Unknown instruction]")
         for i, p in enumerate(parsed_output):
-            print "%d. %s" % (i+1, p)
+            print("%d. %s" % (i+1, p))
 
 
     def absorbance(self, opts):
