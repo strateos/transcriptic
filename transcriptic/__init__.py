@@ -50,6 +50,12 @@ def preview(protocol):
 
 def analyze(protocol, test_mode = False):
   _check_ctx()
+  if "errors" in protocol:
+      raise AnalysisException(("Error%s in protocol:\n%s" %
+      (("s" if len(protocol["errors"]) > 1 else ""),
+        "".join(["- " + e['message'] + "\n" for
+        e in protocol["errors"]]))))
+
   req = ctx.post('analyze_run', data = json.dumps({
     "protocol": protocol,
     "test_mode": test_mode

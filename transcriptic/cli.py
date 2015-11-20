@@ -517,17 +517,14 @@ def preview(ctx, protocol_name, view):
     fp.flush()
     try:
       protocol = check_output(["bash", "-c", command + " " + fp.name])
+      click.echo(protocol)
+      if view:
+         click.echo("View your protocol's raw JSON above or see the intructions "
+                    "rendered at the following link: \n%s" %
+                    ProtocolPreview(protocol, ctx.obj).preview_url)
     except CalledProcessError as e:
-      if "Command" in e:
-        click.echo("Theres a problem with the command_string field in your"
-                   " manifest.json file.")
+      click.echo(e.output)
       return
-
-  click.echo(protocol)
-  if view:
-    click.echo("View your protocol's raw JSON above or see the intructions "
-               "rendered at the following link: \n%s" %
-               ProtocolPreview(protocol, ctx.obj).preview_url)
 
 @cli.command()
 @click.argument('file', default='-')
