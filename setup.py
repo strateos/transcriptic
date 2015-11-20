@@ -14,7 +14,8 @@ setup(
         'matplotlib>=1.4',
         'scikit-learn>=0.16',
         'scipy>=0.16',
-        'numpy>=1.10'
+        'numpy>=1.10',
+        'plotly'
     ],
     entry_points='''
         [console_scripts]

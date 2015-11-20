@@ -65,7 +65,7 @@ class Run(object):
     req = self.connection.get("%s/runs/%s/%s/monitoring/%s" % (
       self.attributes['project']['url'],
       self.id,
-      self.attributes['instructions'][1]['id'],
+      instruction_id,
       data_type
     ))
     if req.status_code == 200:
