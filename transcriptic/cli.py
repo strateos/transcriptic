@@ -505,7 +505,7 @@ def preview(ctx, protocol_name, view):
   except KeyError:
     click.echo("Error: Your manifest.json file does not have a \"command_string\" key.")
     return
-  from subprocess import call, check_output
+  from subprocess import call, check_output, CalledProcessError
   import tempfile
   with tempfile.NamedTemporaryFile() as fp:
     try:
@@ -515,7 +515,14 @@ def preview(ctx, protocol_name, view):
                  "contain a \"preview\" section")
       return
     fp.flush()
-    protocol = check_output(["bash", "-c", command + " " + fp.name])
+    try:
+      protocol = check_output(["bash", "-c", command + " " + fp.name])
+    except CalledProcessError as e:
+      if "Command" in e:
+        click.echo("Theres a problem with the command_string field in your"
+                   " manifest.json file.")
+      return
+
   click.echo(protocol)
   if view:
     click.echo("View your protocol's raw JSON above or see the intructions "
