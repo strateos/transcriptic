@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
 import re
 
 def natural_sort(l):
@@ -11,7 +15,7 @@ def pull(nested_dict):
     else:
         inputs = {}
         if "type" in nested_dict and "inputs" in nested_dict:
-            for param, input in nested_dict["inputs"].items():
+            for param, input in list(nested_dict["inputs"].items()):
                 inputs[str(param)] = pull(input)
             return inputs
         else:
@@ -42,13 +46,13 @@ def iter_json(manifest):
                            " cannot be formatted.")
     for protocol in manifest["protocols"]:
         types = {}
-        for param, input in protocol["inputs"].items():
+        for param, input in list(protocol["inputs"].items()):
             types[param] = pull(input)
             if isinstance(input, dict):
                 if input["type"] == "group" or input["type"] == "group+":
-                    for i, j in input.items():
+                    for i, j in list(input.items()):
                         if isinstance(j, dict):
-                            for k, l in j.items():
+                            for k, l in list(j.items()):
                                 regex_manifest(protocol, l)
                 else:
                     regex_manifest(protocol, input)
@@ -68,7 +72,7 @@ def robotize(well_ref, well_count, col_count):
         col = int(m.group(2)) - 1
         well_num = row * col_count + col
         # Check bounds
-        if row > (well_count/col_count):
+        if row > (old_div(well_count,col_count)):
             raise ValueError("Row given exceeds "
                              "container dimensions.")
         if col > col_count or col < 0:
@@ -105,4 +109,4 @@ def humanize(well_ref, well_count, col_count):
     return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[row] + str(col + 1)
 
 def by_well(datasets, well):
-    return [datasets[reading].props['data'][well][0] for reading in datasets.keys()]
+    return [datasets[reading].props['data'][well][0] for reading in list(datasets.keys())]

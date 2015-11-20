@@ -1,3 +1,5 @@
+from builtins import next
+from builtins import str
 #!/usr/bin/env python
 
 import sys
@@ -193,7 +195,7 @@ def protocols():
         click.echo("Error: Your manifest.json file is improperly formatted. "
                    "Please double check your brackets and commas!")
         return
-      if 'protocols' not in manifest.keys() or not manifest['protocols']:
+      if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
         click.echo("Your manifest.json file doesn't contain any protocols or"
                    " is improperly formatted.")
         return
@@ -216,7 +218,7 @@ def packages(ctx, i):
   '''List packages in your organization.'''
   response = ctx.obj.get('packages/')
   # there's probably a better way to do this
-  package_names = OrderedDict(sorted({"yours": {}, "theirs": {}}.items(), key=lambda t: len(t[0])))
+  package_names = OrderedDict(sorted(list({"yours": {}, "theirs": {}}.items()), key=lambda t: len(t[0])))
   if response.status_code == 200:
     for pack in response.json():
       n = str(pack['name']).lower().replace("com.%s." % ctx.obj.organization_id, "")
@@ -230,22 +232,22 @@ def packages(ctx, i):
         package_names['theirs'][n]['id'] = str(pack['id'])
         package_names['theirs'][n]['latest'] = latest
   if i:
-    return dict(package_names['yours'].items() + package_names['theirs'].items())
+    return dict(list(package_names['yours'].items()) + list(package_names['theirs'].items()))
   else:
-    for category, packages in package_names.items():
+    for category, packages in list(package_names.items()):
       if category == "yours":
         click.echo('\n{:^90}'.format("YOUR PACKAGES:\n"))
         click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
                '{:^30}'.format("PACKAGE ID")
                + "|" + '{:^30}'.format("LATEST PUBLISHED VERSION"))
         click.echo('{:-^90}'.format(''))
-      elif category == "theirs" and packages.values():
+      elif category == "theirs" and list(packages.values()):
         click.echo('\n{:^90}'.format("OTHER PACKAGES IN YOUR ORG:\n"))
         click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
                    '{:^30}'.format("PACKAGE ID") + "|" +
                    '{:^30}'.format("LATEST PUBLISHED VERSION"))
         click.echo('{:-^90}'.format(''))
-      for name, p in packages.items():
+      for name, p in list(packages.items()):
         click.echo('{:<30}'.format(name) + "|" +
                    '{:^30}'.format(p['id']) + "|" +
                    '{:^30}'.format(p['latest']))
@@ -310,20 +312,20 @@ def projects(ctx, i):
       else:
         proj_cats["reg"][proj.attributes['name']] =  proj.id
     if i:
-      return {k.lower(): v for k,v in proj_names.items()}
+      return {k.lower(): v for k,v in list(proj_names.items())}
     else:
-      for cat, packages in proj_cats.items():
+      for cat, packages in list(proj_cats.items()):
         if cat == "reg":
           click.echo('\n{:^80}'.format("PROJECTS:\n"))
           click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                      '{:^40}'.format("PROJECT ID"))
           click.echo('{:-^80}'.format(''))
-        elif cat == "pilot" and packages.values():
+        elif cat == "pilot" and list(packages.values()):
           click.echo('\n{:^80}'.format("PILOT PROJECTS:\n"))
           click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                      '{:^40}'.format("PROJECT ID"))
           click.echo('{:-^80}'.format(''))
-        for name, i in packages.items():
+        for name, i in list(packages.items()):
           click.echo('{:<40}'.format(name) + "|" +
                      '{:^40}'.format(i))
           click.echo('{:-^80}'.format(''))
@@ -398,7 +400,7 @@ def resources(ctx, query):
         name = i['name'].encode('ascii', errors='ignore')
         id = i['kit_items'][0]['resource_id']
         click.echo('{:^40}'.format(name) + '|' +
-                   '{:^40}'.format(i['vendor']['name'] if 'vendor' in i.keys() else '') + '|' + '{:^40}'.format(id))
+                   '{:^40}'.format(i['vendor']['name'] if 'vendor' in list(i.keys()) else '') + '|' + '{:^40}'.format(id))
         click.echo('{:-^120}'.format(''))
 
 
@@ -606,7 +608,7 @@ def get_project_id(ctx, name):
   projs = ctx.invoke(projects, i=True)
   id = projs.get(name.lower())
   if not id:
-    id = name if name in projs.values() else None
+    id = name if name in list(projs.values()) else None
     if not id:
       click.echo("A project with the name '%s' was not found in your organization." % name)
       return
@@ -614,10 +616,10 @@ def get_project_id(ctx, name):
 
 @click.pass_context
 def get_project_name(ctx, id):
-  projs = {v:k for k,v in ctx.invoke(projects, i=True).items()}
+  projs = {v:k for k,v in list(ctx.invoke(projects, i=True).items())}
   name = projs.get(id)
   if not name:
-    name = id if name in projs.keys() else None
+    name = id if name in list(projs.keys()) else None
     if not name:
       click.echo("A project with the id '%s' was not found in your organization." % name)
       return
@@ -626,10 +628,10 @@ def get_project_name(ctx, id):
 @click.pass_context
 def get_package_id(ctx, name):
   package_names = ctx.invoke(packages, i=True)
-  package_names = {k.lower(): v['id'] for k,v in package_names.items()}
+  package_names = {k.lower(): v['id'] for k,v in list(package_names.items())}
   package_id = package_names.get(name)
   if not package_id:
-    package_id = name if name in package_names.values() else None
+    package_id = name if name in list(package_names.values()) else None
   if not package_id:
     click.echo("The package '%s' does not exist in your organization." % name)
     return
@@ -637,10 +639,10 @@ def get_package_id(ctx, name):
 
 @click.pass_context
 def get_package_name(ctx, id):
-  package_names = {v['id']: k for k, v in ctx.invoke(packages, i=True).items()}
+  package_names = {v['id']: k for k, v in list(ctx.invoke(packages, i=True).items())}
   package_name = package_names.get(id)
   if not package_name:
-    package_name = id if id in package_names.values() else None
+    package_name = id if id in list(package_names.values()) else None
   if not package_name:
     click.echo("The id '%s' does not match any package in your organization."
                % id)

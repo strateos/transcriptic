@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 import requests
 import json
 import transcriptic
@@ -6,7 +8,7 @@ from os.path import expanduser
 from transcriptic.objects import Project
 
 
-class Connection:
+class Connection(object):
   def __init__(
       self, email = None, token = None, organization_id = False, api_root = "https://secure.transcriptic.com", organization = False,
       cookie = False, verbose = False
