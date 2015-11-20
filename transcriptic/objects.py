@@ -2,12 +2,13 @@ from builtins import object
 import json
 import requests
 import pandas
+from autoprotocol import Protocol
 
 class ProtocolPreview(object):
   def __init__(self, protocol, connection):
     self.protocol = protocol
     req = connection.post("/runs/preview", json = {
-      "protocol": json.dumps(protocol.as_dict())
+      "protocol": json.dumps(protocol.as_dict()) if isinstance(protocol, Protocol) else protocol
     }, allow_redirects = False)
     if req.status_code == 302:
       self.preview_url = req.headers['Location']

@@ -15,6 +15,7 @@ import re
 from transcriptic import AnalysisException, analyze as api_analyze, submit as api_submit
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
+from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
 from os.path import isfile
 from collections import OrderedDict
@@ -38,7 +39,7 @@ except NameError:
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
   '''A command line tool for working with Transcriptic.'''
-  if ctx.invoked_subcommand not in ['login', 'preview', 'run']:
+  if ctx.invoked_subcommand not in ['login']:
     try:
       ctx.obj = Connection.from_file(config)
       if organization is not None:
@@ -480,7 +481,9 @@ def price(response):
 
 @cli.command()
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
-def preview(protocol_name):
+@click.option('--view', is_flag=True)
+@click.pass_context
+def preview(ctx, protocol_name, view):
   '''Preview the Autoprotocol output of protocol in the current package.'''
   with click.open_file('manifest.json', 'r') as f:
     try:
@@ -502,7 +505,7 @@ def preview(protocol_name):
   except KeyError:
     click.echo("Error: Your manifest.json file does not have a \"command_string\" key.")
     return
-  from subprocess import call
+  from subprocess import call, check_output
   import tempfile
   with tempfile.NamedTemporaryFile() as fp:
     try:
@@ -512,7 +515,12 @@ def preview(protocol_name):
                  "contain a \"preview\" section")
       return
     fp.flush()
-    call(["bash", "-c", command + " " + fp.name])
+    protocol = check_output(["bash", "-c", command + " " + fp.name])
+  click.echo(protocol)
+  if view:
+    click.echo("View your protocol's raw JSON above or see the intructions "
+               "rendered at the following link: \n%s" %
+               ProtocolPreview(protocol, ctx.obj).preview_url)
 
 @cli.command()
 @click.argument('file', default='-')
