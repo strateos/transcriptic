@@ -400,7 +400,7 @@ def resources(ctx, query):
         name = i['name'].encode('ascii', errors='ignore')
         id = i['kit_items'][0]['resource_id']
         click.echo('{:^40}'.format(name) + '|' +
-                   '{:^40}'.format(i['vendor']['name'] if 'vendor' in i.keys() else '') + '|' + '{:^40}'.format(id))
+                   '{:^40}'.format(i['vendor']['name'] if 'vendor' in list(i.keys()) else '') + '|' + '{:^40}'.format(id))
         click.echo('{:-^120}'.format(''))
 
 
