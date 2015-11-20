@@ -381,6 +381,28 @@ def delete_project(ctx, name, force):
         click.echo("Could not archive project!")
 
 @cli.command()
+@click.argument('query', default='*')
+@click.pass_context
+def resources(ctx, query):
+    '''Search catalog of provisionable resources'''
+    req = ctx.obj.resources(query)
+    if req["results"]:
+      click.echo("Results for '%s':" % query)
+      click.echo('{:^40}'.format("Resource Name") + '|' +
+                   '{:^40}'.format("Vendor") + '|' + '{:^40}'.format("Resource ID"))
+      click.echo('{:-^120}'.format(''))
+    else:
+      click.echo("No results for '%s'." % query)
+    for i in req["results"]:
+      if i["provisionable"] and not i["reservable"]:
+        name = i['name'].encode('ascii', errors='ignore')
+        id = i['kit_items'][0]['resource_id']
+        click.echo('{:^40}'.format(name) + '|' +
+                   '{:^40}'.format(i['vendor']['name'] if 'vendor' in i.keys() else '') + '|' + '{:^40}'.format(id))
+        click.echo('{:-^120}'.format(''))
+
+
+@cli.command()
 @click.argument('path', default='.')
 def init(path):
   '''Initialize a directory with a manifest.json file.'''
