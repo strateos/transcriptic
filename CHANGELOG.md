@@ -3,6 +3,21 @@
 ## Unreleased
 ---
 
+## v2.0.3
+---
+Added
+- cost breakdown in `analyze`
+- Python 3 compatibility
+- use `transcriptic preview --view` to return a URL that displays the instruction cards produced by the run you want to preview (this URL expires after two hours)
+- use the 'transcriptic resources <query>' CLI command to search the catalog for a resource's vendor and `id`
+- `plotly` and `future` are now required
+
+Fixed
+- dataset helpers and embedding
+
+Removed
+- ipython module
+
 ## v2.0.2
 ---
 
