@@ -99,7 +99,7 @@ class PlateRead(object):
 
         self.cv = self.df.std()/self.df.mean()*100
 
-    def plot(self, mpl=False, plot_type="box", **plt_kwargs):
+    def plot(self, mpl=True, plot_type="box", **plt_kwargs):
         """
         Parameters
         ----------

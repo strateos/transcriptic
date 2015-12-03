@@ -2,6 +2,9 @@
 
 ## Unreleased
 ---
+Fixed
+- Set plot to default to use mpl=true (not all users have plotly credentials)
+
 
 ## v2.0.3
 ---
