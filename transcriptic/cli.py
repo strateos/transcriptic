@@ -307,11 +307,11 @@ def projects(ctx, i):
     proj_names = {}
     proj_cats = {"reg": {}, "pilot": {}}
     for proj in projects:
-      proj_names[proj.attributes['name']] =  proj.id
+      status = " (archived)" if proj.attributes['archived_at'] else ""
       if proj.attributes["is_developer"]:
-        proj_cats["pilot"][proj.attributes['name']] =  proj.id
+        proj_cats["pilot"][proj.attributes['name'] + status] =  proj.id
       else:
-        proj_cats["reg"][proj.attributes['name']] =  proj.id
+        proj_cats["reg"][proj.attributes['name'] + status] =  proj.id
     if i:
       return {k.lower(): v for k,v in list(proj_names.items())}
     else:
