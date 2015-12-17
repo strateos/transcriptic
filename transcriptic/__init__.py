@@ -3,7 +3,7 @@ import os
 import json
 import requests
 from transcriptic.objects import Run, Project, Aliquot, Resource, Container, Dataset, ProtocolPreview
-
+from autoprotocol import Protocol
 import sys
 
 ctx = None
@@ -50,6 +50,8 @@ def preview(protocol):
 
 def analyze(protocol, test_mode = False):
   _check_ctx()
+  if isinstance(protocol, Protocol):
+      protocol = protocol.as_dict()
   if "errors" in protocol:
       raise AnalysisException(("Error%s in protocol:\n%s" %
       (("s" if len(protocol["errors"]) > 1 else ""),
@@ -72,6 +74,8 @@ def analyze(protocol, test_mode = False):
 
 def submit(protocol, project, title = None, test_mode = False):
   _check_ctx()
+  if isinstance(protocol, Protocol):
+      protocol = protocol.as_dict()
   req = ctx.post('%s/runs' % project, data = json.dumps({
     "title": title,
     "protocol": protocol,
