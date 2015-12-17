@@ -2,6 +2,9 @@
 
 ## Unreleased
 ---
+Added
+- Enabled `analyze` and `submit` to work for Protocol objects
+
 Fixed
 - Set plot to default to use mpl=true (not all users have plotly credentials)
 
