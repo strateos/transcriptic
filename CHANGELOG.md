@@ -2,6 +2,10 @@
 
 ## Unreleased
 ---
+Added
+- Additional functionality to Container object: Use your favorite autoprotocol ContainerType functions
+- Additional properties of Container object exposed: Use wellMap to return a mapping of the well indices to aliquot names
+
 Fixed
 - Set plot to default to use mpl=true (not all users have plotly credentials)
 
