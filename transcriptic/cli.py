@@ -308,12 +308,13 @@ def projects(ctx, i):
     proj_cats = {"reg": {}, "pilot": {}}
     for proj in projects:
       status = " (archived)" if proj.attributes['archived_at'] else ""
+      proj_names[proj.attributes['name']] = proj.id
       if proj.attributes["is_developer"]:
         proj_cats["pilot"][proj.attributes['name'] + status] =  proj.id
       else:
         proj_cats["reg"][proj.attributes['name'] + status] =  proj.id
     if i:
-      return {k.lower(): v for k,v in list(proj_names.items())}
+      return proj_names
     else:
       for cat, packages in list(proj_cats.items()):
         if cat == "reg":
@@ -618,11 +619,11 @@ def login(ctx, api_root):
 @click.pass_context
 def get_project_id(ctx, name):
   projs = ctx.invoke(projects, i=True)
-  id = projs.get(name.lower())
+  id = projs.get(name)
   if not id:
     id = name if name in list(projs.values()) else None
     if not id:
-      click.echo("A project with the name '%s' was not found in your organization." % name)
+      click.echo("The project '%s' was not found in your organization." % name)
       return
   return id
 
@@ -633,7 +634,7 @@ def get_project_name(ctx, id):
   if not name:
     name = id if name in list(projs.keys()) else None
     if not name:
-      click.echo("A project with the id '%s' was not found in your organization." % name)
+      click.echo("The project '%s' was not found in your organization." % name)
       return
   return name
 
