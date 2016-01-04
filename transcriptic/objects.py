@@ -120,12 +120,70 @@ class Aliquot(object):
     self.attributes = attributes
     self.connection = connection
 
+
 class Container(object):
-  def __init__(self, id, attributes, connection = False):
-    super(Container, self).__init__()
-    self.id = id
-    self.attributes = attributes
-    self.connection = connection
+    '''
+    A Container object represents a container from the Transcriptic LIMS and
+    contains relevant information on the container type as well as the
+    aliquots present in the container.
+
+    Parameters
+    ----------
+
+    name: str
+        Name of container
+    wellMap: dict
+        Well mapping with well indices for keys and well names as values
+    aliquots: list
+        List of aliquots present in the container
+    containerType: autoprotocol.container_type.ContainerType
+        Autoprotocol ContainerType object with many useful container type
+        information and functions.
+
+        Example Usage:
+
+        .. code-block:: python
+
+          my_container = container("ct186apgz6a374")
+
+          my_container.wellMap
+
+          my_container.containerType.col_count
+          my_container.containerType.robotize("B1")
+          my_container.containerType.humanize(12)
+
+    '''
+    def __init__(self, id, attributes, connection = False):
+        super(Container, self).__init__()
+        self.id = id
+        self.attributes = attributes
+        self.connection = connection
+
+        self.name = self.attributes["label"]
+        self.aliquots = self.attributes["aliquots"]
+        self.wellMap = {aliquot["well_idx"]: aliquot["name"] for aliquot in self.aliquots}
+
+        def parse_containerType():
+            from autoprotocol.container_type import _CONTAINER_TYPES, ContainerType
+            from copy import deepcopy
+            containerType = deepcopy(self.attributes["container_type"])
+
+            containerType.pop("well_type", None)
+            containerType.pop("id", None)
+            if "dead_volume" not in containerType:
+              containerType["dead_volume_ul"] = _CONTAINER_TYPES[containerType["shortname"]].dead_volume_ul
+
+            return ContainerType(**containerType)
+        self.containerType = parse_containerType()
+
+    def __repr__(self):
+        """
+        Return a string representation of a Container using the specified name.
+        (ex. Container('my_plate'))
+
+        """
+        return "Container(%s)" % (str(self.name))
+
 
 class Resource(object):
   def __init__(self, id, attributes, connection = False):
