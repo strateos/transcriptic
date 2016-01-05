@@ -1,8 +1,10 @@
-# ![](http://www.transcriptic.com/images/logo-transcriptic-blobs@1x.png) Transcriptic CLI
+# ![](https://www.transcriptic.com/images/logo-transcriptic-blobs-880e2f7b.svg) Transcriptic CLI
 
 The Transcriptic CLI is a command-line tool for managing Transcriptic organizations, projects, runs, datasets and more.
 
 Transcriptic is the robotic cloud laboratory for the life sciences. [https://www.transcriptic.com](https://www.transcriptic.com)
+
+# [View Documentation for This Repository](http://transcriptic.github.io/transcriptic/index.html)
 
 ## Setup
 
