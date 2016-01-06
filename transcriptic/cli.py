@@ -305,29 +305,19 @@ def projects(ctx, i):
   try:
     projects = ctx.obj.projects()
     proj_names = {}
-    proj_cats = {"reg": {}, "pilot": {}}
+    all_proj = {}
     for proj in projects:
       status = " (archived)" if proj.attributes['archived_at'] else ""
       proj_names[proj.attributes['name']] = proj.id
-      if proj.attributes["is_developer"]:
-        proj_cats["pilot"][proj.attributes['name'] + status] =  proj.id
-      else:
-        proj_cats["reg"][proj.attributes['name'] + status] =  proj.id
+      all_proj[proj.attributes['name'] + status] = proj.id
     if i:
       return proj_names
     else:
-      for cat, packages in list(proj_cats.items()):
-        if cat == "reg":
-          click.echo('\n{:^80}'.format("PROJECTS:\n"))
-          click.echo('{:^40}'.format("PROJECT NAME") + "|" +
-                     '{:^40}'.format("PROJECT ID"))
-          click.echo('{:-^80}'.format(''))
-        elif cat == "pilot" and list(packages.values()):
-          click.echo('\n{:^80}'.format("PILOT PROJECTS:\n"))
-          click.echo('{:^40}'.format("PROJECT NAME") + "|" +
-                     '{:^40}'.format("PROJECT ID"))
-          click.echo('{:-^80}'.format(''))
-        for name, i in list(packages.items()):
+      click.echo('\n{:^80}'.format("PROJECTS:\n"))
+      click.echo('{:^40}'.format("PROJECT NAME") + "|" +
+                 '{:^40}'.format("PROJECT ID"))
+      click.echo('{:-^80}'.format(''))
+      for name, i in list(all_proj.items()):
           click.echo('{:<40}'.format(name) + "|" +
                      '{:^40}'.format(i))
           click.echo('{:-^80}'.format(''))
@@ -348,7 +338,7 @@ def create_project(ctx, name, dev):
                  "  Please choose a different project name." % name)
       return
   try:
-    new_proj = ctx.obj.create_project(name, is_developer = dev)
+    new_proj = ctx.obj.create_project(name)
     click.echo(
       "New%s project '%s' created with id %s  \nView it at %s" % (
         " pilot" if dev else "", name, new_proj.attributes['id'], ctx.obj.url('%s' % (new_proj.attributes['id']))

@@ -70,10 +70,9 @@ class Connection(object):
         "There was an error fetching project %s" % project_id
       )
 
-  def create_project(self, title, is_developer = False):
+  def create_project(self, title):
     req = self.post('', data = json.dumps({
-      'name': title,
-      'is_developer': is_developer
+      'name': title
     }))
     if req.status_code == 201:
       data = req.json()
