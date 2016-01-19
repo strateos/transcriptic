@@ -325,6 +325,38 @@ def projects(ctx, i):
     click.echo("There was an error listing the projects in your "
                "organization.  Make sure your login details are correct.")
 
+@cli.command()
+@click.pass_context
+@click.argument('project_name')
+def runs(ctx, project_name):
+  '''List the runs that exist in a project'''
+  id = get_project_id(project_name)
+  runs = []
+  if id:
+    req = ctx.obj.runs(id)
+    if not req['runs']:
+      click.echo("Project '%s' is empty." % project_name)
+      return
+    for r in req['runs']:
+      runs.append([r['title'] or "(Untitled)",
+                  r['id'],
+                  r['completed_at'].split("T")[0] if r['completed_at'] else r['created_at'].split("T")[0],
+                  r['status'].replace("_", " ")])
+
+    click.echo('\n{:^120}'.format("Runs in Project '%s':\n" % get_project_name(project_name)))
+    click.echo('{:^30}'.format("RUN TITLE") + "|" +
+               '{:^30}'.format("RUN ID") + "|" +
+               '{:^30}'.format("RUN DATE") + "|" +
+               '{:^30}'.format('RUN STATUS'))
+    click.echo('{:-^120}'.format(''))
+    for run in runs:
+        click.echo('{:^30}'.format(run[0]) + "|" +
+                   '{:^30}'.format(run[1]) + "|" +
+                   '{:^30}'.format(run[2]) + "|" +
+                   '{:^30}'.format(run[3]))
+        click.echo('{:-^120}'.format(''))
+
+
 @cli.command("create-project")
 @click.argument('name', metavar = "PROJECT_NAME")
 @click.option('--dev', '-d', '-pilot', help = "Create a pilot project", is_flag = True)
