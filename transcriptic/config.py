@@ -52,7 +52,7 @@ class Connection(object):
       return "%s/%s/%s" % (self.api_root, self.organization_id, path)
 
   def projects(self):
-    req = self.get('')
+    req = self.get('?q=&per_page=500')
     if req.status_code == 200:
       return [Project(project['id'], project, connection = self) for project in req.json()['projects']]
     else:
@@ -68,6 +68,15 @@ class Connection(object):
     else:
       raise RuntimeError(
         "There was an error fetching project %s" % project_id
+      )
+
+  def runs(self, project_id):
+    req = self.get(project_id)
+    if req.status_code == 200:
+      return req.json()
+    else:
+      raise RuntimeError(
+        "There was an error fetching the runs in project %s" % project_id
       )
 
   def create_project(self, title):
