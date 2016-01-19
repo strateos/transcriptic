@@ -340,13 +340,8 @@ def runs(ctx, project_name):
     for r in req['runs']:
       runs.append([r['title'] or "(Untitled)",
                   r['id'],
-                  r['issued_at'].split("T")[0]])
-      if r['progress']:
-        runs[-1].append(str(r['progress']) + "%")
-      elif r['canceled_reason']:
-        runs[-1].append("canceled")
-      elif r['aborted_reason']:
-        runs[-1].append("aborted")
+                  r['completed_at'].split("T")[0] if r['completed_at'] else r['created_at'].split("T")[0],
+                  r['status'].replace("_", " ")])
 
     click.echo('\n{:^120}'.format("Runs in Project '%s':\n" % get_project_name(project_name)))
     click.echo('{:^30}'.format("RUN TITLE") + "|" +
