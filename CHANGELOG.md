@@ -2,6 +2,14 @@
 
 ## Unreleased
 ---
+
+## v2.0.5
+---
+Added
+- List runs in a specific project using the `transcriptic runs <project_name_or_id` command
+
+## v2.0.4
+---
 Added
 - Enabled `analyze` and `submit` to work for Protocol objects
 - Additional functionality to Container object: Use your favorite autoprotocol ContainerType functions
