@@ -50,16 +50,16 @@ class PlateRead(object):
 
         # Populate plate field
         plate_info_dict = {}
-        plate_info_dict["id"] = self.dataset.attributes["container_type"]["id"]
-        plate_info_dict["col_count"] = self.dataset.attributes["container_type"]["col_count"]
-        plate_info_dict["well_count"] = self.dataset.attributes["container_type"]["well_count"]
+        plate_info_dict["id"] = self.dataset.attributes["container"]["id"]
+        plate_info_dict["col_count"] = self.dataset.attributes["container"]["container_type"]["col_count"]
+        plate_info_dict["well_count"] = self.dataset.attributes["container"]["container_type"]["well_count"]
         self.params["plate"] = plate_info_dict
 
         # Get dataset and parse into DataFrame
         data_dict = get_dataset(self.dataset.attributes["id"]).attributes
         df_dict = {}
-        well_count = self.dataset.attributes["container_type"]["well_count"]
-        col_count = self.dataset.attributes["container_type"]["col_count"]
+        well_count = self.dataset.attributes["container"]["container_type"]["well_count"]
+        col_count = self.dataset.attributes["container"]["container_type"]["col_count"]
         # If no group well list specified, default to including all well data values in one group
         if not group_wells:
             df_dict[group_labels[0]] = [x[0] for x in list(data_dict.values())]
