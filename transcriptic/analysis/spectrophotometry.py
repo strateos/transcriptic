@@ -292,7 +292,7 @@ def compare_standards(pr_obj, std_pr_obj):
         if cv_ratio < 2:
             print ("Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio))
     # RMSE (normalized wrt to standard mean)
-    RMSE = np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean())).mean() /  std_pr_obj.df.mean()*100
+    RMSE = np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean()).mean()) /  std_pr_obj.df.mean()*100
     RMSE = pandas.DataFrame(RMSE, columns=["RMSE % (normalized to standard mean)"])
 
     sampleVariance = pandas.DataFrame(pr_obj.df.var(), columns=["Sample Variance"])
