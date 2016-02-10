@@ -40,10 +40,18 @@ class AutoprotocolParser(object):
         return transfers
 
     def autopick(self, opts):
-        return "Pick %d colonies from well %s of plate %s into %s" % (len(opts['to']),
-                                                              self.well(opts['from']),
-                                                              self.platename(opts['from']),
-                                                              self.well_list(opts['to']))
+
+        picks = []
+        for i, g in enumerate(opts['groups']):
+            picks.extend(["Pick %s colonies from %s %s: %s to %s, %s" %
+                         (len(g["to"]), len(g['from']),
+                          ("well" if len(g['from']) is 1 else "wells"),
+                          self.well_list(g['from']),
+                          self.well_list(g['to']),
+                          ("data saved at '%s'" % opts["dataref"]
+                           if i is 0 else "analyzed with previous"))])
+
+        return picks
 
     def cover(self, opts):
         return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
