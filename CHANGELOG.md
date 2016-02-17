@@ -3,6 +3,12 @@
 ## Unreleased
 ---
 
+## v2.0.6
+Fixed
+- RMSE calculation in spectrophotometry.py now reports correct RMSE
+- transcriptic submit now correctly parses new autopick group
+- containter attributes are correctly requested from transcriptic via spectrophotometry.py
+
 ## v2.0.5
 ---
 Added
