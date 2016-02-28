@@ -240,13 +240,13 @@ def packages(ctx, i):
         click.echo('\n{:^90}'.format("YOUR PACKAGES:\n"))
         click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
                '{:^30}'.format("PACKAGE ID")
-               + "|" + '{:^30}'.format("LATEST PUBLISHED VERSION"))
+               + "|" + '{:^30}'.format("LATEST PUBLISHED RELEASE"))
         click.echo('{:-^90}'.format(''))
       elif category == "theirs" and list(packages.values()):
         click.echo('\n{:^90}'.format("OTHER PACKAGES IN YOUR ORG:\n"))
         click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
                    '{:^30}'.format("PACKAGE ID") + "|" +
-                   '{:^30}'.format("LATEST PUBLISHED VERSION"))
+                   '{:^30}'.format("LATEST PUBLISHED RELEASE"))
         click.echo('{:-^90}'.format(''))
       for name, p in list(packages.items()):
         click.echo('{:<30}'.format(name) + "|" +
@@ -433,11 +433,11 @@ def resources(ctx, query):
 def init(path):
   '''Initialize a directory with a manifest.json file.'''
   manifest_data = OrderedDict(
-    version="1.0.0",
     format="python",
     license="MIT",
     protocols = [{
       "name": "SampleProtocol",
+      "version": "0.0.1",
       "display_name" :"Sample Protocol",
       "description" :"This is a protocol.",
       "command_string" :"python sample_protocol.py",
