@@ -89,19 +89,19 @@ def submit(ctx, file, project, title, test):
 def release(ctx, name=None, package=None):
   '''Compress the contents of the current directory to upload as a release.'''
   deflated = zipfile.ZIP_DEFLATED
-    if name:
-        filename = 'release_%s' % name
+  if name:
+    filename = 'release_%s' % name
+  else:
+    filename = 'release'
+  if os.path.isfile(filename + ".zip"):
+    new = click.prompt("You already have a release names %s "
+                       "in this directory, make "
+                       "another one? [y/n]" % filename, default="y")
+    if new == "y":
+      num_existing = sum([1 for x in os.listdir('.') if filename in x])
+      filename = filename + "_" + str(num_existing)
     else:
-        filename = 'release'
-    if os.path.isfile(filename + ".zip"):
-      new = click.prompt("You already have a release names %s "
-                         "in this directory, make "
-                         "another one? [y/n]" % filename, default="y")
-      if new == "y":
-        num_existing = sum([1 for x in os.listdir('.') if filename in x])
-        filename = filename + "_" + str(num_existing)
-      else:
-        return
+      return
   click.echo("Compressing all files in this directory...")
   zf = zipfile.ZipFile(filename + ".zip", 'w', deflated)
   for (path, dirs, files) in os.walk('.'):
