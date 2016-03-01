@@ -94,7 +94,7 @@ def release(ctx, name=None, package=None):
   else:
     filename = 'release'
   if os.path.isfile(filename + ".zip"):
-    new = click.prompt("You already have a release names %s "
+    new = click.prompt("You already have a release named %s "
                        "in this directory, make "
                        "another one? [y/n]" % filename, default="y")
     if new == "y":
