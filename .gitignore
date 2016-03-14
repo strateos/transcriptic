@@ -35,3 +35,4 @@ _template/
 html/
 doctrees/
 build/lib/
+*.swp

@@ -1,17 +1,19 @@
-from builtins import next
-from builtins import str
 #!/usr/bin/env python
 
-import sys
-import json
-import requests
+from builtins import next
+from builtins import str
+
 import click
+import json
 import locale
-import zipfile
 import os
-import time
-import xml.etree.ElementTree as ET
 import re
+import requests
+import time
+import sys
+import xml.etree.ElementTree as ET
+import zipfile
+
 from transcriptic import AnalysisException, analyze as api_analyze, submit as api_submit
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
@@ -19,6 +21,7 @@ from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
 from os.path import isfile
 from collections import OrderedDict
+from contextlib import contextmanager
 
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
@@ -190,29 +193,20 @@ def upload_release(ctx, archive, package):
 @cli.command()
 def protocols():
   '''List protocols within your manifest.'''
-  try:
-    with click.open_file('manifest.json', 'r') as f:
-      try:
-        manifest = json.loads(f.read())
-      except ValueError:
-        click.echo("Error: Your manifest.json file is improperly formatted. "
-                   "Please double check your brackets and commas!")
-        return
-      if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
-        click.echo("Your manifest.json file doesn't contain any protocols or"
-                   " is improperly formatted.")
-        return
-      else:
-        click.echo('\n{:^60}'.format("Protocols within this manifest:"))
-        click.echo('{:-^60}'.format(''))
-        [click.echo("%s%s\n%s" % (p['name'],
-                                  (" (" + p.get('display_name') + ")")
-                                  if p.get('display_name') else "",
-                                  ('{:-^60}'.format(""))))
-         for p in manifest["protocols"]]
-  except IOError:
-    click.echo("The current directory does not contain a manifest.json file.")
+
+  manifest = load_manifest()
+  if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
+    click.echo("Your manifest.json file doesn't contain any protocols or"
+               " is improperly formatted.")
     return
+  else:
+    click.echo('\n{:^60}'.format("Protocols within this manifest:"))
+    click.echo('{:-^60}'.format(''))
+    [click.echo("%s%s\n%s" % (p['name'],
+                              (" (" + p.get('display_name') + ")")
+                              if p.get('display_name') else "",
+                              ('{:-^60}'.format(""))))
+     for p in manifest["protocols"]]
 
 @cli.command()
 @click.pass_context
@@ -510,46 +504,16 @@ def price(response):
 @click.pass_context
 def preview(ctx, protocol_name, view):
   '''Preview the Autoprotocol output of protocol in the current package.'''
-  with click.open_file('manifest.json', 'r') as f:
-    try:
-      manifest = json.loads(f.read())
-    except ValueError:
-      click.echo("Error: Your manifest.json file is improperly formatted. "
-                 "Please double check your brackets and commas!")
-      return
+  manifest, protocol = load_manifest_and_protocol(protocol_name)
+
   try:
-    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
-  except StopIteration:
-    click.echo("Error: The protocol name '%s' does not match any protocols "
-               "that can be previewed from within this directory.  \nCheck "
-               "either your protocol's spelling or your manifest.json file "
-               "and try again." % protocol_name)
-    return
-  try:
-    command = p['command_string']
+    inputs = protocol['preview']
   except KeyError:
-    click.echo("Error: Your manifest.json file does not have a \"command_string\" key.")
+    click.echo("Error: The manifest.json you're trying to preview doesn't "
+               "contain a \"preview\" section")
     return
-  from subprocess import call, check_output, CalledProcessError
-  import tempfile
-  with tempfile.NamedTemporaryFile() as fp:
-    try:
-      fp.write(json.dumps(p['preview']))
-    except KeyError:
-      click.echo("Error: The manifest.json you're trying to preview doesn't "
-                 "contain a \"preview\" section")
-      return
-    fp.flush()
-    try:
-      protocol = check_output(["bash", "-c", command + " " + fp.name])
-      click.echo(protocol)
-      if view:
-         click.echo("View your protocol's raw JSON above or see the intructions "
-                    "rendered at the following link: \n%s" %
-                    ProtocolPreview(protocol, ctx.obj).preview_url)
-    except CalledProcessError as e:
-      click.echo(e.output)
-      return
+
+  run_protocol(manifest, protocol, inputs, view)
 
 @cli.command()
 @click.argument('file', default='-')
@@ -569,28 +533,73 @@ def summarize(ctx, file):
 @click.argument('args', nargs=-1)
 def compile(protocol_name, args):
   '''Compile a protocol by passing it a config file (without submitting or analyzing).'''
-  with click.open_file('manifest.json', 'r') as f:
-    try:
-      manifest = json.loads(f.read())
-    except ValueError:
-      click.echo("Error: Your manifest.json file is improperly formatted. "
-                 "Please double check your brackets and commas!")
-      return
+  manifest, protocol = load_manifest_and_protocol(protocol_name)
+
   try:
-    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
-  except StopIteration:
-    click.echo("Error: The protocol name '%s' does not match any protocols "
-               "that can be previewed from within this directory.  \nCheck "
-               "either your spelling or your manifest.json file and try "
-               "again." % protocol_name)
-    return
-  try:
-    command = p['command_string']
+    command = protocol['command_string']
   except KeyError:
     click.echo("Error: Your manifest.json file does not have a \"command_string\" key.")
     return
   from subprocess import call
   call(["bash", "-c", command + " " + ' '.join(args)])
+
+@cli.command()
+@click.argument('protocol')
+@click.option(
+  '--project', '-p',
+  metavar = 'PROJECT_ID',
+  required = True,
+  help = 'Project id or name context for configuring the protocol. Use `transcriptic projects` command to list existing projects.'
+)
+@click.pass_context
+def launch(ctx, protocol, project):
+  '''Configure and execute your protocol using your web browser to select your inputs'''
+  project_id = project
+  project = get_project_id(project_id)
+  if not project:
+    return
+
+  manifest, protocol = load_manifest_and_protocol(protocol)
+
+  res = ctx.obj.post('%s/runs/quick_launch' % project_id, data = json.dumps({"manifest": protocol}))
+  quick_launch = res.json()
+  quick_launch_mtime = quick_launch["updated_at"]
+
+  format_str = "\nOpening %s"
+  url = ctx.obj.url("%s/runs/quick_launch/%s" % (project_id, quick_launch["id"]))
+  print_stderr(format_str % url)
+
+  '''
+  Open the URL in the webbrowser. We have to temporarily suppress stdout/stderr because
+  the webbrowser module dumps some garbage which gets into out stdout and corrupts the
+  generated autoprotocol
+  '''
+  import webbrowser
+
+  with stdchannel_redirected(sys.stderr, os.devnull):
+    with stdchannel_redirected(sys.stdout, os.devnull):
+      webbrowser.open_new_tab(url)
+
+  def on_json_received(protocol_inputs, error):
+    if protocol_inputs is not None:
+      print "Protocol inputs (%s)" % (protocol_inputs)
+    elif error is not None:
+      click.echo('Invalid json: %s' % e)
+      return None
+
+  # Wait until the quick launch inputs are updated (max 15 minutes)
+  count = 1
+  while count <= 180 and quick_launch["inputs"] is None or quick_launch_mtime >= quick_launch["updated_at"]:
+    sys.stderr.write("\rWaiting for inputs to be configured%s" % ('.' * count))
+    sys.stderr.flush()
+    time.sleep(5)
+
+    res = ctx.obj.get('%s/runs/quick_launch/%s' % (project_id, quick_launch["id"]))
+    quick_launch = res.json()
+    count += 1
+
+  print_stderr("\nGenerating AutoProtocol....\n")
+  run_protocol(manifest, protocol, quick_launch["inputs"])
 
 @cli.command()
 @click.option('--api-root', default='https://secure.transcriptic.com')
@@ -686,6 +695,63 @@ def get_package_name(ctx, id):
     return
   return package_name
 
+def load_manifest():
+  try:
+    with click.open_file('manifest.json', 'r') as f:
+      manifest = json.loads(f.read())
+  except IOError:
+    click.echo("The current directory does not contain a manifest.json file.")
+    sys.exit(1)
+  except ValueError:
+    click.echo("Error: Your manifest.json file is improperly formatted. "
+               "Please double check your brackets and commas!")
+    sys.exit(1)
+  return manifest
+
+def load_protocol(manifest, protocol_name):
+  try:
+    p = next(p for p in manifest['protocols'] if p['name'] == protocol_name)
+  except KeyError:
+    click.echo("Error: Your manifest.json file does not have a \"protocols\" key.")
+    sys.exit(1)
+  except StopIteration:
+    click.echo("Error: The protocol name '%s' does not match any protocols "
+               "that can be previewed from within this directory.  \nCheck "
+               "either your protocol's spelling or your manifest.json file "
+               "and try again." % protocol_name)
+    sys.exit(1)
+  return p
+
+@click.pass_context
+def load_manifest_and_protocol(ctx, protocol_name):
+  manifest = load_manifest()
+  protocol = load_protocol(manifest, protocol_name)
+  return (manifest, protocol)
+
+@click.pass_context
+def run_protocol(ctx, manifest, protocol, inputs, view=False):
+  try:
+    command = protocol['command_string']
+  except KeyError:
+    click.echo("Error: Your manifest.json file does not have a \"command_string\" key.")
+    return
+
+  from subprocess import call, check_output, CalledProcessError
+  import tempfile
+  with tempfile.NamedTemporaryFile() as fp:
+    fp.write(json.dumps(inputs))
+    fp.flush()
+    try:
+      protocol = check_output(["bash", "-c", command + " " + fp.name])
+      click.echo(protocol)
+      if view:
+         click.echo("View your protocol's raw JSON above or see the intructions "
+                    "rendered at the following link: \n%s" %
+                    ProtocolPreview(protocol, ctx.obj).preview_url)
+    except CalledProcessError as e:
+      click.echo(e.output)
+      return
+
 @cli.command()
 @click.argument('manifest', default='manifest.json')
 def format(manifest):
@@ -703,3 +769,31 @@ def parse_json(json_file):
   except ValueError as e:
     click.echo('Invalid json: %s' % e)
     return None
+
+def print_stderr(msg):
+  sys.stderr.write(msg + "\n")
+  sys.stderr.flush()
+
+@contextmanager
+def stdchannel_redirected(stdchannel, dest_filename):
+  """
+  A context manager to temporarily redirect stdout or stderr
+
+  e.g.:
+
+
+  with stdchannel_redirected(sys.stderr, os.devnull):
+      if compiler.has_function('clock_gettime', libraries=['rt']):
+          libraries.append('rt')
+  """
+  try:
+    oldstdchannel = os.dup(stdchannel.fileno())
+    dest_file = open(dest_filename, 'w')
+    os.dup2(dest_file.fileno(), stdchannel.fileno())
+
+    yield
+  finally:
+    if oldstdchannel is not None:
+        os.dup2(oldstdchannel, stdchannel.fileno())
+    if dest_file is not None:
+        dest_file.close()
