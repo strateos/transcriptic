@@ -3,6 +3,10 @@
 ## Unreleased
 ---
 
+## v2.0.7
+Added
+- `launch` command to configure and run protocols without needing to package and upload them first
+
 ## v2.0.6
 Fixed
 - RMSE calculation in spectrophotometry.py now reports correct RMSE

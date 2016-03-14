@@ -4,7 +4,7 @@ setup(
     name='transcriptic',
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
-    version='2.0.6',
+    version='2.0.7',
     packages=['transcriptic', 'transcriptic.analysis'],
     install_requires=[
         'Click>=5.1',
