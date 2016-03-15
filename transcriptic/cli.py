@@ -551,22 +551,27 @@ def compile(protocol_name, args):
   required = True,
   help = 'Project id or name context for configuring the protocol. Use `transcriptic projects` command to list existing projects.'
 )
+@click.option(
+  '--save_input',
+  metavar = 'FILE',
+  required = False,
+  help = 'Save the protocol input JSON in a file. This is useful for debugging a protocol.'
+)
 @click.pass_context
-def launch(ctx, protocol, project):
+def launch(ctx, protocol, project, save_input):
   '''Configure and execute your protocol using your web browser to select your inputs'''
-  project_id = project
-  project = get_project_id(project_id)
+  project = get_project_id(project)
   if not project:
     return
 
   manifest, protocol = load_manifest_and_protocol(protocol)
 
-  res = ctx.obj.post('%s/runs/quick_launch' % project_id, data = json.dumps({"manifest": protocol}))
+  res = ctx.obj.post('%s/runs/quick_launch' % project, data = json.dumps({"manifest": protocol}))
   quick_launch = res.json()
   quick_launch_mtime = quick_launch["updated_at"]
 
   format_str = "\nOpening %s"
-  url = ctx.obj.url("%s/runs/quick_launch/%s" % (project_id, quick_launch["id"]))
+  url = ctx.obj.url("%s/runs/quick_launch/%s" % (project, quick_launch["id"]))
   print_stderr(format_str % url)
 
   '''
@@ -594,11 +599,19 @@ def launch(ctx, protocol, project):
     sys.stderr.flush()
     time.sleep(5)
 
-    res = ctx.obj.get('%s/runs/quick_launch/%s' % (project_id, quick_launch["id"]))
+    res = ctx.obj.get('%s/runs/quick_launch/%s' % (project, quick_launch["id"]))
     quick_launch = res.json()
     count += 1
 
-  print_stderr("\nGenerating AutoProtocol....\n")
+  # Save the protocol input locally if the user specified the save_input option
+  if save_input is not None:
+    try:
+      with click.open_file(save_input, 'w') as f:
+        f.write(json.dumps(quick_launch["inputs"], indent=2))
+    except Exception as e:
+      print_stderr("\nUnable to save inputs: %s" % str(e))
+
+  print_stderr("\nGenerating Autoprotocol....\n")
   run_protocol(manifest, protocol, quick_launch["inputs"])
 
 @cli.command()

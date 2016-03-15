@@ -2,6 +2,13 @@
 
 ## Unreleased
 ---
+## v2.0.8
+Added
+- `launch` command now supports --save_input option to save the protocol input as a local file
+
+Fixed
+- `launch` command now properly supported either a project name or project id for the `project` option
+- typo AutoProtocol -> Autoprotocol
 
 ## v2.0.7
 Added
