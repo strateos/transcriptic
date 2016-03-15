@@ -604,7 +604,7 @@ def launch(ctx, protocol, project, save_input):
     count += 1
 
   # Save the protocol input locally if the user specified the save_input option
-  if save_input is not None:
+  if save_input:
     try:
       with click.open_file(save_input, 'w') as f:
         f.write(json.dumps(quick_launch["inputs"], indent=2))
