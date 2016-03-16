@@ -2,6 +2,10 @@
 
 ## Unreleased
 ---
+## v2.0.9
+Added
+- Updated manifest json parsing to deserialize into an OrderedDict, preserving key order, which enables quick launch inputs to be ordered
+
 ## v2.0.8
 Added
 - `launch` command now supports --save_input option to save the protocol input as a local file

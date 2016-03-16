@@ -711,7 +711,7 @@ def get_package_name(ctx, id):
 def load_manifest():
   try:
     with click.open_file('manifest.json', 'r') as f:
-      manifest = json.loads(f.read())
+      manifest = json.loads(f.read(), object_pairs_hook=OrderedDict)
   except IOError:
     click.echo("The current directory does not contain a manifest.json file.")
     sys.exit(1)
