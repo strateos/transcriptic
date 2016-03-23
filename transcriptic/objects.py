@@ -172,6 +172,8 @@ class Container(object):
             containerType.pop("id", None)
             if "dead_volume" not in containerType:
               containerType["dead_volume_ul"] = _CONTAINER_TYPES[containerType["shortname"]].dead_volume_ul
+            if "safe_min_volume_ul" not in containerType:
+              containerType["safe_min_volume_ul"] = _CONTAINER_TYPES[containerType["shortname"]].safe_min_volume_ul
 
             return ContainerType(**containerType)
         self.containerType = parse_containerType()
