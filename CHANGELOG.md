@@ -2,6 +2,16 @@
 
 ## Unreleased
 ---
+## v2.0.10
+Added
+- pypi tags for setup.py such as `classifiers` and `license`
+
+Fixed
+- Updated Container object to automatically populate safe_min_volume_ul
+
+Removed
+- Unused dependency: scikit-learn
+
 ## v2.0.9
 Added
 - Updated manifest json parsing to deserialize into an OrderedDict, preserving key order, which enables quick launch inputs to be ordered
