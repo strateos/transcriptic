@@ -14,6 +14,7 @@ from transcriptic import dataset as get_dataset
 
 
 class PlateRead(object):
+
     '''
     A PlateRead object generalizes the parsing of datasets derived from the
     plate reader for easy statistical analysis and visualization.
@@ -22,27 +23,37 @@ class PlateRead(object):
     information.
 
     '''
+
     def __init__(self, op_type, dataset, group_labels, group_wells=None,
                  control_reading=None, name=None):
         self.name = name
         self.dataset = dataset
         self.control_reading = control_reading
         self.op_type = op_type
-        if "data_keys" not in self.dataset.attributes or len(self.dataset.attributes["data_keys"]) == 0:
+        if ("data_keys" not in self.dataset.attributes or
+                len(self.dataset.attributes["data_keys"]) == 0):
             raise RuntimeError("No data found in given dataset.")
         if self.op_type not in ["absorbance", "fluorescence", "luminescence"]:
-            raise RuntimeError("Data given is not from a spectrophotometry operation.")
-        if self.op_type != self.dataset.attributes["instruction"]["operation"]["op"]:
+            raise RuntimeError(
+                "Data given is not from a spectrophotometry operation.")
+        if self.op_type != (self.dataset.attributes["instruction"]["operation"]
+                            ["op"]):
             raise RuntimeError("Data given is not a %s operation." % op_type)
 
         # Populate measurement params
         measure_params_dict = {}
-        measure_params_dict["reader"] = self.dataset.attributes["warp"]["device_id"]
+        measure_params_dict["reader"] = self.dataset.attributes[
+            "warp"]["device_id"]
+        dataset_op = self.dataset.attributes["instruction"]["operation"]
         if self.op_type == "absorbance":
-            measure_params_dict["wavelength"] = self.dataset.attributes["instruction"]["operation"]["wavelength"].split(":")[0] + "nm"
+            measure_params_dict["wavelength"] = dataset_op["wavelength"].split(
+                ":")[0] + "nm"
         if self.op_type == "fluorescence":
-            measure_params_dict["wavelength"] = "excitation: %s emission: %s" % (self.dataset.attributes["instruction"]["operation"]["excitation"].split(":")[0] + "nm",
-                 self.dataset.attributes["instruction"]["operation"]["emission"].split(":")[0] + "nm")
+            measure_params_dict["wavelength"] = (
+                "excitation: %s emission: %s" %
+                (dataset_op["excitation"].split(":")[0] + "nm",
+                 dataset_op["emission"].split(":")[0] + "nm")
+                )
         if self.op_type == "luminescence":
             measure_params_dict["wavelength"] = ""
 
@@ -51,38 +62,53 @@ class PlateRead(object):
         # Populate plate field
         plate_info_dict = {}
         plate_info_dict["id"] = self.dataset.attributes["container"]["id"]
-        plate_info_dict["col_count"] = self.dataset.attributes["container"]["container_type"]["col_count"]
-        plate_info_dict["well_count"] = self.dataset.attributes["container"]["container_type"]["well_count"]
+        plate_info_dict["col_count"] = self.dataset.attributes[
+            "container"]["container_type"]["col_count"]
+        plate_info_dict["well_count"] = self.dataset.attributes[
+            "container"]["container_type"]["well_count"]
         self.params["plate"] = plate_info_dict
 
         # Get dataset and parse into DataFrame
         data_dict = get_dataset(self.dataset.attributes["id"]).attributes
         df_dict = {}
-        well_count = self.dataset.attributes["container"]["container_type"]["well_count"]
-        col_count = self.dataset.attributes["container"]["container_type"]["col_count"]
-        # If no group well list specified, default to including all well data values in one group
+        well_count = self.dataset.attributes[
+            "container"]["container_type"]["well_count"]
+        col_count = self.dataset.attributes[
+            "container"]["container_type"]["col_count"]
+        # If no group well list specified, default to including all well data
+        # values in one group
         if not group_wells:
             df_dict[group_labels[0]] = [x[0] for x in list(data_dict.values())]
         # If given list of all int, assume one group with all wells in list
         elif all(isinstance(i, int) for i in group_wells):
             if len(group_wells) > len(data_dict):
-                raise ValueError("Sum of group lengths exceeds total no. of wells.")
+                raise ValueError(
+                    "Sum of group lengths exceeds total no. of wells.")
             try:
-                df_dict[group_labels[0]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in group_wells]
+                df_dict[group_labels[0]] = [
+                    data_dict[humanize(well, well_count, col_count).lower()][0]
+                    for well in group_wells]
             except:
                 raise ValueError("Well %s is not in the dataset" % well)
         elif all(isinstance(i, list) for i in group_wells):
-            if group_wells and sum([len(i) for i in group_wells]) > len(data_dict):
-                raise ValueError("Sum of group lengths exceeds total no. of wells.")
+            if group_wells and (sum([len(i) for i in group_wells]) >
+                                len(data_dict)):
+                raise ValueError(
+                    "Sum of group lengths exceeds total no. of wells.")
             for (idx, well_list) in enumerate(group_wells):
                 try:
-                    df_dict[group_labels[idx]] = [data_dict[humanize(well,well_count,col_count).lower()][0] for well in well_list]
+                    df_dict[group_labels[idx]] = [
+                        data_dict[humanize(well, well_count, col_count).lower()
+                                  ][0] for well in well_list]
                 except:
                     raise ValueError("Well %s is not in the dataset" % well)
         else:
-            raise ValueError("Format Error: Group Well List should be a list of list of wells in robot format")
+            raise ValueError(
+                "Format Error: Group Well List should be a list of list of \
+                 wells in robot format")
 
-        # To ensure pandas dataframe compatiblity: Check that group len elements are of the same length, pad with NaN otherwise
+        # To ensure pandas dataframe compatiblity: Check that group len
+        # elements are of the same length, pad with NaN otherwise
         if group_wells and all(isinstance(i, list) for i in group_wells):
             group_len_list = [len(x) for x in group_wells]
             if group_len_list.count(group_len_list[0]) != len(group_len_list):
@@ -93,7 +119,8 @@ class PlateRead(object):
 
         self.df = pandas.DataFrame(df_dict, columns=group_labels)
 
-        # If control absorbance object specified, create df_abj variable by subtracting control df from original
+        # If control absorbance object specified, create df_abj variable by
+        # subtracting control df from original
         if control_reading:
             self.df_adj = self.df - control_reading.df
 
@@ -104,7 +131,8 @@ class PlateRead(object):
         Parameters
         ----------
         mpl : boolean, optional
-            Set to True to render a matplotlib plot, otherwise a Plotly plot is rendered
+            Set to True to render a matplotlib plot, otherwise a Plotly plot
+            is rendered
         plot_type : {"box", "bar", "line", "hist"}, optional
             Type of plot to render
         \**plot_kwargs : dict, optional
@@ -126,7 +154,7 @@ class PlateRead(object):
                             "ticktext": labels,
                             "tickvals": list(range(1, len(labels)+1)),
                             "tickangle": 0,
-                            "tickfont":{
+                            "tickfont": {
                                 "size": 10
                             },
                         }
@@ -138,6 +166,7 @@ class PlateRead(object):
 
 
 class Absorbance(PlateRead):
+
     '''
     An Absorbance object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
@@ -159,6 +188,7 @@ class Absorbance(PlateRead):
         Name of absorbance object. Used in plotting functions
 
     '''
+
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_abs=None, name=None):
         PlateRead.__init__(self, "absorbance", dataset, group_labels,
@@ -197,24 +227,30 @@ class Absorbance(PlateRead):
         # Use default labels if concentration not provided
         if not conc_list:
             if "xlim" not in kwargs:
-              kwargs["xlim"] = (-1, len(dataf.mean()))
+                kwargs["xlim"] = (-1, len(dataf.mean()))
             dataf.mean().plot(**kwargs)
         else:
-            plot_obj = pandas.DataFrame({"values":dataf.mean(), "conc":np.asarray(conc_list)})
-            result = np.polyfit(plot_obj["conc"], plot_obj["values"], 1, full=True)
+            plot_obj = pandas.DataFrame(
+                {"values": dataf.mean(), "conc": np.asarray(conc_list)})
+            result = np.polyfit(
+                plot_obj["conc"], plot_obj["values"], 1, full=True)
             gradient, intercept = result[0]
             mpl_fig, ax = plt.subplots()
-            plot_obj.plot(x="conc", y="values", kind="scatter", ax=ax, **kwargs)
-            plt.plot(plot_obj["conc"], gradient*plot_obj["conc"] + intercept, '-')
+            plot_obj.plot(
+                x="conc", y="values", kind="scatter", ax=ax, **kwargs)
+            plt.plot(
+                plot_obj["conc"], gradient*plot_obj["conc"] + intercept, '-')
             ax.set_ylabel("Absorbance " + self.params["wavelength"])
 
             # Calculate R^2 from residuals
             ss_res = result[1]
-            ss_tot = np.sum(np.square((plot_obj["values"] - plot_obj["values"].mean())))
-            print ("%s R^2: %s" % (self.name, (1-old_div(ss_res,ss_tot))))
+            ss_tot = np.sum(
+                np.square((plot_obj["values"] - plot_obj["values"].mean())))
+            print("%s R^2: %s" % (self.name, (1-old_div(ss_res, ss_tot))))
 
 
 class Fluorescence(PlateRead):
+
     '''
     An Fluorescence object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
@@ -236,6 +272,7 @@ class Fluorescence(PlateRead):
         Name of fluorescence object. Used in plotting functions
 
     '''
+
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_fluor=None, name=None):
         PlateRead.__init__(self, "fluorescence", dataset, group_labels,
@@ -243,6 +280,7 @@ class Fluorescence(PlateRead):
 
 
 class Luminescence(PlateRead):
+
     '''
     An Luminescence object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
@@ -264,6 +302,7 @@ class Luminescence(PlateRead):
         Name of luminescence object. Used in plotting functions
 
     '''
+
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_lumi=None, name=None):
         PlateRead.__init__(self, "luminescence", dataset, group_labels,
@@ -288,14 +327,19 @@ def compare_standards(pr_obj, std_pr_obj):
     # Compare against mean of standard absorbance
     # Check to ensure CVs are at least 2 apart
     for indx in range(len(pr_obj.cv)):
-        cv_ratio = old_div(pr_obj.cv.iloc[indx],std_pr_obj.cv.iloc[indx])
+        cv_ratio = old_div(pr_obj.cv.iloc[indx], std_pr_obj.cv.iloc[indx])
         if cv_ratio < 2:
-            print ("Warning for %s: Sample CV is only %s times that of Standard CV. RMSE may be inaccurate." % (pr_obj.cv.index[indx], cv_ratio))
+            print("Warning for %s: Sample CV is only %s times that of Standard \
+                CV. RMSE may be inaccurate." % (
+                pr_obj.cv.index[indx], cv_ratio))
     # RMSE (normalized wrt to standard mean)
-    RMSE = np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean()).mean()) /  std_pr_obj.df.mean()*100
-    RMSE = pandas.DataFrame(RMSE, columns=["RMSE % (normalized to standard mean)"])
+    RMSE = (np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean()).mean()) /
+            std_pr_obj.df.mean() * 100)
+    RMSE = pandas.DataFrame(
+        RMSE, columns=["RMSE % (normalized to standard mean)"])
 
-    sampleVariance = pandas.DataFrame(pr_obj.df.var(), columns=["Sample Variance"])
+    sampleVariance = pandas.DataFrame(
+        pr_obj.df.var(), columns=["Sample Variance"])
     sampleCV = pandas.DataFrame(pr_obj.cv, columns=["Sample (%) CV"])
 
     if pr_obj.name:
