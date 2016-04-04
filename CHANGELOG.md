@@ -1,13 +1,15 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+---
+
+## v2.0.11
 Changed
 - Updated behavior of `transcriptic login` to be clearer and to return appropriate error messages
 
 Fixed
 - print statement for launch
 
----
 ## v2.0.10
 Added
 - pypi tags for setup.py such as `classifiers` and `license`
