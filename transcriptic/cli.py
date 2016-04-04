@@ -587,7 +587,7 @@ def launch(ctx, protocol, project, save_input):
 
   def on_json_received(protocol_inputs, error):
     if protocol_inputs is not None:
-      print "Protocol inputs (%s)" % (protocol_inputs)
+      print ("Protocol inputs (%s)" % (protocol_inputs))
     elif error is not None:
       click.echo('Invalid json: %s' % e)
       return None
@@ -643,13 +643,24 @@ def login(ctx, api_root):
     organization = user['organizations'][0]['subdomain']
   else:
     click.echo("You belong to %s organizations:" % len(user['organizations']))
-    for o in user['organizations']:
-      click.echo("  %s (%s)" % (o['name'], o['subdomain']))
+    for indx, o in enumerate(user['organizations']):
+      click.echo("%s.  %s (%s)" % (indx+1, o['name'], o['subdomain']))
+
+    def parse_valid_org(indx):
+        try:
+            return user['organizations'][int(indx)-1]['subdomain']
+        except:
+            click.echo("Please enter an integer between 1 and %s" %
+                       (len(user['organizations'])))
+            sys.exit(1)
+
     organization = click.prompt(
-      'Which would you like to login as',
-      default = user['organizations'][0]['subdomain'],
-      prompt_suffix='? '
-    )
+        'Which organization would you like to login as',
+        default=1,
+        prompt_suffix='? ', type=int,
+        value_proc=lambda x: parse_valid_org(x)
+        )
+
   r = requests.get('%s/%s' % (api_root, organization), headers = {
     'X-User-Email': email,
     'X-User-Token': token,

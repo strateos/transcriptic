@@ -1,6 +1,12 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Changed
+- Updated behavior of `transcriptic login` to be clearer and to return appropriate error messages
+
+Fixed
+- print statement for launch
+
 ---
 ## v2.0.10
 Added
