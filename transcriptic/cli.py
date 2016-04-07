@@ -806,8 +806,7 @@ def get_package_name(ctx, id):
         package_name = id if id in list(package_names.values()) else None
     if not package_name:
         click.echo("The id '%s' does not match any package in your \
-                    organization."
-                   % id)
+                    organization." % id)
         return
     return package_name
 
