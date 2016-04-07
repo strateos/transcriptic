@@ -124,7 +124,7 @@ class Project(object):
         else:
             raise Exception(req.text)
 
-    def submit(protocol, title, test_mode=False):
+    def submit(self, protocol, title, test_mode=False):
         from transcriptic import submit as api_submit
         req_json = api_submit(protocol, self.id, title, test_mode)
         return Run(req_json['id'], req_json)

@@ -207,9 +207,9 @@ class AutoprotocolParser(object):
         return ref.split('/')[1]
 
     @staticmethod
-    def well_list(wells, max=10):
+    def well_list(wells, max_len=10):
         well_list = "wells " + (', ').join(str(x) for x in wells)
-        if len(wells) > max:
+        if len(wells) > max_len:
             well_list = str(len(wells)) + " wells"
         return well_list
 
