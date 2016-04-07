@@ -1,5 +1,4 @@
 from transcriptic import ctx
-from IPython.display import HTML
 try:
     from StringIO import cStringIO as BytesIO
 except ImportError:
@@ -46,8 +45,15 @@ class ImagePlate(object):
         -------
         HTML
             Returns a HTML iframe of the full-size image which is rendered
-            nicely in IPython
+            nicely in IPython (if IPython is present)
         '''
-        return (HTML("""<iframe src="%s")" frameborder="0" \
+        try:
+            from IPython.display import HTML
+            return (HTML("""<iframe src="%s")" frameborder="0" \
                 allowtransparency="true" style="height:500px;" seamless> \
                 </iframe>""" % ctx.url("/-/%s.raw" % self.id)))
+
+        except:
+            # If IPython module is not present or unable to show, display using
+            # default PIL image show
+            self.image.show()
