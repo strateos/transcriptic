@@ -1,7 +1,6 @@
 from __future__ import print_function
 from builtins import str
 from builtins import object
-import autoprotocol.util
 
 PLURAL_UNITS = ["microliter", "nanoliter", "milliliter", "second", "minute",
                 "hour", "g", "nanometer"]
@@ -58,10 +57,12 @@ class AutoprotocolParser(object):
 
         return picks
 
-    def cover(self, opts):
+    @staticmethod
+    def cover(opts):
         return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
 
-    def dispense(self, opts):
+    @staticmethod
+    def dispense(opts):
         return "Dispense %s to %d column(s) of %s" % (opts['reagent'],
                                                       len(opts['columns']),
                                                       opts['object'])
@@ -90,16 +91,18 @@ class AutoprotocolParser(object):
                                                self.unit(opts['duration']),
                                                shaking)
 
-    def image_plate(self, opts):
+    @staticmethod
+    def image_plate(opts):
         return "Take an image of %s" % opts['object']
 
     def luminescence(self, opts):
         return ("Read luminescence of %s of plate %s" %
                 (self.well_list(opts['wells']), opts['object']))
 
-    def oligosynthesize(self, opts):
+    @staticmethod
+    def oligosynthesize(opts):
         return (["Oligosynthesize sequence '%s' into '%s'" %
-                (o['sequence'], o['destination']) for o in opts['oligos']])
+                 (o['sequence'], o['destination']) for o in opts['oligos']])
 
     def provision(self, opts):
         provisions = []
@@ -119,7 +122,8 @@ class AutoprotocolParser(object):
         elif opts['type'] == "rca":
             return seq + " with %s" % self.platename(opts['primer'])
 
-    def seal(self, opts):
+    @staticmethod
+    def seal(opts):
         return "Seal %s (%s)" % (opts['object'], opts['type'])
 
     def spin(self, opts):
@@ -153,7 +157,8 @@ class AutoprotocolParser(object):
                                    ])
         return stamps
 
-    def thermocycle(self, opts):
+    @staticmethod
+    def thermocycle(opts):
         return "Thermocycle %s" % opts['object']
 
     def pipette(self, opts):
@@ -188,14 +193,16 @@ class AutoprotocolParser(object):
                 elif pip == "consolidate":
                     pipettes.append("Consolidate %s into %s" %
                                     (self.well_list([c['well'] for c in
-                                     g[pip]['from']], 20),
+                                                     g[pip]['from']], 20),
                                      g[pip]['to']))
         return pipettes
 
-    def uncover(self, opts):
+    @staticmethod
+    def uncover(opts):
         return "Uncover %s" % opts['object']
 
-    def unseal(self, opts):
+    @staticmethod
+    def unseal(opts):
         return "Unseal %s" % opts['object']
 
     @staticmethod
@@ -219,5 +226,5 @@ class AutoprotocolParser(object):
         unit = u.split(':')[1]
         return ("%s %s" % (value,
                            (unit + "s" if (float(value) > 1 and
-                            unit in PLURAL_UNITS) else unit))
+                                           unit in PLURAL_UNITS) else unit))
                 )

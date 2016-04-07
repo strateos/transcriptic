@@ -24,7 +24,7 @@ class ProtocolPreview(object):
 
 class Instructions(object):
 
-    '''
+    """
     An instruction object contains raw instructions as JSON as well as list of
     operations and warps generated from the raw instructions.
 
@@ -34,7 +34,7 @@ class Instructions(object):
     raw_instructions : dict
       raw instruction dictionary
 
-    '''
+    """
 
     def __init__(self, raw_instructions):
         self.raw_instructions = raw_instructions
@@ -51,9 +51,9 @@ class Instructions(object):
 
 class Dataset(object):
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Dataset, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.connection = connection
         # self.df = pandas.DataFrame(attributes)
@@ -66,9 +66,9 @@ class Dataset(object):
 
 class Run(object):
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Run, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.instructions = Instructions(self.attributes["instructions"])
         self.connection = connection
@@ -110,9 +110,9 @@ class Run(object):
 
 class Project(object):
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Project, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.connection = connection
 
@@ -132,16 +132,16 @@ class Project(object):
 
 class Aliquot(object):
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Aliquot, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.connection = connection
 
 
 class Container(object):
 
-    '''
+    """
     A Container object represents a container from the Transcriptic LIMS and
     contains relevant information on the container type as well as the
     aliquots present in the container.
@@ -171,11 +171,11 @@ class Container(object):
           my_container.containerType.robotize("B1")
           my_container.containerType.humanize(12)
 
-    '''
+    """
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Container, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.connection = connection
 
@@ -213,8 +213,8 @@ class Container(object):
 
 class Resource(object):
 
-    def __init__(self, id, attributes, connection=False):
+    def __init__(self, obj_id, attributes, connection=False):
         super(Resource, self).__init__()
-        self.id = id
+        self.id = obj_id
         self.attributes = attributes
         self.connection = connection

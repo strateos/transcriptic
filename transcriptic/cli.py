@@ -41,7 +41,7 @@ except NameError:
 @click.option('--organization', '-o', default=None)
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
-    '''A command line tool for working with Transcriptic.'''
+    """A command line tool for working with Transcriptic."""
     if ctx.invoked_subcommand not in ['login']:
         try:
             ctx.obj = Connection.from_file(config)
@@ -68,7 +68,7 @@ def cli(ctx, apiroot, config, organization):
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
 def submit(ctx, file, project, title, test):
-    '''Submit your run to the project specified.'''
+    """Submit your run to the project specified."""
     project = get_project_id(project)
     if not project:
         return
@@ -94,9 +94,9 @@ def submit(ctx, file, project, title, test):
 @click.option('--name', '-n', help="Optional name for your zip file")
 @click.pass_context
 def release(ctx, name=None, package=None):
-    '''
+    """
     Compress the contents of the current directory to upload as a release.
-    '''
+    """
     deflated = zipfile.ZIP_DEFLATED
     if name:
         filename = 'release_%s' % name
@@ -217,7 +217,7 @@ def upload_release(ctx, archive, package):
 
 @cli.command()
 def protocols():
-    '''List protocols within your manifest.'''
+    """List protocols within your manifest."""
 
     manifest = load_manifest()
     if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
@@ -238,7 +238,7 @@ def protocols():
 @click.pass_context
 @click.option("-i")
 def packages(ctx, i):
-    '''List packages in your organization.'''
+    """List packages in your organization."""
     response = ctx.obj.get('packages/')
     # there's probably a better way to do this
     package_names = OrderedDict(
@@ -288,7 +288,7 @@ def packages(ctx, i):
 @click.argument('description')
 @click.pass_context
 def create_package(ctx, description, name):
-    '''Create a new empty protocol package'''
+    """Create a new empty protocol package"""
     existing = ctx.obj.get('packages/')
     for p in existing.json():
         if name == p['name'].split('.')[-1]:
@@ -317,7 +317,7 @@ def create_package(ctx, description, name):
               prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_package(ctx, name, force):
-    '''Delete an existing protocol package'''
+    """Delete an existing protocol package"""
     id = get_package_id(name)
     if id:
         if not force:
@@ -338,7 +338,7 @@ def delete_package(ctx, name, force):
 @click.pass_context
 @click.option("-i")
 def projects(ctx, i):
-    '''List the projects in your organization'''
+    """List the projects in your organization"""
     try:
         projects = ctx.obj.projects()
         proj_names = {}
@@ -367,7 +367,7 @@ def projects(ctx, i):
 @click.pass_context
 @click.argument('project_name')
 def runs(ctx, project_name):
-    '''List the runs that exist in a project'''
+    """List the runs that exist in a project"""
     id = get_project_id(project_name)
     runs = []
     if id:
@@ -405,7 +405,7 @@ def runs(ctx, project_name):
               is_flag=True)
 @click.pass_context
 def create_project(ctx, name, dev):
-    '''Create a new empty project.'''
+    """Create a new empty project."""
     existing = ctx.obj.projects()
     for p in existing:
         if name == p.attributes['name'].split('.')[-1]:
@@ -431,7 +431,7 @@ def create_project(ctx, name, dev):
               prompted if you're sure", is_flag=True)
 @click.pass_context
 def delete_project(ctx, name, force):
-    '''Delete an existing project.'''
+    """Delete an existing project."""
     id = get_project_id(name)
     if id:
         if not force:
@@ -460,7 +460,7 @@ def delete_project(ctx, name, force):
 @click.argument('query', default='*')
 @click.pass_context
 def resources(ctx, query):
-    '''Search catalog of provisionable resources'''
+    """Search catalog of provisionable resources"""
     req = ctx.obj.resources(query)
     if req["results"]:
         click.echo("Results for '%s':" % query)
@@ -485,7 +485,7 @@ def resources(ctx, query):
 @cli.command()
 @click.argument('path', default='.')
 def init(path):
-    '''Initialize a directory with a manifest.json file.'''
+    """Initialize a directory with a manifest.json file."""
     manifest_data = OrderedDict(
         format="python",
         license="MIT",
@@ -519,7 +519,7 @@ def init(path):
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
 def analyze(ctx, file, test):
-    '''Analyze a block of Autoprotocol JSON.'''
+    """Analyze a block of Autoprotocol JSON."""
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
@@ -566,7 +566,7 @@ def price(response):
 @click.option('--view', is_flag=True)
 @click.pass_context
 def preview(ctx, protocol_name, view):
-    '''Preview the Autoprotocol output of protocol in the current package.'''
+    """Preview the Autoprotocol output of protocol in the current package."""
     manifest, protocol = load_manifest_and_protocol(protocol_name)
 
     try:
@@ -598,8 +598,8 @@ def summarize(ctx, file):
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.argument('args', nargs=-1)
 def compile(protocol_name, args):
-    '''Compile a protocol by passing it a config file (without submitting or
-     analyzing).'''
+    """Compile a protocol by passing it a config file (without submitting or
+     analyzing)."""
     manifest, protocol = load_manifest_and_protocol(protocol_name)
 
     try:
@@ -631,8 +631,8 @@ def compile(protocol_name, args):
 )
 @click.pass_context
 def launch(ctx, protocol, project, save_input):
-    '''Configure and execute your protocol using your web browser to select
-     your inputs'''
+    """Configure and execute your protocol using your web browser to select
+     your inputs"""
     project = get_project_id(project)
     if not project:
         return
@@ -649,11 +649,11 @@ def launch(ctx, protocol, project, save_input):
                       (project, quick_launch["id"]))
     print_stderr(format_str % url)
 
-    '''
+    """
     Open the URL in the webbrowser. We have to temporarily suppress stdout/
     stderr because the webbrowser module dumps some garbage which gets into
     out stdout and corrupts the generated autoprotocol
-    '''
+    """
     import webbrowser
 
     with stdchannel_redirected(sys.stderr, os.devnull):
@@ -698,7 +698,7 @@ def launch(ctx, protocol, project, save_input):
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
 def login(ctx, api_root):
-    '''Authenticate to your Transcriptic account.'''
+    """Authenticate to your Transcriptic account."""
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
     r = requests.post("%s/users/sign_in" % api_root, data=json.dumps({
@@ -883,7 +883,7 @@ def run_protocol(ctx, manifest, protocol, inputs, view=False):
 @cli.command()
 @click.argument('manifest', default='manifest.json')
 def format(manifest):
-    '''Check Autoprotocol format of manifest.json.'''
+    """Check Autoprotocol format of manifest.json."""
     manifest = parse_json(manifest)
     try:
         iter_json(manifest)

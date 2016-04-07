@@ -25,7 +25,7 @@ def pull(nested_dict):
 
 
 def regex_manifest(protocol, input):
-    '''Special input types, gets updated as more input types are added'''
+    """Special input types, gets updated as more input types are added"""
     if "type" in input and input["type"] == "choice":
         if "options" in input:
             pattern = '\[(.*?)\]'

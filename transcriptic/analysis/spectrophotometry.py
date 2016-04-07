@@ -15,14 +15,14 @@ from transcriptic import dataset as get_dataset
 
 class PlateRead(object):
 
-    '''
+    """
     A PlateRead object generalizes the parsing of datasets derived from the
     plate reader for easy statistical analysis and visualization.
 
     Refer to the Absorbance, Fluorescence and Luminescence objects for more
     information.
 
-    '''
+    """
 
     def __init__(self, op_type, dataset, group_labels, group_wells=None,
                  control_reading=None, name=None):
@@ -41,7 +41,7 @@ class PlateRead(object):
             raise RuntimeError("Data given is not a %s operation." % op_type)
 
         # Populate measurement params
-        measure_params_dict = {}
+        measure_params_dict = dict()
         measure_params_dict["reader"] = self.dataset.attributes[
             "warp"]["device_id"]
         dataset_op = self.dataset.attributes["instruction"]["operation"]
@@ -60,7 +60,7 @@ class PlateRead(object):
         self.params = measure_params_dict
 
         # Populate plate field
-        plate_info_dict = {}
+        plate_info_dict = dict()
         plate_info_dict["id"] = self.dataset.attributes["container"]["id"]
         plate_info_dict["col_count"] = self.dataset.attributes[
             "container"]["container_type"]["col_count"]
@@ -167,7 +167,7 @@ class PlateRead(object):
 
 class Absorbance(PlateRead):
 
-    '''
+    """
     An Absorbance object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
 
@@ -187,7 +187,7 @@ class Absorbance(PlateRead):
     name: str, optional
         Name of absorbance object. Used in plotting functions
 
-    '''
+    """
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_abs=None, name=None):
@@ -251,7 +251,7 @@ class Absorbance(PlateRead):
 
 class Fluorescence(PlateRead):
 
-    '''
+    """
     An Fluorescence object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
 
@@ -271,7 +271,7 @@ class Fluorescence(PlateRead):
     name: str, optional
         Name of fluorescence object. Used in plotting functions
 
-    '''
+    """
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_fluor=None, name=None):
@@ -281,7 +281,7 @@ class Fluorescence(PlateRead):
 
 class Luminescence(PlateRead):
 
-    '''
+    """
     An Luminescence object parses a dataset object and provides functions for
     easy statistical analysis and visualization.
 
@@ -301,7 +301,7 @@ class Luminescence(PlateRead):
     name: str, optional
         Name of luminescence object. Used in plotting functions
 
-    '''
+    """
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_lumi=None, name=None):
@@ -310,7 +310,7 @@ class Luminescence(PlateRead):
 
 
 def compare_standards(pr_obj, std_pr_obj):
-    ''''
+    """
     Compare a sample plate read object with a standard plate read object to get
     measures such as the Root-Mean-Square-Error (RMSE) and
     Coefficient-of-Variation (CV).
@@ -323,7 +323,7 @@ def compare_standards(pr_obj, std_pr_obj):
         Sample plate read object
     std_pr_obj: PlateRead
         Standard plate read object
-    '''
+    """
     # Compare against mean of standard absorbance
     # Check to ensure CVs are at least 2 apart
     for indx in range(len(pr_obj.cv)):
