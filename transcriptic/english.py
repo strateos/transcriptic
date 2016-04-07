@@ -34,8 +34,7 @@ class AutoprotocolParser(object):
         return ("Measure absorbance at %s for %s of plate %s" %
                 (self.unit(opts['wavelength']),
                  self.well_list(opts['wells']),
-                 opts['object'])
-                )
+                 opts['object']))
 
     def acoustic_transfer(self, opts):
         transfers = []
