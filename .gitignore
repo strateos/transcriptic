@@ -36,3 +36,4 @@ html/
 doctrees/
 build/lib/
 *.swp
+.idea
