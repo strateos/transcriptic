@@ -20,6 +20,7 @@ setup(
         'scipy>=0.16',
         'numpy>=1.10',
         'plotly>=1.8',
+        'pillow>=3.1.0',
         'future>=0.15'
     ],
     entry_points='''

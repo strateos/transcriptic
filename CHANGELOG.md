@@ -2,6 +2,9 @@
 
 ## Unreleased
 ---
+Added
+- `imaging` module with `ImagePlate` as the first class for representing plate images. Focus is placed on IPython rendering
+- PIL dependency for image manipulation
 
 ## v2.0.11
 Changed
