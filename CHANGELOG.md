@@ -2,6 +2,8 @@
 
 ## Unreleased
 ---
+Fixed
+- Change in datasets route
 
 ## v2.1.1
 Added

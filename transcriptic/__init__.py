@@ -107,9 +107,9 @@ def submit(protocol, project_id, title=None, test_mode=False):
 
 def dataset(obj_id, key="*"):
     _check_ctx()
-    req = ctx.get("/data/%s.json?key=%s" % (obj_id, key))
+    req = ctx.get("/datasets/%s.json?key=%s" % (obj_id, key))
     if req.status_code == 200:
         data = req.json()
-        return Dataset(id, data, connection=ctx)
+        return Dataset(obj_id, data, connection=ctx)
     else:
         raise Exception("[%d] %s" % (req.status_code, req.text))
