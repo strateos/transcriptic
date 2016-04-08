@@ -2,9 +2,12 @@
 
 ## Unreleased
 ---
+## v2.1.2
 Fixed
 - Change in datasets route
-- Removed additional shadowed variables
+
+Changed
+- Removed additional shadowed variable names
 
 ## v2.1.1
 Added
