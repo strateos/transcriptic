@@ -4,6 +4,7 @@
 ---
 Fixed
 - Change in datasets route
+- Removed additional shadowed variables
 
 ## v2.1.1
 Added

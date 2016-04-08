@@ -318,16 +318,16 @@ def create_package(ctx, description, name):
 @click.pass_context
 def delete_package(ctx, name, force):
     """Delete an existing protocol package"""
-    id = get_package_id(name)
-    if id:
+    package_id = get_package_id(name)
+    if package_id:
         if not force:
             click.confirm(
                 "Are you sure you want to permanently delete the package "
                 "'%s'?  All releases within will be lost." %
-                get_package_name(id), default=False, abort=True
+                get_package_name(package_id), default=False, abort=True
             )
             click.confirm("Are you really really sure?", default=True)
-        del_pack = ctx.obj.delete_package(id)
+        del_pack = ctx.obj.delete_package(package_id)
         if del_pack:
             click.echo("Package deleted.")
         else:
@@ -368,19 +368,19 @@ def projects(ctx, i):
 @click.argument('project_name')
 def runs(ctx, project_name):
     """List the runs that exist in a project"""
-    id = get_project_id(project_name)
-    runs = []
-    if id:
-        req = ctx.obj.runs(id)
+    run_id = get_project_id(project_name)
+    run_list = []
+    if run_id:
+        req = ctx.obj.runs(run_id)
         if not req['runs']:
             click.echo("Project '%s' is empty." % project_name)
             return
         for r in req['runs']:
-            runs.append([r['title'] or "(Untitled)",
-                         r['id'],
-                         r['completed_at'].split("T")[0] if r['completed_at']
-                         else r['created_at'].split("T")[0],
-                         r['status'].replace("_", " ")])
+            run_list.append([r['title'] or "(Untitled)",
+                             r['id'],
+                             r['completed_at'].split("T")[0] if r['completed_at']
+                             else r['created_at'].split("T")[0],
+                             r['status'].replace("_", " ")])
 
         click.echo(
             '\n{:^120}'.format("Runs in Project '%s':\n" %
@@ -391,7 +391,7 @@ def runs(ctx, project_name):
                    '{:^30}'.format("RUN DATE") + "|" +
                    '{:^30}'.format('RUN STATUS'))
         click.echo('{:-^120}'.format(''))
-        for run in runs:
+        for run in run_list:
             click.echo('{:^30}'.format(run[0]) + "|" +
                        '{:^30}'.format(run[1]) + "|" +
                        '{:^30}'.format(run[2]) + "|" +
@@ -432,16 +432,16 @@ def create_project(ctx, name, dev):
 @click.pass_context
 def delete_project(ctx, name, force):
     """Delete an existing project."""
-    id = get_project_id(name)
-    if id:
+    project_id = get_project_id(name)
+    if project_id:
         if not force:
             click.confirm(
                 "Are you sure you want to permanently delete '%s'?" %
-                get_project_name(id),
+                get_project_name(project_id),
                 default=False,
                 abort=True
             )
-        if ctx.obj.delete_project(str(id)):
+        if ctx.obj.delete_project(str(project_id)):
             click.echo("Project deleted.")
         else:
             click.confirm(
@@ -450,7 +450,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-            if ctx.obj.archive_project(str(id)):
+            if ctx.obj.archive_project(str(project_id)):
                 click.echo("Project archived.")
             else:
                 click.echo("Could not archive project!")
@@ -473,12 +473,12 @@ def resources(ctx, query):
     for i in req["results"]:
         if i["provisionable"] and not i["reservable"]:
             name = i['name'].encode('ascii', errors='ignore')
-            id = i['kit_items'][0]['resource_id']
+            resource_id = i['kit_items'][0]['resource_id']
             click.echo('{:^40}'.format(name) + '|' +
                        '{:^40}'.format(i['vendor']['name'] if 'vendor' in
                                        list(i.keys()) else ''
                                        ) +
-                       '|' + '{:^40}'.format(id))
+                       '|' + '{:^40}'.format(resource_id))
             click.echo('{:-^120}'.format(''))
 
 
@@ -759,14 +759,14 @@ def login(ctx, api_root):
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
-    id = projs.get(name)
-    if not id:
-        id = name if name in list(projs.values()) else None
-        if not id:
+    project_id = projs.get(name)
+    if not project_id:
+        project_id = name if name in list(projs.values()) else None
+        if not project_id:
             click.echo(
                 "The project '%s' was not found in your organization." % name)
             return
-    return id
+    return project_id
 
 
 @click.pass_context
@@ -798,15 +798,15 @@ def get_package_id(ctx, name):
 
 
 @click.pass_context
-def get_package_name(ctx, id):
+def get_package_name(ctx, package_id):
     package_names = {
         v['id']: k for k, v in list(ctx.invoke(packages, i=True).items())}
-    package_name = package_names.get(id)
+    package_name = package_names.get(package_id)
     if not package_name:
-        package_name = id if id in list(package_names.values()) else None
+        package_name = package_id if package_id in list(package_names.values()) else None
     if not package_name:
         click.echo("The id '%s' does not match any package in your \
-                    organization." % id)
+                    organization." % package_id)
         return
     return package_name
 
