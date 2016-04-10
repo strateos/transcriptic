@@ -6,6 +6,8 @@ import transcriptic
 import os
 from os.path import expanduser
 from transcriptic.objects import Project
+from . import api
+from . import routes
 
 
 class Connection(object):
@@ -24,12 +26,15 @@ class Connection(object):
         self.token = token
         self.organization_id = organization_id or organization
         self.verbose = verbose
-        self.default_headers = {
+        self.headers = {
             "X-User-Email": email,
             "X-User-Token": token,
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+
+        # Save relevant information required for get_route helper
+        self.default_route_args = dict(api_root=self.api_root, org_id=self.organization_id)
         transcriptic.ctx = self
 
     @staticmethod
@@ -84,7 +89,8 @@ class Connection(object):
             )
 
     def create_project(self, title):
-        req = self.post('', data=json.dumps({
+        route = self.get_route('create_project')
+        req = api.post(route, data=json.dumps({
             'name': title
         }))
         if req.status_code == 201:
@@ -94,7 +100,8 @@ class Connection(object):
             raise RuntimeError(req.text)
 
     def delete_project(self, project_id):
-        req = self.delete(project_id)
+        route = self.get_route('delete_project', project_id=project_id)
+        req = api.delete(route)
         if req.status_code == 200:
             return True
 
@@ -125,7 +132,8 @@ class Connection(object):
         return req.json()
 
     def create_package(self, name, description):
-        req = self.post('packages', data=json.dumps({
+        route = self.get_route('create_package')
+        req = api.post(route, data=json.dumps({
             "name": "%s%s" % ("com.%s." % self.organization_id, name),
             "description": description
         }))
@@ -134,8 +142,9 @@ class Connection(object):
         else:
             raise RuntimeError(req.text)
 
-    def delete_package(self, id):
-        req = self.delete('packages/%s' % id)
+    def delete_package(self, package_id):
+        route = self.get_route('delete_package', package_id=package_id)
+        req = api.delete(route)
         if req.status_code == 200:
             return True
 
@@ -160,6 +169,12 @@ class Connection(object):
                             headers=self._merge_headers(kwargs),
                             **kwargs)
 
+    def get_route(self, method, **kwargs):
+        """Helper function to automatically match and supply required arguments"""
+        route_method = getattr(routes, method)
+        route_method_args = route_method.__code__.co_varnames
+        return route_method(*(dict(self.default_route_args, **kwargs)[arg] for arg in route_method_args))
+
     def delete(self, path, **kwargs):
         if self.verbose:
             print("DELETE %s" % self.url(path))
@@ -167,7 +182,10 @@ class Connection(object):
                                headers=self._merge_headers(kwargs),
                                **kwargs)
 
+    def update_headers(self, kwargs):
+        """Helper function to safely merge and update headers"""
+        self.headers.update(**kwargs)
+        return self.headers
+
     def _merge_headers(self, kwargs):
-        default_headers = self.default_headers
-        default_headers.update(kwargs.pop('headers', {}))
-        return default_headers
+        return dict(kwargs.pop('headers', {}), **self.headers)
