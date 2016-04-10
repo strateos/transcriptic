@@ -3,7 +3,7 @@ import requests
 
 def _call(method, route, **kwargs):
     """Base function for handling all requests"""
-    # Always use the latest context instance
+    # Always use the latest connection context
     from transcriptic import ctx
     if not ctx:
         raise Exception("No transcriptic.config.Connection context found!")

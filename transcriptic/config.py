@@ -59,7 +59,8 @@ class Connection(object):
             return "%s/%s/%s" % (self.api_root, self.organization_id, path)
 
     def projects(self):
-        req = self.get('?q=&per_page=500')
+        route = self.get_route('get_projects')
+        req = api.get(route)
         if req.status_code == 200:
             return [Project(project['id'], project, connection=self) for
                     project in req.json()['projects']]
@@ -70,7 +71,8 @@ class Connection(object):
             )
 
     def project(self, project_id):
-        req = self.get(project_id)
+        route = self.get_route('get_project', project_id=project_id)
+        req = api.get(route)
         if req.status_code == 200:
             return Project(project_id, req.json(), connection=self)
         else:
@@ -79,7 +81,8 @@ class Connection(object):
             )
 
     def runs(self, project_id):
-        req = self.get(project_id)
+        route = self.get_route('get_project_runs', project_id=project_id)
+        req = api.get(route)
         if req.status_code == 200:
             return req.json()
         else:
@@ -106,30 +109,28 @@ class Connection(object):
             return True
 
     def archive_project(self, project_id):
-        req = self.put(
-            project_id, data=json.dumps({"project": {"archived": True}}))
+        route = self.get_route('archive_project', project_id=project_id)
+        req = api.put(route, data=json.dumps({"project": {"archived": True}}))
         if req.status_code == 200:
             return True
         else:
             raise RuntimeError(req.json())
 
     def packages(self):
-        req = self.get("packages")
+        route = self.get_route("get_packages")
+        req = api.get(route)
         if req.status_code == 200:
             return req.json()
         else:
             raise RuntimeError(req.text)
 
     def package(self, package_id):
-        req = self.get("packages/%s" % package_id)
+        route = self.get_route("get_package", package_id=package_id)
+        req = api.get(route)
         if req.status_code == 200:
             return req.json()
         else:
             raise RuntimeError(req.text)
-
-    def resources(self, query):
-        req = self.get("/_commercial/kits?q=%s&per_page=1000" % query)
-        return req.json()
 
     def create_package(self, name, description):
         route = self.get_route('create_package')
@@ -137,7 +138,7 @@ class Connection(object):
             "name": "%s%s" % ("com.%s." % self.organization_id, name),
             "description": description
         }))
-        if req.status_code == 200:
+        if req.status_code == 201:
             return req.json()
         else:
             raise RuntimeError(req.text)
@@ -147,6 +148,11 @@ class Connection(object):
         req = api.delete(route)
         if req.status_code == 200:
             return True
+
+    def resources(self, query):
+        route = self.get_route('query_resources', query=query)
+        req = api.get(route)
+        return req.json()
 
     def post(self, path, **kwargs):
         if self.verbose:
@@ -169,18 +175,18 @@ class Connection(object):
                             headers=self._merge_headers(kwargs),
                             **kwargs)
 
-    def get_route(self, method, **kwargs):
-        """Helper function to automatically match and supply required arguments"""
-        route_method = getattr(routes, method)
-        route_method_args = route_method.__code__.co_varnames
-        return route_method(*(dict(self.default_route_args, **kwargs)[arg] for arg in route_method_args))
-
     def delete(self, path, **kwargs):
         if self.verbose:
             print("DELETE %s" % self.url(path))
         return requests.delete(self.url(path),
                                headers=self._merge_headers(kwargs),
                                **kwargs)
+
+    def get_route(self, method, **kwargs):
+        """Helper function to automatically match and supply required arguments"""
+        route_method = getattr(routes, method)
+        route_method_args = route_method.__code__.co_varnames
+        return route_method(*(dict(self.default_route_args, **kwargs)[arg] for arg in route_method_args))
 
     def update_headers(self, kwargs):
         """Helper function to safely merge and update headers"""

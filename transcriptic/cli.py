@@ -239,26 +239,26 @@ def protocols():
 @click.option("-i")
 def packages(ctx, i):
     """List packages in your organization."""
-    response = ctx.obj.get('packages/')
+    response = ctx.obj.packages()
     # there's probably a better way to do this
     package_names = OrderedDict(
         sorted(list({"yours": {}, "theirs": {}}.items()),
                key=lambda t: len(t[0]))
         )
-    if response.status_code == 200:
-        for pack in response.json():
-            n = str(pack['name']).lower().replace(
-                "com.%s." % ctx.obj.organization_id, "")
-            latest = str(pack['latest_version']) if pack[
-                'latest_version'] else "-"
-            if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
-                package_names['yours'][n] = {}
-                package_names['yours'][n]['id'] = str(pack['id'])
-                package_names['yours'][n]['latest'] = latest
-            else:
-                package_names['theirs'][n] = {}
-                package_names['theirs'][n]['id'] = str(pack['id'])
-                package_names['theirs'][n]['latest'] = latest
+
+    for pack in response:
+        n = str(pack['name']).lower().replace(
+            "com.%s." % ctx.obj.organization_id, "")
+        latest = str(pack['latest_version']) if pack[
+            'latest_version'] else "-"
+        if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
+            package_names['yours'][n] = {}
+            package_names['yours'][n]['id'] = str(pack['id'])
+            package_names['yours'][n]['latest'] = latest
+        else:
+            package_names['theirs'][n] = {}
+            package_names['theirs'][n]['id'] = str(pack['id'])
+            package_names['theirs'][n]['latest'] = latest
     if i:
         return dict(list(package_names['yours'].items()) +
                     list(package_names['theirs'].items()))
@@ -289,18 +289,15 @@ def packages(ctx, i):
 @click.pass_context
 def create_package(ctx, description, name):
     """Create a new empty protocol package"""
-    existing = ctx.obj.get('packages/')
-    for p in existing.json():
+    existing = ctx.obj.packages()
+    for p in existing:
         if name == p['name'].split('.')[-1]:
             click.echo("You already have an existing package with the name "
                        "\"%s\". Please choose a different package name." %
                        name)
             return
-    new_pack = ctx.obj.post('packages/', data=json.dumps({
-        "description": description,
-        "name": "%s%s" % ("com.%s." % ctx.obj.organization_id, name)
-    }))
-    if new_pack.status_code == 201:
+    new_pack = ctx.obj.create_package(name, description)
+    if new_pack:
         click.echo("New package '%s' created with id %s \n"
                    "View it at %s" % (name, new_pack.json()['id'],
                                       ctx.obj.url('packages/%s' %
