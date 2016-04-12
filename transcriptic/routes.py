@@ -44,5 +44,21 @@ def get_packages(api_root, org_id):
     return "{api_root}/{org_id}/packages/".format(**locals())
 
 
+def post_release(api_root, org_id, release_id):
+    return "{api_root}/{org_id}/packages/{package_id}/releases/".format(**locals())
+
+
+def get_release_status(api_root, org_id, release_id, timestamp):
+    return "{api_root}/{org_id}/packages/{package_id}/releases/{release_id}?_={timestamp}".format(**locals())
+
+
 def query_resources(api_root, query):
     return "{api_root}/_commercial/kits?q={query}&per_page=1000".format(**locals())
+
+
+def get_quick_launch(api_root, org_id, project_id, quick_launch_id):
+    return "{api_root}/{org_id}/{project_id}/runs/quick_launch/{quick_launch_id}".format(**locals())
+
+
+def create_quick_launch(api_root, org_id, project_id):
+    return "{api_root}/{org_id}/{project_id}/runs/quick_launch".format(**locals())

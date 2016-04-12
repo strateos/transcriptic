@@ -18,6 +18,7 @@ from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
+from transcriptic import api
 from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -170,21 +171,18 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = requests.post(url, data=data, files=files)
+        response = api.post(url, data=data, files=files, headers={})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
         try:
-            up = ctx.obj.post(
-                'packages/%s/releases/' % package_id,
+            up = ctx.obj.post_release(
+                package_id,
                 data=json.dumps({"release":
                                 {"binary_attachment_url": loc["Key"]}}
-                                ),
-                headers={
-                    "Origin": "https://secure.transcriptic.com/",
-                    "Content-Type": "application/json"}
+                                )
                 )
-            re = json.loads(up.content)['id']
+            re = up['id']
         except ValueError:
             click.echo("\nError: There was a problem uploading your release."
                        "\nVerify that your manifest.json file is properly  "
@@ -195,12 +193,9 @@ def upload_release(ctx, archive, package):
             return
         bar.update(20)
         time.sleep(10)
-        status = ctx.obj.get(
-            'packages/%s/releases/%s?_=%s' %
-            (package_id, re, int(time.time()))
-            )
-        published = json.loads(status.content)['published']
-        errors = status.json()['validation_errors']
+        status = ctx.obj.get_release_status(package_id, re, int(time.time()))
+        published = status['published']
+        errors = ['validation_errors']
         bar.update(30)
         if errors:
             click.echo("\nPackage upload to %s unsuccessful. "
@@ -636,14 +631,11 @@ def launch(ctx, protocol, project, save_input):
 
     manifest, protocol = load_manifest_and_protocol(protocol)
 
-    res = ctx.obj.post('%s/runs/quick_launch' %
-                       project, data=json.dumps({"manifest": protocol}))
-    quick_launch = res.json()
+    quick_launch = ctx.obj.create_quick_launch(project, json.dumps({"manifest": protocol}))
     quick_launch_mtime = quick_launch["updated_at"]
 
     format_str = "\nOpening %s"
-    url = ctx.obj.url("%s/runs/quick_launch/%s" %
-                      (project, quick_launch["id"]))
+    url = ctx.obj.get_route('create_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
     print_stderr(format_str % url)
 
     """
@@ -673,9 +665,7 @@ def launch(ctx, protocol, project, save_input):
         sys.stderr.flush()
         time.sleep(5)
 
-        res = ctx.obj.get('%s/runs/quick_launch/%s' %
-                          (project, quick_launch["id"]))
-        quick_launch = res.json()
+        quick_launch = ctx.obj.get_quick_launch(project, quick_launch["id"])
         count += 1
 
     # Save the protocol input locally if the user specified the save_input

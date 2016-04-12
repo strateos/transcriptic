@@ -9,7 +9,10 @@ def _call(method, route, **kwargs):
         raise Exception("No transcriptic.config.Connection context found!")
     if ctx.verbose:
         print ("{0}: {1}".format(method.upper(), route))
-    return getattr(requests, method)(route, headers=ctx.headers, **kwargs)
+    if 'headers' not in kwargs:
+        return getattr(requests, method)(route, headers=ctx.headers, **kwargs)
+    else:
+        return getattr(requests,method)(route, **kwargs)
 
 
 def get(route, **kwargs):

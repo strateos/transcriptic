@@ -149,6 +149,38 @@ class Connection(object):
         if req.status_code == 200:
             return True
 
+    def post_release(self, package_id, data):
+        route = self.get_route('post_release', package_id=package_id)
+        req = api.post(route, data=data)
+        if req.status_code == 201:
+            return req.json()
+        else:
+            raise RuntimeError(req.text)
+
+    def get_release_status(self, package_id, release_id, timestamp):
+        route = self.get_route('get_release_status', package_id=package_id, release_id=release_id, timestamp=timestamp)
+        req = api.get(route)
+        if req.status_code == 200:
+            return req.json()
+        else:
+            raise RuntimeError(req.text)
+
+    def get_quick_launch(self, project_id, quick_launch_id):
+        route = self.get_route('get_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
+        req = api.get(route)
+        if req.status_code == 200:
+            return req.json()
+        else:
+            raise RuntimeError(req.text)
+
+    def create_quick_launch(self, project_id, quick_launch_id, data):
+        route = self.get_route('create_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
+        req = api.post(route, data=data)
+        if req.status_code == 201:
+            return req.json()
+        else:
+            raise RuntimeError(req.text)
+
     def resources(self, query):
         route = self.get_route('query_resources', query=query)
         req = api.get(route)
