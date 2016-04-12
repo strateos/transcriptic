@@ -7,7 +7,6 @@ import click
 import json
 import locale
 import os
-import requests
 import time
 import sys
 import xml.etree.ElementTree as ET
@@ -18,7 +17,7 @@ from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
-from transcriptic import api
+from transcriptic import api, routes
 from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -149,19 +148,10 @@ def upload_release(ctx, archive, package):
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
         bar.update(10)
-        sign = requests.get(
-            'https://secure.transcriptic.com/upload/sign',
-            params={'name': archive},
-            headers={
-                'X-User-Email': ctx.obj.email,
-                'X-User-Token': ctx.obj.token,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                }
-            )
-        info = json.loads(sign.content)
+        sign = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
+        info = sign.json()
         bar.update(30)
-        url = 'https://transcriptic-uploads.s3.amazonaws.com'
+        aws_url = ctx.obj.get_route('aws_upload')
         files = {'file': open(os.path.basename(archive), 'rb')}
         data = OrderedDict([
             ('key', info['key']),
@@ -171,7 +161,7 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = api.post(url, data=data, files=files, headers={})
+        response = api.post(aws_url, data=data, files=files, headers={})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
@@ -688,7 +678,7 @@ def login(ctx, api_root):
     """Authenticate to your Transcriptic account."""
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = requests.post("%s/users/sign_in" % api_root, data=json.dumps({
+    r = api.post(routes.login(api_root=api_root), data=json.dumps({
         'user': {
             'email': email,
             'password': password,
@@ -696,7 +686,7 @@ def login(ctx, api_root):
     }), headers={
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-    })
+    }, use_ctx=False)
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
@@ -730,15 +720,15 @@ def login(ctx, api_root):
             value_proc=lambda x: parse_valid_org(x)
         )
 
-    r = requests.get('%s/%s' % (api_root, organization), headers={
+    r = api.get(routes.get_organizations(api_root=api_root, org_id=organization), headers={
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',
-    })
+    }, use_ctx=False)
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
-    ctx.obj = Connection(email, token, organization, api_root=api_root)
+    ctx.obj = Connection(email=email, token=token, organization_id=organization, api_root=api_root)
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 

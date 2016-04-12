@@ -62,3 +62,19 @@ def get_quick_launch(api_root, org_id, project_id, quick_launch_id):
 
 def create_quick_launch(api_root, org_id, project_id):
     return "{api_root}/{org_id}/{project_id}/runs/quick_launch".format(**locals())
+
+
+def upload_sign(api_root):
+    return "{api_root}/upload/sign".format(**locals())
+
+
+def aws_upload():
+    return "https://transcriptic-uploads.s3.amazonaws.com"
+
+
+def login(api_root):
+    return "{api_root}/users/sign_in".format(**locals())
+
+
+def get_organizations(api_root, org_id):
+    return "{api_root}/{org_id}".format(**locals())
