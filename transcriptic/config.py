@@ -1,6 +1,5 @@
 from __future__ import print_function
 from builtins import object
-import requests
 import json
 import transcriptic
 import os
@@ -8,6 +7,7 @@ from os.path import expanduser
 from transcriptic.objects import Project
 from . import api
 from . import routes
+from autoprotocol import Protocol
 
 
 class Connection(object):
@@ -32,17 +32,19 @@ class Connection(object):
             "Accept": "application/json"
         }
 
-        # Save relevant information required for get_route helper
-        self.default_route_args = dict(api_root=self.api_root, org_id=self.organization_id)
+        # Preload known environment arguments
+        self.env_args = dict(api_root=self.api_root, org_id=self.organization_id)
         transcriptic.ctx = self
 
     @staticmethod
     def from_file(path):
+        """Loads context from file"""
         with open(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             return Connection(**cfg)
 
     def save(self, path):
+        """Saves context into file"""
         with open(expanduser(path), 'w') as f:
             f.write(json.dumps({
                 'email': self.email,
@@ -51,173 +53,196 @@ class Connection(object):
                 'api_root': self.api_root,
             }, indent=2))
 
+    def update_environment(self, **kwargs):
+        """Update environment variables. To remove an existing variable, set to None"""
+        self.env_args = dict(self.env_args, **kwargs)
+
     def url(self, path):
         if path.startswith("/"):
             return "%s%s" % (self.api_root, path)
         else:
             return "%s/%s/%s" % (self.api_root, self.organization_id, path)
 
+    def preview_protocol(self, protocol):
+        route = self.get_route('preview_protocol')
+        return api.post(route,
+                        json={
+                            "protocol": json.dumps(protocol.as_dict()) if
+                            isinstance(protocol, Protocol) else protocol
+                        },
+                        allow_redirects=False,
+                        status_response={
+                            '302': lambda resp: resp.headers['Location'],
+                            'default': lambda resp: Exception("cannot preview protocol.")
+                        })
+
     def projects(self):
         route = self.get_route('get_projects')
-        req = api.get(route)
-        if req.status_code == 200:
-            return [Project(project['id'], project, connection=self) for
-                    project in req.json()['projects']]
-        else:
-            raise RuntimeError(
+        data = api.get(route, status_response={
+            'default': lambda resp: RuntimeError(
                 "There was an error listing the projects in your "
                 "organization.  Make sure your login details are correct."
             )
+        })
+        return [Project(project['id'], project, connection=self) for
+                project in data['projects']]
 
-    def project(self, project_id):
+    def project(self, project_id=None):
         route = self.get_route('get_project', project_id=project_id)
-        req = api.get(route)
-        if req.status_code == 200:
-            return Project(project_id, req.json(), connection=self)
-        else:
-            raise RuntimeError(
+        data = api.get(route, status_response={
+            'default': lambda resp: RuntimeError(
                 "There was an error fetching project %s" % project_id
             )
+        })
+        return Project(project_id, data, connection=self)
 
-    def runs(self, project_id):
+    def runs(self, project_id=None):
         route = self.get_route('get_project_runs', project_id=project_id)
-        req = api.get(route)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            raise RuntimeError(
+        return api.get(route, status_response={
+            "default": lambda resp: RuntimeError(
                 "There was an error fetching the runs in project %s" %
                 project_id
             )
+        })
 
     def create_project(self, title):
         route = self.get_route('create_project')
-        req = api.post(route, data=json.dumps({
+        data = api.post(route, data=json.dumps({
             'name': title
         }))
-        if req.status_code == 201:
-            data = req.json()
-            return Project(data['id'], data, connection=self)
-        else:
-            raise RuntimeError(req.text)
+        return Project(data['id'], data, connection=self)
 
-    def delete_project(self, project_id):
+    def delete_project(self, project_id=None):
         route = self.get_route('delete_project', project_id=project_id)
-        req = api.delete(route)
-        if req.status_code == 200:
-            return True
+        return api.delete(route, status_response={
+            '200': lambda resp: True
+        })
 
-    def archive_project(self, project_id):
+    def archive_project(self, project_id=None):
         route = self.get_route('archive_project', project_id=project_id)
-        req = api.put(route, data=json.dumps({"project": {"archived": True}}))
-        if req.status_code == 200:
-            return True
-        else:
-            raise RuntimeError(req.json())
+        return api.put(route, data=json.dumps({"project": {"archived": True}}),
+                       status_response={
+                           '200': lambda resp: True
+                       })
 
     def packages(self):
         route = self.get_route("get_packages")
-        req = api.get(route)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+        return api.get(route)
 
-    def package(self, package_id):
+    def package(self, package_id=None):
         route = self.get_route("get_package", package_id=package_id)
-        req = api.get(route)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+        return api.get(route)
 
     def create_package(self, name, description):
         route = self.get_route('create_package')
-        req = api.post(route, data=json.dumps({
+        return api.post(route, data=json.dumps({
             "name": "%s%s" % ("com.%s." % self.organization_id, name),
             "description": description
         }))
-        if req.status_code == 201:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
 
-    def delete_package(self, package_id):
+    def delete_package(self, package_id=None):
         route = self.get_route('delete_package', package_id=package_id)
-        req = api.delete(route)
-        if req.status_code == 200:
-            return True
+        return api.delete(route)
 
-    def post_release(self, package_id, data):
+    def post_release(self, data, package_id=None):
         route = self.get_route('post_release', package_id=package_id)
-        req = api.post(route, data=data)
-        if req.status_code == 201:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+        return api.post(route, data=data)
 
-    def get_release_status(self, package_id, release_id, timestamp):
+    def get_release_status(self, package_id=None, release_id=None, timestamp=None):
         route = self.get_route('get_release_status', package_id=package_id, release_id=release_id, timestamp=timestamp)
-        req = api.get(route)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+        return api.get(route)
 
-    def get_quick_launch(self, project_id, quick_launch_id):
+    def get_quick_launch(self, project_id=None, quick_launch_id=None):
         route = self.get_route('get_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
-        req = api.get(route)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+        return api.get(route)
 
-    def create_quick_launch(self, project_id, quick_launch_id, data):
-        route = self.get_route('create_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
-        req = api.post(route, data=data)
-        if req.status_code == 201:
-            return req.json()
-        else:
-            raise RuntimeError(req.text)
+    def create_quick_launch(self, data, project_id=None):
+        route = self.get_route('create_quick_launch', project_id=project_id)
+        return api.post(route, data=data)
 
     def resources(self, query):
         route = self.get_route('query_resources', query=query)
-        req = api.get(route)
-        return req.json()
+        return api.get(route)
 
-    def post(self, path, **kwargs):
-        if self.verbose:
-            print("POST %s" % self.url(path))
-        return requests.post(self.url(path),
-                             headers=self._merge_headers(kwargs),
-                             **kwargs)
+    def monitoring_data(self, data_type, project_id=None, run_id=None, instruction_id=None):
+        route = self.get_route('monitoring_data', project_id=project_id, run_id=run_id,
+                               instruction_id=instruction_id, data_type=data_type)
+        return api.get(route)
 
-    def put(self, path, **kwargs):
-        if self.verbose:
-            print("PUT %s" % self.url(path))
-        return requests.put(self.url(path),
-                            headers=self._merge_headers(kwargs),
-                            **kwargs)
+    def raw_image_data(self, data_id=None):
+        route = self.get_route('view_raw_image', data_id=data_id)
+        return api.get(route, status_response={'200': lambda resp: resp}, stream=True)
 
-    def get(self, path, **kwargs):
-        if self.verbose:
-            print("GET %s" % self.url(path))
-        return requests.get(self.url(path),
-                            headers=self._merge_headers(kwargs),
-                            **kwargs)
+    def _get_object(self, obj_id):
+        route = self.get_route('def_route', obj_id=obj_id)
+        return api.get(route, status_response={
+            '404': Exception("[404] No object found for ID " + obj_id)
+        })
 
-    def delete(self, path, **kwargs):
-        if self.verbose:
-            print("DELETE %s" % self.url(path))
-        return requests.delete(self.url(path),
-                               headers=self._merge_headers(kwargs),
-                               **kwargs)
+    def analyze_run(self, protocol, test_mode=False):
+        if isinstance(protocol, Protocol):
+            protocol = protocol.as_dict()
+        if "errors" in protocol:
+            raise AnalysisException(("Error%s in protocol:\n%s" %
+                                     (("s" if len(protocol["errors"]) > 1 else ""),
+                                      "".join(["- " + e['message'] + "\n" for
+                                               e in protocol["errors"]]))))
+
+        return api.post(self.get_route('analyze_run'),
+                        data=json.dumps({
+                            "protocol": protocol,
+                            "test_mode": test_mode
+                        }),
+                        status_response={'422': lambda r: AnalysisException("Error%s in protocol:\n%s" %
+                                                                            (("s" if len(
+                                                                                r.json()['protocol']) > 1 else
+                                                                              ""),
+                                                                             "".join(["- " + e['message'] + "\n" for
+                                                                                      e in
+                                                                                      r.json()['protocol']])))
+                                         })
+
+    def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
+        if isinstance(protocol, Protocol):
+            protocol = protocol.as_dict()
+        return api.post(self.get_route('submit_run', project_id=project_id),
+                        data=json.dumps({
+                            "title": title,
+                            "protocol": protocol,
+                            "test_mode": test_mode
+                        }),
+                        status_response={
+                            '404': lambda resp: AnalysisException("Error: Couldn't create run (404). \n"
+                                                                  "Are you sure the project %s "
+                                                                  "exists, and that you have access to it?" %
+                                                                  self.url(project_id)),
+                            '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
+                        })
+
+    def dataset(self, obj_id, key="*"):
+        route = self.get_route('dataset', obj_id=obj_id, key=key)
+        return api.get(route)
+
+    def datasets(self, project_id=None, run_id=None):
+        route = self.get_route(project_id=project_id, run_id=run_id)
+        return api.get(route, status_response={
+            '404': lambda resp: Exception("[404] No run found for ID " + id)
+        })
 
     def get_route(self, method, **kwargs):
         """Helper function to automatically match and supply required arguments"""
         route_method = getattr(routes, method)
         route_method_args = route_method.__code__.co_varnames
-        return route_method(*(dict(self.default_route_args, **kwargs)[arg] for arg in route_method_args))
+        # Update loaded argument dictionary with additional arguments
+        arg_dict = dict(self.env_args, **kwargs)
+        input_args = []
+        for arg in route_method_args:
+            if arg_dict[arg]:
+                input_args.append(arg_dict[arg])
+            else:
+                raise Exception("For route: {0}, argument {1} needs to be provided.".format(method, arg))
+
+        return route_method(*tuple(input_args))
 
     def update_headers(self, kwargs):
         """Helper function to safely merge and update headers"""
@@ -226,3 +251,11 @@ class Connection(object):
 
     def _merge_headers(self, kwargs):
         return dict(kwargs.pop('headers', {}), **self.headers)
+
+
+class AnalysisException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message

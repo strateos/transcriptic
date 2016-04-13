@@ -1,4 +1,5 @@
 from transcriptic import ctx
+
 try:
     from StringIO import cStringIO as BytesIO
 except ImportError:
@@ -24,11 +25,11 @@ class ImagePlate(object):
 
     def __init__(self, dataset):
         if ("image_normalized_loc" not in dataset.attributes or
-                len(dataset.attributes["image_normalized_loc"]) == 0):
+                    len(dataset.attributes["image_normalized_loc"]) == 0):
             raise RuntimeError("No data found in given dataset.")
         self.id = dataset.id
         self.raw = BytesIO()
-        req = ctx.get("/-/%s.raw" % self.id, stream=True)
+        req = ctx.raw_image_data(data_id=self.id)
         # Buffer download of data
         chunk_sz = 512
         for chunk in req.iter_content(chunk_sz):
@@ -51,7 +52,7 @@ class ImagePlate(object):
             from IPython.display import HTML
             return (HTML("""<iframe src="%s")" frameborder="0" \
                 allowtransparency="true" style="height:500px;" seamless> \
-                </iframe>""" % ctx.url("/-/%s.raw" % self.id)))
+                </iframe>""" % ctx.get_route('view_raw_image', data_id=self.id)))
 
         except:
             # If IPython module is not present or unable to show, display using

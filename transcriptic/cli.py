@@ -167,10 +167,10 @@ def upload_release(ctx, archive, package):
         loc = dict((i.tag, i.text) for i in response_tree)
         try:
             up = ctx.obj.post_release(
-                package_id,
                 data=json.dumps({"release":
                                 {"binary_attachment_url": loc["Key"]}}
-                                )
+                                ),
+                package_id=package_id
                 )
             re = up['id']
         except ValueError:
@@ -183,7 +183,8 @@ def upload_release(ctx, archive, package):
             return
         bar.update(20)
         time.sleep(10)
-        status = ctx.obj.get_release_status(package_id, re, int(time.time()))
+        status = ctx.obj.get_release_status(package_id=package_id, release_id=re,
+                                            time_stamp=int(time.time()))
         published = status['published']
         errors = ['validation_errors']
         bar.update(30)
@@ -309,7 +310,7 @@ def delete_package(ctx, name, force):
                 get_package_name(package_id), default=False, abort=True
             )
             click.confirm("Are you really really sure?", default=True)
-        del_pack = ctx.obj.delete_package(package_id)
+        del_pack = ctx.obj.delete_package(package_id=package_id)
         if del_pack:
             click.echo("Package deleted.")
         else:
@@ -350,10 +351,10 @@ def projects(ctx, i):
 @click.argument('project_name')
 def runs(ctx, project_name):
     """List the runs that exist in a project"""
-    run_id = get_project_id(project_name)
+    project_id = get_project_id(project_name)
     run_list = []
-    if run_id:
-        req = ctx.obj.runs(run_id)
+    if project_id:
+        req = ctx.obj.runs(project_id=project_id)
         if not req['runs']:
             click.echo("Project '%s' is empty." % project_name)
             return
@@ -423,7 +424,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-        if ctx.obj.delete_project(str(project_id)):
+        if ctx.obj.delete_project(str(project_id=project_id)):
             click.echo("Project deleted.")
         else:
             click.confirm(
@@ -432,7 +433,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-            if ctx.obj.archive_project(str(project_id)):
+            if ctx.obj.archive_project(project_id=str(project_id)):
                 click.echo("Project archived.")
             else:
                 click.echo("Could not archive project!")
@@ -621,7 +622,7 @@ def launch(ctx, protocol, project, save_input):
 
     manifest, protocol = load_manifest_and_protocol(protocol)
 
-    quick_launch = ctx.obj.create_quick_launch(project, json.dumps({"manifest": protocol}))
+    quick_launch = ctx.obj.create_quick_launch(data=json.dumps({"manifest": protocol}), project_id=project)
     quick_launch_mtime = quick_launch["updated_at"]
 
     format_str = "\nOpening %s"
@@ -655,7 +656,8 @@ def launch(ctx, protocol, project, save_input):
         sys.stderr.flush()
         time.sleep(5)
 
-        quick_launch = ctx.obj.get_quick_launch(project, quick_launch["id"])
+        quick_launch = ctx.obj.get_quick_launch(project_id=project,
+                                                quick_launch_id=quick_launch["id"])
         count += 1
 
     # Save the protocol input locally if the user specified the save_input

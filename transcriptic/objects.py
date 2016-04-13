@@ -8,14 +8,7 @@ class ProtocolPreview(object):
 
     def __init__(self, protocol, connection):
         self.protocol = protocol
-        req = connection.post("/runs/preview", json={
-            "protocol": json.dumps(protocol.as_dict()) if
-            isinstance(protocol, Protocol) else protocol
-        }, allow_redirects=False)
-        if req.status_code == 302:
-            self.preview_url = req.headers['Location']
-        else:
-            raise Exception("Cannot preview protocol.")
+        self.preview_url = connection.preview_protocol(protocol)
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
@@ -61,7 +54,7 @@ class Dataset(object):
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:500px;" seamless></iframe>""" % \
-            self.connection.url("/data/%s.embed" % self.id)
+            self.connection.get_route('view_data', data_id=self.id)
 
 
 class Run(object):
@@ -74,12 +67,12 @@ class Run(object):
         self.connection = connection
 
     def monitoring(self, instruction_id, data_type='pressure'):
-        req = self.connection.get("%s/runs/%s/%s/monitoring/%s" % (
-            self.attributes['project']['url'],
-            self.id,
-            instruction_id,
-            data_type
-        ))
+        req = self.connection.monitoring_data(
+            project_id=self.attributes['project']['url'],
+            run_id=self.id,
+            instruction_id=instruction_id,
+            data_type=data_type
+        )
         if req.status_code == 200:
             response = req.json()
             return pandas.DataFrame(response['results'])
@@ -87,25 +80,15 @@ class Run(object):
             raise Exception(req.text)
 
     def data(self):
-        req = self.connection.get("%s/runs/%s/data" % (
-            self.attributes['project']['url'],
-            self.id
-        ))
-        if req.status_code == 200:
-            response = req.json()
-            return {k: Dataset(response[k]["id"], response[k],
-                               connection=self.connection)
-                    for k in list(response.keys()) if response[k]}
-        elif req.status_code == 404:
-            raise Exception("[404] No run found for ID " + id)
-        else:
-            raise Exception("[%d] %s" % (req.status_code, req.json()))
+        datasets = self.connection.datasets(project_id=self.attributes['project']['url'], run_id=self.id)
+        return {k: Dataset(datasets[k]["id"], datasets[k],
+                           connection=self.connection)
+                for k in list(datasets.keys()) if datasets[k]}
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:450px;" seamless></iframe>""" % \
-            self.connection.url("%s/runs/%s.embed" %
-                                (self.attributes['project']['url'], self.id))
+            self.connection.get_route('view_run', project_id=self.attributes['project']['url'], run_id=self.id)
 
 
 class Project(object):
@@ -117,17 +100,12 @@ class Project(object):
         self.connection = connection
 
     def runs(self):
-        req = self.connection.get("%s/runs" % self.id)
-        if req.status_code == 200:
-            runs = req.json()
-            return [Run(run['id'], run, self.connection) for run in runs]
-        else:
-            raise Exception(req.text)
+        runs = self.connection.runs(project_id=self.id)
+        return [Run(run['id'], run, self.connection) for run in runs]
 
     def submit(self, protocol, title, test_mode=False):
-        from transcriptic import submit as api_submit
-        req_json = api_submit(protocol, self.id, title, test_mode)
-        return Run(req_json['id'], req_json)
+        response = self.connection.submit_run(protocol,project_id= self.id, title=title, test_mode=test_mode)
+        return Run(response['id'], response)
 
 
 class Aliquot(object):

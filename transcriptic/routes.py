@@ -78,3 +78,43 @@ def login(api_root):
 
 def get_organizations(api_root, org_id):
     return "{api_root}/{org_id}".format(**locals())
+
+
+def deref_route(api_root, obj_id):
+    return "{api_root}/-/{obj_id}".format(**locals())
+
+
+def analyze_run(api_root, org_id):
+    return "{api_root}/{org_id}/analyze_run".format(**locals())
+
+
+def submit_run(api_root, org_id, project_id):
+    return "{api_root}/{org_id}/{project_id}/runs".format(**locals())
+
+
+def dataset(api_root, data_id, key):
+    return "{api_root}/datasets/{data_id}.json?key={key}".format(**locals())
+
+
+def datasets(api_root, org_id, project_id, run_id):
+    return "{api_root}/{org_id}/{project_id}/runs/{run_id}/data".format(**locals())
+
+
+def preview_protocol(api_root):
+    return "{api_root}/runs/preview".format(**locals())
+
+
+def view_data(api_root, data_id):
+    return "{api_root}/datasets/{data_id}.embed".format(**locals())
+
+
+def view_run(api_root, org_id, project_id, run_id):
+    return "{api_root}/{org_id}/{project_id}/runs/{run_id}.embed".format(**locals())
+
+
+def view_raw_image(api_root, data_id):
+    return "{api_root}/-/{data_id}.raw".format(**locals())
+
+
+def monitoring_data(api_root, org_id, project_id, run_id, instruction_id, data_type):
+    return "{api_root}/{org_id}/{project_id}/runs/{run_id}/{instruction_id}/monitoring/{data_type}".format(**locals())
