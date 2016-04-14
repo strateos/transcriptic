@@ -46,14 +46,10 @@ class Dataset(object):
         self.connection = connection
         # self.df = pandas.DataFrame(attributes)
 
-
-7
-
-
-def _repr_html_(self):
-    return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px;" seamless></iframe>""" % \
-           self.connection.get_route('view_data', data_id=self.id)
+    def _repr_html_(self):
+        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
+            style="height:500px;" seamless></iframe>""" % \
+               self.connection.get_route('view_data', data_id=self.id)
 
 
 class Run(object):

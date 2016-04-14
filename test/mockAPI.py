@@ -1,4 +1,3 @@
-from requests import Response
 from collections import deque
 
 """Keys in mockDB correspond to (method, route) calls"""
@@ -10,17 +9,17 @@ class MockResponse(object):
 
     def __init__(self, status_code=None, json=None, text=None):
         self.status_code = status_code
-        self.json = json
-        self.text = text
+        self.json_data = json
+        self.text_data = text
 
     def status_code(self):
         return self.status_code
 
     def json(self):
-        return self.json
+        return self.json_data
 
     def text(self):
-        return self.text
+        return self.text_data
 
 
 def _req_call(method, route, **kwargs):
@@ -32,7 +31,7 @@ def _req_call(method, route, **kwargs):
             else:
                 raise RuntimeError("Method: {method}, Route: {route} has run out of max calls.")
         else:
-            return mockDB[key]['call_queue'].pop()
+            return mockDB[key]['call_queue'].popleft()
     else:
         raise RuntimeError("Method: {method} and Route: {route} needs to be mocked.".format(**locals()))
 
@@ -46,6 +45,6 @@ def mockRoute(method, route, response, max_calls=None):
         mockDB[key]['default'] = None
         mockDB[key]['call_queue'] = deque()
     if max_calls:
-        mockDB[key]['call_queue'].append(response)
+        mockDB[key]['call_queue'].extend([response] * max_calls)
     else:
         mockDB[key]['default'] = response

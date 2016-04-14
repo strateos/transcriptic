@@ -11,11 +11,9 @@ from autoprotocol import Protocol
 
 
 class Connection(object):
-    def __init__(
-            self, email=None, token=None, organization_id=False,
-            api_root="https://secure.transcriptic.com", organization=False,
-            cookie=False, verbose=False
-    ):
+    def __init__(self, email=None, token=None, organization_id=False,
+                 api_root="https://secure.transcriptic.com", organization=False,
+                 cookie=False, verbose=False):
         if email is None:
             email = os.environ['USER_EMAIL']
             token = os.environ['USER_TOKEN']

@@ -1,0 +1,24 @@
+{
+  "refs": {
+    "test_plate_96": {
+      "new": "96-pcr",
+      "discard": true
+    }
+  },
+  "instructions": [
+    {
+      "groups": [
+        {
+          "transfer": [
+            {
+              "from": "test_plate_96/0",
+              "to": "test_plate_96/1",
+              "volume": "175.0:microliter"
+            }
+          ]
+        }
+      ],
+      "op": "pipette"
+    }
+  ]
+}
