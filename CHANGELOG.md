@@ -2,6 +2,17 @@
 
 ## Unreleased
 ---
+Added
+- `api` module for handling all calls including responses and exceptions
+- `Connection` object now mirrors most of the CLI functionality
+- basic test infrastructure and examples for testing API module
+
+Changed
+- all separate requests, context or connection object calls are now consolidated and re-routed to go through the api and routes module
+
+Removed
+- all direct api calls (get, put, push, pull) are removed from Connection. Users are encouraged to use the corresponding calls from the `api` module instead
+
 ## v2.1.2
 Fixed
 - Change in datasets route

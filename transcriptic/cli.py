@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from builtins import next
 from builtins import str
 
@@ -7,17 +8,16 @@ import click
 import json
 import locale
 import os
-import requests
 import time
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
 
-from transcriptic import analyze as api_analyze, submit as api_submit
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
+from transcriptic import api, routes
 from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -81,7 +81,7 @@ def submit(ctx, file, project, title, test):
             return
 
     try:
-        req_json = api_submit(protocol, project, title, test_mode=test)
+        req_json = ctx.obj.submit_run(protocol, project_id=project, title=title, test_mode=test)
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.url("%s/runs/%s" % (project, run_id)))
@@ -148,19 +148,10 @@ def upload_release(ctx, archive, package):
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
         bar.update(10)
-        sign = requests.get(
-            'https://secure.transcriptic.com/upload/sign',
-            params={'name': archive},
-            headers={
-                'X-User-Email': ctx.obj.email,
-                'X-User-Token': ctx.obj.token,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                }
-            )
-        info = json.loads(sign.content)
+        sign = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
+        info = sign.json()
         bar.update(30)
-        url = 'https://transcriptic-uploads.s3.amazonaws.com'
+        aws_url = ctx.obj.get_route('aws_upload')
         files = {'file': open(os.path.basename(archive), 'rb')}
         data = OrderedDict([
             ('key', info['key']),
@@ -170,21 +161,18 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = requests.post(url, data=data, files=files)
+        response = api.post(aws_url, data=data, files=files, headers={})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
         try:
-            up = ctx.obj.post(
-                'packages/%s/releases/' % package_id,
+            up = ctx.obj.post_release(
                 data=json.dumps({"release":
                                 {"binary_attachment_url": loc["Key"]}}
                                 ),
-                headers={
-                    "Origin": "https://secure.transcriptic.com/",
-                    "Content-Type": "application/json"}
+                package_id=package_id
                 )
-            re = json.loads(up.content)['id']
+            re = up['id']
         except ValueError:
             click.echo("\nError: There was a problem uploading your release."
                        "\nVerify that your manifest.json file is properly  "
@@ -195,12 +183,10 @@ def upload_release(ctx, archive, package):
             return
         bar.update(20)
         time.sleep(10)
-        status = ctx.obj.get(
-            'packages/%s/releases/%s?_=%s' %
-            (package_id, re, int(time.time()))
-            )
-        published = json.loads(status.content)['published']
-        errors = status.json()['validation_errors']
+        status = ctx.obj.get_release_status(package_id=package_id, release_id=re,
+                                            time_stamp=int(time.time()))
+        published = status['published']
+        errors = status['validation_errors']
         bar.update(30)
         if errors:
             click.echo("\nPackage upload to %s unsuccessful. "
@@ -239,26 +225,26 @@ def protocols():
 @click.option("-i")
 def packages(ctx, i):
     """List packages in your organization."""
-    response = ctx.obj.get('packages/')
+    response = ctx.obj.packages()
     # there's probably a better way to do this
     package_names = OrderedDict(
         sorted(list({"yours": {}, "theirs": {}}.items()),
                key=lambda t: len(t[0]))
         )
-    if response.status_code == 200:
-        for pack in response.json():
-            n = str(pack['name']).lower().replace(
-                "com.%s." % ctx.obj.organization_id, "")
-            latest = str(pack['latest_version']) if pack[
-                'latest_version'] else "-"
-            if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
-                package_names['yours'][n] = {}
-                package_names['yours'][n]['id'] = str(pack['id'])
-                package_names['yours'][n]['latest'] = latest
-            else:
-                package_names['theirs'][n] = {}
-                package_names['theirs'][n]['id'] = str(pack['id'])
-                package_names['theirs'][n]['latest'] = latest
+
+    for pack in response:
+        n = str(pack['name']).lower().replace(
+            "com.%s." % ctx.obj.organization_id, "")
+        latest = str(pack['latest_version']) if pack[
+            'latest_version'] else "-"
+        if pack.get('owner') and pack['owner']['email'] == ctx.obj.email:
+            package_names['yours'][n] = {}
+            package_names['yours'][n]['id'] = str(pack['id'])
+            package_names['yours'][n]['latest'] = latest
+        else:
+            package_names['theirs'][n] = {}
+            package_names['theirs'][n]['id'] = str(pack['id'])
+            package_names['theirs'][n]['latest'] = latest
     if i:
         return dict(list(package_names['yours'].items()) +
                     list(package_names['theirs'].items()))
@@ -289,18 +275,15 @@ def packages(ctx, i):
 @click.pass_context
 def create_package(ctx, description, name):
     """Create a new empty protocol package"""
-    existing = ctx.obj.get('packages/')
-    for p in existing.json():
+    existing = ctx.obj.packages()
+    for p in existing:
         if name == p['name'].split('.')[-1]:
             click.echo("You already have an existing package with the name "
                        "\"%s\". Please choose a different package name." %
                        name)
             return
-    new_pack = ctx.obj.post('packages/', data=json.dumps({
-        "description": description,
-        "name": "%s%s" % ("com.%s." % ctx.obj.organization_id, name)
-    }))
-    if new_pack.status_code == 201:
+    new_pack = ctx.obj.create_package(name, description)
+    if new_pack:
         click.echo("New package '%s' created with id %s \n"
                    "View it at %s" % (name, new_pack.json()['id'],
                                       ctx.obj.url('packages/%s' %
@@ -327,7 +310,7 @@ def delete_package(ctx, name, force):
                 get_package_name(package_id), default=False, abort=True
             )
             click.confirm("Are you really really sure?", default=True)
-        del_pack = ctx.obj.delete_package(package_id)
+        del_pack = ctx.obj.delete_package(package_id=package_id)
         if del_pack:
             click.echo("Package deleted.")
         else:
@@ -368,10 +351,10 @@ def projects(ctx, i):
 @click.argument('project_name')
 def runs(ctx, project_name):
     """List the runs that exist in a project"""
-    run_id = get_project_id(project_name)
+    project_id = get_project_id(project_name)
     run_list = []
-    if run_id:
-        req = ctx.obj.runs(run_id)
+    if project_id:
+        req = ctx.obj.runs(project_id=project_id)
         if not req['runs']:
             click.echo("Project '%s' is empty." % project_name)
             return
@@ -441,7 +424,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-        if ctx.obj.delete_project(str(project_id)):
+        if ctx.obj.delete_project(str(project_id=project_id)):
             click.echo("Project deleted.")
         else:
             click.confirm(
@@ -450,7 +433,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-            if ctx.obj.archive_project(str(project_id)):
+            if ctx.obj.archive_project(project_id=str(project_id)):
                 click.echo("Project archived.")
             else:
                 click.echo("Could not archive project!")
@@ -533,7 +516,7 @@ def analyze(ctx, file, test):
             return
 
     try:
-        analysis = api_analyze(protocol, test_mode=test)
+        analysis = ctx.obj.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
         price(analysis)
     except Exception as e:
@@ -639,14 +622,11 @@ def launch(ctx, protocol, project, save_input):
 
     manifest, protocol = load_manifest_and_protocol(protocol)
 
-    res = ctx.obj.post('%s/runs/quick_launch' %
-                       project, data=json.dumps({"manifest": protocol}))
-    quick_launch = res.json()
+    quick_launch = ctx.obj.create_quick_launch(data=json.dumps({"manifest": protocol}), project_id=project)
     quick_launch_mtime = quick_launch["updated_at"]
 
     format_str = "\nOpening %s"
-    url = ctx.obj.url("%s/runs/quick_launch/%s" %
-                      (project, quick_launch["id"]))
+    url = ctx.obj.get_route('get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
     print_stderr(format_str % url)
 
     """
@@ -676,9 +656,8 @@ def launch(ctx, protocol, project, save_input):
         sys.stderr.flush()
         time.sleep(5)
 
-        res = ctx.obj.get('%s/runs/quick_launch/%s' %
-                          (project, quick_launch["id"]))
-        quick_launch = res.json()
+        quick_launch = ctx.obj.get_quick_launch(project_id=project,
+                                                quick_launch_id=quick_launch["id"])
         count += 1
 
     # Save the protocol input locally if the user specified the save_input
@@ -701,7 +680,7 @@ def login(ctx, api_root):
     """Authenticate to your Transcriptic account."""
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = requests.post("%s/users/sign_in" % api_root, data=json.dumps({
+    r = api.post(routes.login(api_root=api_root), data=json.dumps({
         'user': {
             'email': email,
             'password': password,
@@ -709,7 +688,7 @@ def login(ctx, api_root):
     }), headers={
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-    })
+    }, use_ctx=False)
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
@@ -743,15 +722,15 @@ def login(ctx, api_root):
             value_proc=lambda x: parse_valid_org(x)
         )
 
-    r = requests.get('%s/%s' % (api_root, organization), headers={
+    r = api.get(routes.get_organizations(api_root=api_root, org_id=organization), headers={
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',
-    })
+    }, use_ctx=False)
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
-    ctx.obj = Connection(email, token, organization, api_root=api_root)
+    ctx.obj = Connection(email=email, token=token, organization_id=organization, api_root=api_root)
     ctx.obj.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 

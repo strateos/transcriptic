@@ -1,0 +1,180 @@
+{
+  "results": {},
+  "pending_shipment_ids": [],
+  "canceled_at": null,
+  "created_at": null,
+  "request_type": "protocol",
+  "aborted_at": null,
+  "billing_valid?": true,
+  "conversation_id": null,
+  "title": null,
+  "completed_at": null,
+  "successors": [],
+  "accepted_at": "2016-04-14T11:43:54.976-07:00",
+  "quote": {
+    "items": [
+      {
+        "taxable": false,
+        "cost": "0.091",
+        "quantity": 1,
+        "title": "Workcell Time",
+        "run_id": null,
+        "run_credit_applicable": true
+      },
+      {
+        "taxable": false,
+        "cost": "3.077",
+        "quantity": 1,
+        "title": "Reagents & Consumables",
+        "run_id": null,
+        "run_credit_applicable": false
+      }
+    ],
+    "breakdown": {
+      "children": [
+        {
+          "children": [
+            {
+              "taxable": true,
+              "total": "2.963",
+              "name": "Ref 'test_plate_96' (96-pcr)",
+              "run_credit_applicable": false
+            }
+          ],
+          "total": "2.963",
+          "name": "Containers"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "taxable": true,
+                      "total": "0.114",
+                      "name": "Disposable Tips",
+                      "run_credit_applicable": false
+                    },
+                    {
+                      "taxable": true,
+                      "total": "0.091",
+                      "name": "Pipetting",
+                      "run_credit_applicable": true
+                    }
+                  ],
+                  "total": "0.205",
+                  "name": "Liquid Handling"
+                }
+              ],
+              "total": "0.205",
+              "name": "Instruction 0: pipette"
+            }
+          ],
+          "total": "0.205",
+          "name": "Instructions"
+        }
+      ],
+      "total": "3.168",
+      "name": "Total"
+    },
+    "tax_rate": "9.0"
+  },
+  "committed_at": null,
+  "draft_quote": null,
+  "started_at": null,
+  "total_cost": "3.168",
+  "properties": {},
+  "id": null,
+  "project": {
+    "organization": {
+      "subdomain": "transcriptic",
+      "id": "org13",
+      "name": "Transcriptic"
+    },
+    "url": null,
+    "name": null,
+    "archived_at": null
+  },
+  "progress": 0,
+  "can_cancel?": true,
+  "refs": [
+    {
+      "destiny": {
+        "discard": true
+      },
+      "container_type": {
+        "col_count": 12,
+        "well_depth_mm": "14.6",
+        "sterile": null,
+        "well_type": null,
+        "well_volume_ul": "160.0",
+        "is_tube": false,
+        "name": "96-well PCR plate",
+        "capabilities": [
+          "magnetic_separate",
+          "thermocycle",
+          "qrt_thermocycle",
+          "spin",
+          "incubate",
+          "seal",
+          "image_plate",
+          "sanger_sequence",
+          "miniprep_destination",
+          "stamp",
+          "flash_freeze",
+          "dispense",
+          "echo_dest",
+          "magnetic_transfer_pcr"
+        ],
+        "well_coating": null,
+        "shortname": "96-pcr",
+        "well_count": 96,
+        "id": "96-pcr"
+      },
+      "container_id": null,
+      "name": "test_plate_96",
+      "new_container_type": "96-pcr"
+    }
+  ],
+  "instructions": [
+    {
+      "started_at": null,
+      "data_name": null,
+      "completed_at": null,
+      "warp_ids": [],
+      "data": null,
+      "warps": [],
+      "id": null,
+      "operation": {
+        "op": "pipette",
+        "groups": [
+          {
+            "transfer": [
+              {
+                "from": "test_plate_96/0",
+                "to": "test_plate_96/1",
+                "volume": "155.0:microliter"
+              }
+            ]
+          }
+        ]
+      },
+      "relevant_resources": [],
+      "sequence_no": 0
+    }
+  ],
+  "warnings": [],
+  "flagged": false,
+  "test_mode": false,
+  "status": "accepted",
+  "updated_at": null,
+  "issued_at": "2016-04-14T11:43:54.976-07:00",
+  "owner": {
+    "profile_photo_attachment_url": null,
+    "email": "yangchoo@transcriptic.com",
+    "id": "u17saeyc8c7hk",
+    "name": "yang choo"
+  },
+  "has_quote?": true
+}

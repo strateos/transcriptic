@@ -2,8 +2,8 @@
 from setuptools import setup
 import sys
 
-if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 2):
-    raise RuntimeError("Python version 2.6, 2.7 or >= 3.2 required.")
+if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 3):
+    raise RuntimeError("Python version 2.6, 2.7 or >= 3.3 required.")
 
 setup(
     name='transcriptic',
@@ -11,6 +11,7 @@ setup(
     url='https://github.com/transcriptic/transcriptic',
     version='2.1.2',
     packages=['transcriptic', 'transcriptic.analysis'],
+    test_suite='test',
     install_requires=[
         'Click>=5.1',
         'requests',
@@ -40,7 +41,6 @@ setup(
         'Topic :: Software Development',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
