@@ -1,0 +1,10 @@
+{
+  "protocol": [
+    {
+      "context": {
+        "instruction": 0
+      },
+      "message": "175.0 uL exceeds the maximum well volume for 'test_plate_96': max volume for '96-pcr' is 160.0 uL"
+    }
+  ]
+}
