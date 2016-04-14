@@ -188,19 +188,18 @@ class Connection(object):
                                       "".join(["- " + e['message'] + "\n" for
                                                e in protocol["errors"]]))))
 
+        def error_string(r):
+            return AnalysisException("Error%s in protocol:\n%s" %
+                                     (("s" if len(r.json()['protocol']) > 1 else ""),
+                                      "".join(["- " + e['message'] + "\n" for e in r.json()['protocol']])
+                                      ))
+
         return api.post(self.get_route('analyze_run'),
                         data=json.dumps({
                             "protocol": protocol,
                             "test_mode": test_mode
                         }),
-                        status_response={'422': lambda r: AnalysisException("Error%s in protocol:\n%s" %
-                                                                            (("s" if len(
-                                                                                r.json()['protocol']) > 1 else
-                                                                              ""),
-                                                                             "".join(["- " + e['message'] + "\n" for
-                                                                                      e in
-                                                                                      r.json()['protocol']])))
-                                         })
+                        status_response={'422': lambda response: error_string(response)})
 
     def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
         if isinstance(protocol, Protocol):

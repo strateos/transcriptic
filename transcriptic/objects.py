@@ -1,11 +1,8 @@
-from builtins import object
-import json
 import pandas
-from autoprotocol import Protocol
+from builtins import object
 
 
 class ProtocolPreview(object):
-
     def __init__(self, protocol, connection):
         self.protocol = protocol
         self.preview_url = connection.preview_protocol(protocol)
@@ -16,7 +13,6 @@ class ProtocolPreview(object):
 
 
 class Instructions(object):
-
     """
     An instruction object contains raw instructions as JSON as well as list of
     operations and warps generated from the raw instructions.
@@ -43,7 +39,6 @@ class Instructions(object):
 
 
 class Dataset(object):
-
     def __init__(self, obj_id, attributes, connection=False):
         super(Dataset, self).__init__()
         self.id = obj_id
@@ -51,14 +46,17 @@ class Dataset(object):
         self.connection = connection
         # self.df = pandas.DataFrame(attributes)
 
-    def _repr_html_(self):
-        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
+
+7
+
+
+def _repr_html_(self):
+    return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:500px;" seamless></iframe>""" % \
-            self.connection.get_route('view_data', data_id=self.id)
+           self.connection.get_route('view_data', data_id=self.id)
 
 
 class Run(object):
-
     def __init__(self, obj_id, attributes, connection=False):
         super(Run, self).__init__()
         self.id = obj_id
@@ -88,11 +86,10 @@ class Run(object):
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:450px;" seamless></iframe>""" % \
-            self.connection.get_route('view_run', project_id=self.attributes['project']['url'], run_id=self.id)
+               self.connection.get_route('view_run', project_id=self.attributes['project']['url'], run_id=self.id)
 
 
 class Project(object):
-
     def __init__(self, obj_id, attributes, connection=False):
         super(Project, self).__init__()
         self.id = obj_id
@@ -104,12 +101,11 @@ class Project(object):
         return [Run(run['id'], run, self.connection) for run in runs]
 
     def submit(self, protocol, title, test_mode=False):
-        response = self.connection.submit_run(protocol,project_id= self.id, title=title, test_mode=test_mode)
+        response = self.connection.submit_run(protocol, project_id=self.id, title=title, test_mode=test_mode)
         return Run(response['id'], response)
 
 
 class Aliquot(object):
-
     def __init__(self, obj_id, attributes, connection=False):
         super(Aliquot, self).__init__()
         self.id = obj_id
@@ -118,7 +114,6 @@ class Aliquot(object):
 
 
 class Container(object):
-
     """
     A Container object represents a container from the Transcriptic LIMS and
     contains relevant information on the container type as well as the
@@ -178,6 +173,7 @@ class Container(object):
                     containerType["shortname"]].safe_min_volume_ul
 
             return ContainerType(**containerType)
+
         self.containerType = parse_containerType()
 
     def __repr__(self):
@@ -190,7 +186,6 @@ class Container(object):
 
 
 class Resource(object):
-
     def __init__(self, obj_id, attributes, connection=False):
         super(Resource, self).__init__()
         self.id = obj_id

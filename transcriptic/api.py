@@ -1,6 +1,10 @@
 import requests
 
 
+def _req_call(method, route, **kwargs):
+    return getattr(requests, method)(route, **kwargs)
+
+
 def _call(method, route, use_ctx=True, status_response={}, merge_status=True, **kwargs):
     """Base function for handling all requests"""
     # Always use the latest connection context
@@ -11,13 +15,13 @@ def _call(method, route, use_ctx=True, status_response={}, merge_status=True, **
         if ctx.verbose:
             print ("{0}: {1}".format(method.upper(), route))
         if 'headers' not in kwargs:
-            return _handle_response(getattr(requests, method)(route, headers=ctx.headers, **kwargs),
+            return _handle_response(_req_call(method, route, headers=ctx.headers, **kwargs),
                                     merge_status=merge_status, **status_response)
         else:
-            return _handle_response(getattr(requests, method)(route, **kwargs), merge_status=merge_status,
+            return _handle_response(_req_call(method, route, **kwargs), merge_status=merge_status,
                                     **status_response)
     else:
-        return _handle_response(getattr(requests, method)(route, **kwargs), merge_status=merge_status,
+        return _handle_response(_req_call(method, route, **kwargs), merge_status=merge_status,
                                 **status_response)
 
 

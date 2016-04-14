@@ -12,7 +12,6 @@ import sys
 import xml.etree.ElementTree as ET
 import zipfile
 
-from transcriptic import analyze as api_analyze, submit as api_submit
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
@@ -81,7 +80,7 @@ def submit(ctx, file, project, title, test):
             return
 
     try:
-        req_json = api_submit(protocol, project, title, test_mode=test)
+        req_json = ctx.obj.submit_run(protocol, project_id=project, title=title, test_mode=test)
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.url("%s/runs/%s" % (project, run_id)))
@@ -186,7 +185,7 @@ def upload_release(ctx, archive, package):
         status = ctx.obj.get_release_status(package_id=package_id, release_id=re,
                                             time_stamp=int(time.time()))
         published = status['published']
-        errors = ['validation_errors']
+        errors = status['validation_errors']
         bar.update(30)
         if errors:
             click.echo("\nPackage upload to %s unsuccessful. "
@@ -516,7 +515,7 @@ def analyze(ctx, file, test):
             return
 
     try:
-        analysis = api_analyze(protocol, test_mode=test)
+        analysis = ctx.obj.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
         price(analysis)
     except Exception as e:
@@ -626,7 +625,7 @@ def launch(ctx, protocol, project, save_input):
     quick_launch_mtime = quick_launch["updated_at"]
 
     format_str = "\nOpening %s"
-    url = ctx.obj.get_route('create_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
+    url = ctx.obj.get_route('get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
     print_stderr(format_str % url)
 
     """

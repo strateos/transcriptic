@@ -25,7 +25,7 @@ class ImagePlate(object):
 
     def __init__(self, dataset):
         if ("image_normalized_loc" not in dataset.attributes or
-                    len(dataset.attributes["image_normalized_loc"]) == 0):
+                len(dataset.attributes["image_normalized_loc"]) == 0):
             raise RuntimeError("No data found in given dataset.")
         self.id = dataset.id
         self.raw = BytesIO()
