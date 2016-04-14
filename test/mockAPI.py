@@ -1,3 +1,4 @@
+from builtins import object
 from collections import deque
 
 """Keys in mockDB correspond to (method, route) calls"""

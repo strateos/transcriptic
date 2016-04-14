@@ -1,9 +1,9 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 from transcriptic import ctx
 
-try:
-    from StringIO import cStringIO as BytesIO
-except ImportError:
-    from io import BytesIO
+from io import cStringIO as BytesIO
 from PIL import Image
 
 
