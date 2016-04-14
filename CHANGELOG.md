@@ -2,6 +2,7 @@
 
 ## Unreleased
 ---
+## v2.2.0
 Added
 - `api` module for handling all calls including responses and exceptions
 - `Connection` object now mirrors most of the CLI functionality

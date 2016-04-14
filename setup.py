@@ -9,7 +9,7 @@ setup(
     name='transcriptic',
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
-    version='2.1.2',
+    version='2.2.0',
     packages=['transcriptic', 'transcriptic.analysis'],
     test_suite='test',
     install_requires=[
