@@ -89,6 +89,7 @@ class Project(_BaseObject):
         Master attributes dictionary
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
+
     """
     def __init__(self, project_id, attributes=None, connection=None):
         """
@@ -128,6 +129,7 @@ class Project(_BaseObject):
             self._runs.columns = ['Id', 'Name']
             self.connection.env_args = temp
         return self._runs
+
 
     def submit(self, protocol, title, test_mode=False):
         """
@@ -238,6 +240,7 @@ class Run(_BaseObject):
             data_type=data_type
         )
         return pd.DataFrame(response['results'])
+
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
