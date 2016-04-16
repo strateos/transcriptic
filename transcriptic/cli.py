@@ -149,7 +149,8 @@ def upload_release(ctx, archive, package):
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
         bar.update(10)
-        info = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
+        sign = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
+        info = sign
         bar.update(30)
         aws_url = ctx.obj.get_route('aws_upload')
         files = {'file': open(os.path.basename(archive), 'rb')}
@@ -161,8 +162,7 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = api.post(aws_url, data=data, files=files, headers={},
-                            status_response={'201': lambda resp: resp})
+        response = api.post(aws_url, data=data, files=files, headers={})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
@@ -185,7 +185,7 @@ def upload_release(ctx, archive, package):
         bar.update(20)
         time.sleep(10)
         status = ctx.obj.get_release_status(package_id=package_id, release_id=re,
-                                            timestamp=int(time.time()))
+                                            time_stamp=int(time.time()))
         published = status['published']
         errors = status['validation_errors']
         bar.update(30)
@@ -286,9 +286,9 @@ def create_package(ctx, description, name):
     new_pack = ctx.obj.create_package(name, description)
     if new_pack:
         click.echo("New package '%s' created with id %s \n"
-                   "View it at %s" % (name, new_pack['id'],
+                   "View it at %s" % (name, new_pack.json()['id'],
                                       ctx.obj.url('packages/%s' %
-                                                  new_pack['id'])
+                                                  new_pack.json()['id'])
                                       )
                    )
     else:
