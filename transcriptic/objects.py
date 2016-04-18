@@ -241,7 +241,6 @@ class Run(_BaseObject):
         )
         return pd.DataFrame(response['results'])
 
-
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:450px;" seamless></iframe>""" % \
