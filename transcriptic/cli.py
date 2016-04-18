@@ -286,9 +286,9 @@ def create_package(ctx, description, name):
     new_pack = ctx.obj.create_package(name, description)
     if new_pack:
         click.echo("New package '%s' created with id %s \n"
-                   "View it at %s" % (name, new_pack.json()['id'],
+                   "View it at %s" % (name, new_pack['id'],
                                       ctx.obj.url('packages/%s' %
-                                                  new_pack.json()['id'])
+                                                  new_pack['id'])
                                       )
                    )
     else:
