@@ -140,7 +140,7 @@ class Connection(object):
 
     def delete_package(self, package_id=None):
         route = self.get_route('delete_package', package_id=package_id)
-        return api.delete(route)
+        return api.delete(route, status_response={'200': lambda resp: True})
 
     def post_release(self, data, package_id=None):
         route = self.get_route('post_release', package_id=package_id)
@@ -172,9 +172,9 @@ class Connection(object):
         return api.get(route, status_response={'200': lambda resp: resp}, stream=True)
 
     def _get_object(self, obj_id):
-        route = self.get_route('def_route', obj_id=obj_id)
+        route = self.get_route('deref_route', obj_id=obj_id)
         return api.get(route, status_response={
-            '404': Exception("[404] No object found for ID " + obj_id)
+            '404': lambda resp: Exception("[404] No object found for ID " + obj_id)
         })
 
     def analyze_run(self, protocol, test_mode=False):

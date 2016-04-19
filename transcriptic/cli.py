@@ -148,8 +148,7 @@ def upload_release(ctx, archive, package):
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
         bar.update(10)
-        sign = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
-        info = sign.json()
+        info = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
         bar.update(30)
         aws_url = ctx.obj.get_route('aws_upload')
         files = {'file': open(os.path.basename(archive), 'rb')}
@@ -161,7 +160,8 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = api.post(aws_url, data=data, files=files, headers={})
+        response = api.post(aws_url, data=data, files=files, headers={},
+                            status_response={'201': lambda resp: resp})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
@@ -184,7 +184,7 @@ def upload_release(ctx, archive, package):
         bar.update(20)
         time.sleep(10)
         status = ctx.obj.get_release_status(package_id=package_id, release_id=re,
-                                            time_stamp=int(time.time()))
+                                            timestamp=int(time.time()))
         published = status['published']
         errors = status['validation_errors']
         bar.update(30)
@@ -285,9 +285,9 @@ def create_package(ctx, description, name):
     new_pack = ctx.obj.create_package(name, description)
     if new_pack:
         click.echo("New package '%s' created with id %s \n"
-                   "View it at %s" % (name, new_pack.json()['id'],
+                   "View it at %s" % (name, new_pack['id'],
                                       ctx.obj.url('packages/%s' %
-                                                  new_pack.json()['id'])
+                                                  new_pack['id'])
                                       )
                    )
     else:
@@ -688,7 +688,11 @@ def login(ctx, api_root):
     }), headers={
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-    }, use_ctx=False)
+    }, status_response = {
+        '200': lambda resp: resp,
+        'default': lambda resp: resp
+    },
+     use_ctx=False)
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
@@ -726,7 +730,11 @@ def login(ctx, api_root):
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',
-    }, use_ctx=False)
+    }, status_response={
+        '200': lambda resp: resp,
+        'default': lambda resp: resp
+    },
+        use_ctx=False)
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)

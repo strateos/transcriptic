@@ -5,7 +5,7 @@ ctx = None
 
 
 def _get_object(obj_id, klass):
-    data = ctx.get_object(obj_id)
+    data = ctx._get_object(obj_id)
     return klass(data['id'], data, connection=ctx)
 
 

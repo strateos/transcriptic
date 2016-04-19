@@ -44,11 +44,11 @@ def get_packages(api_root, org_id):
     return "{api_root}/{org_id}/packages/".format(**locals())
 
 
-def post_release(api_root, org_id, release_id):
+def post_release(api_root, org_id, package_id):
     return "{api_root}/{org_id}/packages/{package_id}/releases/".format(**locals())
 
 
-def get_release_status(api_root, org_id, release_id, timestamp):
+def get_release_status(api_root, org_id, package_id, release_id, timestamp):
     return "{api_root}/{org_id}/packages/{package_id}/releases/{release_id}?_={timestamp}".format(**locals())
 
 

@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Fixed
+- Fixed package related CLI issues
+
 ---
 ## v2.2.0
 Added
