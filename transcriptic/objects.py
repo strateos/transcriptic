@@ -40,6 +40,7 @@ class _BaseObject(object):
             else:
                 self.attributes = attributes
 
+
     def load_object(self, obj_type, obj_id):
         """Find and match object by name"""
         #TODO: Remove the try/except statement and properly handle cases where objects are not found
