@@ -209,7 +209,7 @@ class Run(_BaseObject):
             data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
                                     connection=self.connection)
                          for k in list(datasets.keys()) if datasets[k]}
-            self._data = pd.DataFrame(sorted(data_dict.items(), key=lambda x: x[0]))
+            self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
             self._data.columns = ["Name", "Dataset"]
             self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Dataset]))
         return self._data
@@ -276,7 +276,7 @@ class Dataset(_BaseObject):
         if self._data.empty:
             # Get all data initially (think about lazy loading in the future)
             self._data = pd.DataFrame(self.connection.dataset(data_id=self.id, key="*"))
-            self._data.columns = map(lambda x: x.upper(), self._data.columns)
+            self._data.columns = [x.upper() for x in self._data.columns]
         if key == "*":
             return self._data
         else:
