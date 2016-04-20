@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v2.2.1
 Changed
 - Objects module has been heavily reworked and documentation added. This is especially true for Project, Run and Dataset objects
 
