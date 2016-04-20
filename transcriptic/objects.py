@@ -40,7 +40,6 @@ class _BaseObject(object):
             else:
                 self.attributes = attributes
 
-
     def load_object(self, obj_type, obj_id):
         """Find and match object by name"""
         #TODO: Remove the try/except statement and properly handle cases where objects are not found
@@ -281,6 +280,7 @@ class Dataset(_BaseObject):
             # Get all data initially (think about lazy loading in the future)
             self._data = pd.DataFrame(self.connection.dataset(data_id=self.id, key="*"))
             self._data.columns = [x.upper() for x in self._data.columns]
+
         if key == "*":
             return self._data
         else:
