@@ -327,9 +327,9 @@ def projects(ctx, i):
         proj_names = {}
         all_proj = {}
         for proj in projects:
-            status = " (archived)" if proj.attributes['archived_at'] else ""
-            proj_names[proj.attributes['name']] = proj.id
-            all_proj[proj.attributes['name'] + status] = proj.id
+            status = " (archived)" if proj['archived_at'] else ""
+            proj_names[proj["name"]] = proj["id"]
+            all_proj[proj["name"] + status] = proj["id"]
         if i:
             return proj_names
         else:
@@ -391,7 +391,7 @@ def create_project(ctx, name, dev):
     """Create a new empty project."""
     existing = ctx.obj.projects()
     for p in existing:
-        if name == p.attributes['name'].split('.')[-1]:
+        if name == p['name'].split('.')[-1]:
             click.echo("You already have an existing project with the name "
                        "\"%s\".  Please choose a different project name." %
                        name)
@@ -400,8 +400,7 @@ def create_project(ctx, name, dev):
         new_proj = ctx.obj.create_project(name)
         click.echo(
             "New%s project '%s' created with id %s  \nView it at %s" % (
-                " pilot" if dev else "", name, new_proj.attributes[
-                    'id'], ctx.obj.url('%s' % (new_proj.attributes['id']))
+                " pilot" if dev else "", name, new_proj['id'], ctx.obj.url('%s' % (new_proj['id']))
             )
         )
     except RuntimeError:
@@ -424,7 +423,7 @@ def delete_project(ctx, name, force):
                 default=False,
                 abort=True
             )
-        if ctx.obj.delete_project(str(project_id=project_id)):
+        if ctx.obj.delete_project(project_id=str(project_id)):
             click.echo("Project deleted.")
         else:
             click.confirm(

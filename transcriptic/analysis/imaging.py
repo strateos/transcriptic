@@ -8,7 +8,7 @@ from PIL import Image
 
 
 class ImagePlate(object):
-    '''
+    """
     An ImagePlate object generalizes the parsing of datasets derived from the
     plate camera for easy visualization.
     Parameters
@@ -21,7 +21,7 @@ class ImagePlate(object):
         Raw buffer of image bytes
     image: PIL.Image
         Image object as rendered by PIL
-    '''
+    """
 
     def __init__(self, dataset):
         if ("image_normalized_loc" not in dataset.attributes or
@@ -39,7 +39,7 @@ class ImagePlate(object):
         self.image = Image.open(self.raw)
 
     def display(self):
-        '''
+        """
         Displays the original full-sized image. Helpful when used in an IPython
         kernel
         Returns
@@ -47,7 +47,7 @@ class ImagePlate(object):
         HTML
             Returns a HTML iframe of the full-size image which is rendered
             nicely in IPython (if IPython is present)
-        '''
+        """
         try:
             from IPython.display import HTML
             return (HTML("""<iframe src="%s")" frameborder="0" \

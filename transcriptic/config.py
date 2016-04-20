@@ -4,7 +4,6 @@ import json
 import transcriptic
 import os
 from os.path import expanduser
-from transcriptic.objects import Project
 from . import api
 from . import routes
 from autoprotocol import Protocol
@@ -57,9 +56,9 @@ class Connection(object):
 
     def url(self, path):
         if path.startswith("/"):
-            return "%s%s" % (self.api_root, path)
+            return "%s%s" % (self.env_args['api_root'], path)
         else:
-            return "%s/%s/%s" % (self.api_root, self.organization_id, path)
+            return "%s/%s/%s" % (self.env_args['api_root'], self.env_args['org_id'], path)
 
     def preview_protocol(self, protocol):
         route = self.get_route('preview_protocol')
@@ -76,27 +75,26 @@ class Connection(object):
 
     def projects(self):
         route = self.get_route('get_projects')
-        data = api.get(route, status_response={
+        return api.get(route, status_response={
+            '200': lambda resp: resp.json()["projects"],
             'default': lambda resp: RuntimeError(
                 "There was an error listing the projects in your "
                 "organization.  Make sure your login details are correct."
             )
         })
-        return [Project(project['id'], project, connection=self) for
-                project in data['projects']]
 
     def project(self, project_id=None):
         route = self.get_route('get_project', project_id=project_id)
-        data = api.get(route, status_response={
+        return api.get(route, status_response={
             'default': lambda resp: RuntimeError(
                 "There was an error fetching project %s" % project_id
             )
         })
-        return Project(project_id, data, connection=self)
 
     def runs(self, project_id=None):
         route = self.get_route('get_project_runs', project_id=project_id)
         return api.get(route, status_response={
+            "200": lambda resp: resp.json()["runs"],
             "default": lambda resp: RuntimeError(
                 "There was an error fetching the runs in project %s" %
                 project_id
@@ -105,10 +103,9 @@ class Connection(object):
 
     def create_project(self, title):
         route = self.get_route('create_project')
-        data = api.post(route, data=json.dumps({
+        return api.post(route, data=json.dumps({
             'name': title
         }))
-        return Project(data['id'], data, connection=self)
 
     def delete_project(self, project_id=None):
         route = self.get_route('delete_project', project_id=project_id)
@@ -216,12 +213,12 @@ class Connection(object):
                             '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
                         })
 
-    def dataset(self, obj_id, key="*"):
-        route = self.get_route('dataset', obj_id=obj_id, key=key)
+    def dataset(self, data_id, key="*"):
+        route = self.get_route('dataset', data_id=data_id, key=key)
         return api.get(route)
 
     def datasets(self, project_id=None, run_id=None):
-        route = self.get_route(project_id=project_id, run_id=run_id)
+        route = self.get_route('datasets', project_id=project_id, run_id=run_id)
         return api.get(route, status_response={
             '404': lambda resp: Exception("[404] No run found for ID " + id)
         })
@@ -230,8 +227,8 @@ class Connection(object):
         """Helper function to automatically match and supply required arguments"""
         route_method = getattr(routes, method)
         route_method_args = route_method.__code__.co_varnames
-        # Update loaded argument dictionary with additional arguments
-        arg_dict = dict(self.env_args, **kwargs)
+        # Update loaded argument dictionary with additional arguments which are not None
+        arg_dict = dict(self.env_args, **{k: v for k, v in list(kwargs.items()) if v is not None})
         input_args = []
         for arg in route_method_args:
             if arg_dict[arg]:
@@ -248,6 +245,7 @@ class Connection(object):
 
     def _merge_headers(self, kwargs):
         return dict(kwargs.pop('headers', {}), **self.headers)
+
 
 
 class AnalysisException(Exception):
