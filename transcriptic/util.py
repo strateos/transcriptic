@@ -67,6 +67,8 @@ def iter_json(manifest):
 
 def robotize(well_ref, well_count, col_count):
     """Function referenced from autoprotocol.container_type.robotize()"""
+    if isinstance(well_ref, list):
+        return [robotize(well, well_count, col_count) for well in well_ref]
     if not isinstance(well_ref, (basestring, int)):
         raise TypeError("ContainerType.robotize(): Well reference given "
                         "is not of type 'str' or 'int'.")
@@ -104,9 +106,16 @@ def robotize(well_ref, well_count, col_count):
 
 def humanize(well_ref, well_count, col_count):
     """Function referenced from autoprotocol.container_type.humanize()"""
+    if isinstance(well_ref, list):
+        return [humanize(well, well_count, col_count) for well in well_ref]
+    if isinstance(well_ref, str):
+        try:
+            well_ref = int(well_ref)
+        except:
+            raise ValueError("Well reference (%s) given has to be parseable into int." % well_ref)
     if not isinstance(well_ref, int):
-        raise TypeError("Well reference given "
-                        "is not of type 'int'.")
+        raise TypeError("Well reference (%s) given "
+                        "is not of type 'int'." % well_ref)
     idx = robotize(well_ref, well_count, col_count)
     row, col = (idx // col_count, idx % col_count)
     # Check bounds

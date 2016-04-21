@@ -1,7 +1,9 @@
 from __future__ import print_function
+from __future__ import absolute_import
 from builtins import str
 import pandas as pd
 from builtins import object
+from .util import humanize
 
 
 def _check_ctx(obj_type):
@@ -126,7 +128,7 @@ class Project(_BaseObject):
             self.connection.update_environment(project_id=self.id)
             project_runs = self.connection.runs()
             self._runs = pd.DataFrame([[pr['id'], pr['title']] for pr in project_runs])
-            self._runs.columns = ['Id', 'Name']
+            self._runs.columns = ['id', 'Name']
             self.connection.env_args = temp
         return self._runs
 
@@ -272,7 +274,8 @@ class Dataset(_BaseObject):
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
         self._data = pd.DataFrame()
-        self.well_names = {aq["well_idx"]: aq["name"] for aq in self.attributes["container"]["aliquots"]}
+        self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
+                                   connection=connection)
 
     @property
     def data(self, key="*"):
@@ -280,7 +283,6 @@ class Dataset(_BaseObject):
             # Get all data initially (think about lazy loading in the future)
             self._data = pd.DataFrame(self.connection.dataset(data_id=self.id, key="*"))
             self._data.columns = [x.upper() for x in self._data.columns]
-
         if key == "*":
             return self._data
         else:
@@ -327,11 +329,11 @@ class Container(_BaseObject):
     ----------
     name: str
         Name of container
-    wellMap: dict
+    well_map: dict
         Well mapping with well indices for keys and well names as values
     aliquots: list
         List of aliquots present in the container
-    containerType: autoprotocol.container_type.ContainerType
+    container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
 
@@ -341,11 +343,11 @@ class Container(_BaseObject):
 
           my_container = container("ct186apgz6a374")
 
-          my_container.wellMap
+          my_container.well_map
 
-          my_container.containerType.col_count
-          my_container.containerType.robotize("B1")
-          my_container.containerType.humanize(12)
+          my_container.container_type.col_count
+          my_container.container_type.robotize("B1")
+          my_container.container_type.humanize(12)
 
 
     """
@@ -354,29 +356,30 @@ class Container(_BaseObject):
         # super(Container, self).__init__(obj_id, attributes, connection)
         # TODO: Unify container "label" with name, add Containers route
         self.id = obj_id
+        self.attributes = attributes
         self.name = self.attributes["label"]
 
         self.aliquots = self.attributes["aliquots"]
-        self.wellMap = {aliquot["well_idx"]: aliquot["name"]
+        self.well_map = {aliquot["well_idx"]: aliquot["name"]
                         for aliquot in self.aliquots}
-        self.containerType = self.parse_containerType()
+        self.container_type = self._parse_container_type()
 
-    def _parse_containerType(self):
+    def _parse_container_type(self):
         from autoprotocol.container_type import _CONTAINER_TYPES
         from autoprotocol.container_type import ContainerType
         from copy import deepcopy
-        containerType = deepcopy(self.attributes["container_type"])
+        container_type = deepcopy(self.attributes["container_type"])
 
-        containerType.pop("well_type", None)
-        containerType.pop("id", None)
-        if "dead_volume" not in containerType:
-            containerType["dead_volume_ul"] = _CONTAINER_TYPES[
-                containerType["shortname"]].dead_volume_ul
-        if "safe_min_volume_ul" not in containerType:
-            containerType["safe_min_volume_ul"] = _CONTAINER_TYPES[
-                containerType["shortname"]].safe_min_volume_ul
+        container_type.pop("well_type", None)
+        container_type.pop("id", None)
+        if "dead_volume" not in container_type:
+            container_type["dead_volume_ul"] = _CONTAINER_TYPES[
+                container_type["shortname"]].dead_volume_ul
+        if "safe_min_volume_ul" not in container_type:
+            container_type["safe_min_volume_ul"] = _CONTAINER_TYPES[
+                container_type["shortname"]].safe_min_volume_ul
 
-        return ContainerType(**containerType)
+        return ContainerType(**container_type)
 
     def __repr__(self):
         """
