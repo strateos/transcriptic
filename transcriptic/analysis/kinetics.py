@@ -64,15 +64,43 @@ class Spectrophotometry(Kinetics):
                               ref_dataset.container.container_type.well_count,
                               ref_dataset.container.container_type.col_count)
 
-    @staticmethod
-    def _truncate_name(string, max_len=20):
-        """Truncates string to max_len number of characters, adds ellipses instead if its too long"""
-        if len(string) > max_len:
-            return string[:(max_len-3)]+"..."
-        else:
-            return string
-
     def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None, max_legend_len=20):
+        """
+        This generates a plot of the kinetics curve. Note that this function is meant for use under a Jupyter notebook
+        environment
+
+        Example Usage:
+
+        .. code-block:: python
+            from transcriptic.analysis.kinetics import Spectrophotometry
+            growth_curve = Spectrophotometry(myRun.data.Datasets)
+            growth_curve.plot(wells=["A1", "A2", "B1", "B2"])
+            growth_curve.plot(wells=["A1", "A2", "B1", "B2"], groupby="row", title="Row Groups")
+            growth_curve.plot(wells=["A1", "A2", "B1", "B2"], groupby="name", ylabel="Absorbance Units")
+            growth_curve.plot(groupby="name", max_legend_len=40)
+
+        Parameters
+        ----------
+        wells: Optional[list or str]
+            If not specified, this plots all the wells associated with the Datasets given. Otherwise, specifiy
+            a list of well indices (["A1", "B1"]) or a specific well ("A1")
+        groupby: Optional[str]
+            When specified, this groups the wells with the same property value together. On the title, each group will
+            be represented by a single curve with the mean values and error bars of 1 std. dev. away from the mean
+        title: Optional[str]
+            Plot title. Default: "Kinectics Curve (`run-id`)"
+        xlabel: Optional[str]
+            Plot x-axis label. Default: "Time"
+        ylabel: Optional[str]
+            Plot y-axis label. Default: "`Operation` (`Wavelength`)"
+        max_legend_len
+            Maximum number of characters for the legend labels before truncating. Default: 20
+
+        Returns
+        -------
+        IPlot
+            Plotly iplot object. Will be rendered nicely in Jupyter notebook instance
+        """
         # TODO: Shift init_notebook_mode() to start of notebook instance
         py.offline.init_notebook_mode()
 
@@ -88,6 +116,9 @@ class Spectrophotometry(Kinetics):
             traces = [go.Scatter(x=self.readings.columns, y=well_readings.loc[well],
                                  name=self.properties["name"].loc[well]) for well in wells]
         else:
+            if groupby not in self.properties.columns:
+                raise ValueError("\'%s\' not found in the properties table. Please specify a column which exists" %
+                                 groupby)
             grouped = self.properties.groupby(groupby)
             index_list = [grouped.get_group(group).index for group in grouped.groups]
             reading_map = []
@@ -108,7 +139,7 @@ class Spectrophotometry(Kinetics):
 
         # Assume all data is generated from the same run-id for now
         if not title:
-            title = "Growth Curve (%s)" % self.datasets[0].attributes["instruction"]["run"]["id"]
+            title = "Kinetics Curve (%s)" % self.datasets[0].attributes["instruction"]["run"]["id"]
         if not xlabel:
             xlabel = 'Time'
         if not ylabel:
@@ -147,4 +178,11 @@ class Spectrophotometry(Kinetics):
         fig = go.Figure(data=traces, layout=layout)
         return py.offline.iplot(fig)
 
+    @staticmethod
+    def _truncate_name(string, max_len=20):
+        """Truncates string to max_len number of characters, adds ellipses instead if its too long"""
+        if len(string) > max_len:
+            return string[:(max_len - 3)] + "..."
+        else:
+            return string
 

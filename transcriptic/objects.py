@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from builtins import str
 import pandas as pd
 from builtins import object
-from .util import humanize
 
 
 def _check_ctx(obj_type):
@@ -67,11 +66,10 @@ class _BaseObject(object):
             return matched_objects[0]
 
 
-
 class Project(_BaseObject):
     """
-    A Project object contains helper methods for managing your runs. For example, you can view the runs associated
-    with this project.
+    A Project object contains helper methods for managing your runs. You can view the runs associated with this project
+    as well as submit runs to the project.
 
     Example Usage:
 
@@ -103,7 +101,7 @@ class Project(_BaseObject):
         project_id: str
             Project name or id in string form
         attributes: Optional[dict]
-            Attributes of the object
+            Attributes of the project
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
@@ -166,14 +164,15 @@ class Run(_BaseObject):
         Run id
     name: str
         Run name
-    attributes: dict
-        Master attributes dictionary
-    connection: transcriptic.config.Connection
-        Transcriptic Connection object associated with this specific object
     data: DataFrame
         DatafFrame of all datasets which belong to this project
     instructions: List[Instructions]
         List of all Instruction objects for this project
+    attributes: dict
+        Master attributes dictionary
+    connection: transcriptic.config.Connection
+        Transcriptic Connection object associated with this specific object
+
     """
     def __init__(self, run_id, attributes=None, connection=None):
         """
@@ -185,7 +184,7 @@ class Run(_BaseObject):
         run_id: str
             Run name or id in string form
         attributes: Optional[dict]
-            Attributes of the object
+            Attributes of the run
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
@@ -282,9 +281,9 @@ class Dataset(_BaseObject):
         Parameters
         ----------
         data_id: str
-            Run name or id in string form
+            Dataset name or id in string form
         attributes: Optional[dict]
-            Attributes of the object
+            Attributes of the dataset
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
@@ -383,10 +382,23 @@ class Container(_BaseObject):
 
     """
 
-    def __init__(self, obj_id, attributes=None, connection=None):
-        # super(Container, self).__init__(obj_id, attributes, connection)
+    def __init__(self, container_id, attributes=None, connection=None):
+        """
+        Initialize a Container by providing a container name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
+
+        Parameters
+        ----------
+        container_id: str
+            Container name or id in string form
+        attributes: Optional[dict]
+            Attributes of the container
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
+        """
+        # super(Container, self).__init__(container_id, attributes, connection)
         # TODO: Unify container "label" with name, add Containers route
-        self.id = obj_id
+        self.id = container_id
         self.attributes = attributes
         self.name = self.attributes["label"]
 
@@ -396,6 +408,7 @@ class Container(_BaseObject):
         self.container_type = self._parse_container_type()
 
     def _parse_container_type(self):
+        """Helper function for parsing container string into container object"""
         from autoprotocol.container_type import _CONTAINER_TYPES
         from autoprotocol.container_type import ContainerType
         from copy import deepcopy
