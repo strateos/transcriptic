@@ -1,5 +1,5 @@
 from builtins import object
-import plotly.plotly as py
+import plotly as py
 import plotly.graph_objs as go
 import pandas as pd
 from builtins import set
@@ -65,6 +65,8 @@ class Spectrophotometry(Kinetics):
                               ref_dataset.container.container_type.col_count)
 
     def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None):
+        # TODO: Shift init_notebook_mode() to start of notebook instance
+        py.offline.init_notebook_mode()
         if isinstance(wells, str):
             if wells != "*":
                 wells = [wells]
@@ -131,6 +133,6 @@ class Spectrophotometry(Kinetics):
         )
 
         fig = go.Figure(data=traces, layout=layout)
-        return py.iplot(fig)
+        return py.offline.iplot(fig)
 
 
