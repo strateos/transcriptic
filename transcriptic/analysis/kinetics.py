@@ -64,9 +64,18 @@ class Spectrophotometry(Kinetics):
                               ref_dataset.container.container_type.well_count,
                               ref_dataset.container.container_type.col_count)
 
-    def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None):
+    @staticmethod
+    def _truncate_name(string, max_len=20):
+        """Truncates string to max_len number of characters, adds ellipses instead if its too long"""
+        if len(string) > max_len:
+            return string[:(max_len-3)]+"..."
+        else:
+            return string
+
+    def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None, max_legend_len=20):
         # TODO: Shift init_notebook_mode() to start of notebook instance
         py.offline.init_notebook_mode()
+
         if isinstance(wells, str):
             if wells != "*":
                 wells = [wells]
@@ -89,7 +98,10 @@ class Spectrophotometry(Kinetics):
             if len(reading_map) != 0:
                 traces = [go.Scatter(x=self.readings.columns,
                                      y=reading.mean(),
-                                     name=self.properties[groupby].loc[reading.iloc[0].name])
+                                     name=self._truncate_name(self.properties[groupby].loc[reading.iloc[0].name],
+                                                              max_legend_len),
+                                     error_y=dict(type='data', array=reading.std(), visible=True)
+                                     )
                           for reading in reading_map]
             else:
                 raise ValueError("No common groups found for specified groupby: %s" % groupby)
