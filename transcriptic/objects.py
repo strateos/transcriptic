@@ -95,7 +95,8 @@ class Project(_BaseObject):
     """
     def __init__(self, project_id, attributes=None, connection=None):
         """
-        Initialize a Project by providing a project name/id
+        Initialize a Project by providing a project name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
 
         Parameters
         ----------
@@ -132,10 +133,9 @@ class Project(_BaseObject):
             self.connection.env_args = temp
         return self._runs
 
-
     def submit(self, protocol, title, test_mode=False):
         """
-        Submit a run under this project
+        Submit a run to this project
 
         Parameters
         ----------
@@ -171,13 +171,14 @@ class Run(_BaseObject):
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
     data: DataFrame
-        Dictionary of all datasets which belong to this project
+        DatafFrame of all datasets which belong to this project
     instructions: List[Instructions]
         List of all Instruction objects for this project
     """
     def __init__(self, run_id, attributes=None, connection=None):
         """
-        Initialize a Run by providing a run name/id
+        Initialize a Run by providing a run name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
 
         Parameters
         ----------
@@ -215,8 +216,8 @@ class Run(_BaseObject):
                                     connection=self.connection)
                          for k in list(datasets.keys()) if datasets[k]}
             self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
-            self._data.columns = ["Name", "Dataset"]
-            self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Dataset]))
+            self._data.columns = ["Name", "Datasets"]
+            self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
         return self._data
 
     def monitoring(self, instruction_id, data_type='pressure'):
@@ -256,21 +257,41 @@ class Dataset(_BaseObject):
     Attributes
     ----------
     id : str
-        Run id
+        Dataset id
     name: str
-        Run name
+        Dataset name
+    data : DataFrame
+        DataFrame of well-indexed data values. Note that associated metadata is found in attributes dictionary
+    container: Container
+        Container object that was used for this dataset
+    operation: str
+        Operation used for generating the dataset
+    data_type: str
+        Data type of this dataset
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
-    data : DataFrame
-        DataFrame of raw data values. Note that associated metadata is found in attributes dictionary
+
     """
-    def __init__(self, obj_id, attributes=None, connection=None):
-        super(Dataset, self).__init__('dataset', obj_id, attributes, connection)
+    def __init__(self, data_id, attributes=None, connection=None):
+        """
+        Initialize a Dataset by providing a data name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
+
+        Parameters
+        ----------
+        data_id: str
+            Run name or id in string form
+        attributes: Optional[dict]
+            Attributes of the object
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
+        """
+        super(Dataset, self).__init__('dataset', data_id, attributes, connection)
         # TODO: Get BaseObject to handle dataset name
         self.name = self.attributes["title"]
-        self.id = obj_id
+        self.id = data_id
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
         self._data = pd.DataFrame()
@@ -325,7 +346,17 @@ class Container(_BaseObject):
     contains relevant information on the container type as well as the
     aliquots present in the container.
 
-    Parameters
+    Example Usage:
+        .. code-block:: python
+
+          my_container = container("ct186apgz6a374")
+          my_container.well_map
+
+          my_container.container_type.col_count
+          my_container.container_type.robotize("B1")
+          my_container.container_type.humanize(12)
+
+    Attributes
     ----------
     name: str
         Name of container
