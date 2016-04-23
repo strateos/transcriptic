@@ -14,7 +14,8 @@ setup(
     url='https://github.com/transcriptic/transcriptic',
     version=__version__,
     packages=['transcriptic', 'transcriptic.analysis'],
-    test_suite='test',
+    setup_requires=['pytest-runner'],
+    test_requires=['pytest'],
     install_requires=[
         'Click>=5.1',
         'requests',

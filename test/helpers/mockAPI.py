@@ -10,17 +10,21 @@ class MockResponse(object):
 
     def __init__(self, status_code=None, json=None, text=None):
         self.status_code = status_code
+        self.text = text
         self.json_data = json
-        self.text_data = text
 
+    @property
     def status_code(self):
         return self.status_code
+
+    @property
+    def text(self):
+        return self.text_data
 
     def json(self):
         return self.json_data
 
-    def text(self):
-        return self.text_data
+
 
 
 def _req_call(method, route, **kwargs):

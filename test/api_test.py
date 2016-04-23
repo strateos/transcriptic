@@ -1,10 +1,9 @@
-import unittest
-from .mockAPI import mockRoute, MockResponse, _req_call as mockCall
-from .helper import load_protocol
+import pytest
+
+from util import load_protocol
+from mockAPI import mockRoute, MockResponse, _req_call as mockCall
 from transcriptic import api
 from transcriptic.config import Connection, AnalysisException
-
-
 
 api._req_call = mockCall
 
@@ -16,7 +15,7 @@ single_transfer_protocol = load_protocol('singleTransfer')
 single_transfer_response = load_protocol('singleTransfer_response')
 
 
-class AnalyzeTestCase(unittest.TestCase):
+class TestAnalyze:
     def testDefaultResponses(self):
         # Setup default parameters
         route = test_ctx.get_route('analyze_run')
@@ -28,16 +27,16 @@ class AnalyzeTestCase(unittest.TestCase):
         mock200 = MockResponse(status_code=200, json=single_transfer_response)
 
         mockRoute(call, route, mock404, max_calls=1)
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             test_ctx.analyze_run(invalid_transfer_protocol)
 
         mockRoute(call, route, mock400, max_calls=1)
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             test_ctx.analyze_run(invalid_transfer_protocol)
 
         mockRoute(call, route, mock422, max_calls=1)
-        with self.assertRaises(AnalysisException):
+        with pytest.raises(AnalysisException):
             test_ctx.analyze_run(invalid_transfer_protocol)
 
         mockRoute(call, route, mock200, max_calls=1)
-        self.assertEqual(test_ctx.analyze_run(single_transfer_protocol), single_transfer_response)
+        assert test_ctx.analyze_run(single_transfer_protocol) == single_transfer_response

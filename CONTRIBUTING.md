@@ -20,17 +20,18 @@ matplotlib and plotly is preferred.
 
 
 ## Version Compatibility
-We use the (future)[https://pypi.python.org/pypi/future] module to maintain Python 2/3 compatibility. As a result, all
+We use the [future](https://pypi.python.org/pypi/future) module to maintain Python 2/3 compatibility. As a result, all
 code written should be Python 2.6/2.7 and Python 3.3+ compatible.
 
-## Styling and Documentation
-All code written should follow the (PEP8 standard)[https://www.python.org/dev/peps/pep-0008/]
 
-For documentation purposes, we follow (NumPy style doc strings)[https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt]
+## Styling and Documentation
+All code written should follow the [PEP8 standard](https://www.python.org/dev/peps/pep-0008/)
+
+For documentation purposes, we follow [NumPy style doc strings](https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt)
 
 
 ## Testing
-For testing purposes, we write tests in the `test` folder in the (unittests)[https://docs.python.org/2.7/library/unittest.html]
-format. We also use (tox)[https://tox.readthedocs.org/en/latest/] for automating tests.
+For testing purposes, we write tests in the `test` folder in the [pytest](http://pytest.org/latest/getting-started.html)
+format. We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests.
 
 Ensure that all tests pass when you run `tox` in the main folder.
