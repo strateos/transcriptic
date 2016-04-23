@@ -57,12 +57,7 @@ class Spectrophotometry(Kinetics):
         self.properties.insert(1, "column", (self.properties.index % ref_container.container_type.col_count))
         self.properties.insert(1, "row", (self.properties.index // ref_container.container_type.col_count))
         self.properties.row = self.properties.row.apply(lambda x: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[x])
-        # TODO: Replace humanize with below line once extension to humanize/robotize has been landed in AP-Py
-        # self.index = datasets[0].container.container_type.humanize(list(datasets[0].container.well_map.keys()))
-        from ..util import humanize
-        self.properties.index = humanize(list(ref_dataset.container.well_map.keys()),
-                              ref_dataset.container.container_type.well_count,
-                              ref_dataset.container.container_type.col_count)
+        self.properties.index = ref_container.container_type.humanize(list(ref_container.well_map.keys()))
 
     def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None, max_legend_len=20):
         """
