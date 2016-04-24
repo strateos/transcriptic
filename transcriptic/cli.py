@@ -39,6 +39,7 @@ except NameError:
     help='Specify a configuration file.'
 )
 @click.option('--organization', '-o', default=None)
+@click.version_option(prog_name="Transcriptic Python Library (TxPy)")
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
     """A command line tool for working with Transcriptic."""

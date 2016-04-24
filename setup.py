@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
+from transcriptic import __version__
 import sys
 
 if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 3):
@@ -9,7 +10,7 @@ setup(
     name='transcriptic',
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
-    version='2.2.1',
+    version=__version__,
     packages=['transcriptic', 'transcriptic.analysis'],
     test_suite='test',
     install_requires=[
