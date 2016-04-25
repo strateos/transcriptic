@@ -18,12 +18,12 @@ setup(
     install_requires=[
         'Click>=5.1',
         'requests',
-        'autoprotocol>=3.0',
-        'pandas>=0.16',
+        'autoprotocol>=3.4',
+        'pandas>=0.18',
         'matplotlib>=1.4',
         'scipy>=0.16',
         'numpy>=1.10',
-        'plotly>=1.8',
+        'plotly>=1.9.6',
         'pillow>=3.1.0',
         'future>=0.15'
     ],

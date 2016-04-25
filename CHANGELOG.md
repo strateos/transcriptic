@@ -3,6 +3,8 @@
 ## Unreleased
 Added
 - `__version__` variable for checking version. Enable version checking in CLI using `transcriptic --version`
+- New Analysis module: Kinetics; `Kinetics` base object and `Kinetics.Spectrophotometry` for analyzing kinetics-based data such as growth curves
+- Expose additional properties of Dataset object: `operation`, `container`, `data_type`
 
 ## v2.2.1
 Changed

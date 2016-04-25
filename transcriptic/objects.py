@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import absolute_import
 from builtins import str
 import pandas as pd
 from builtins import object
@@ -67,8 +68,8 @@ class _BaseObject(object):
 
 class Project(_BaseObject):
     """
-    A Project object contains helper methods for managing your runs. For example, you can view the runs associated
-    with this project.
+    A Project object contains helper methods for managing your runs. You can view the runs associated with this project
+    as well as submit runs to the project.
 
     Example Usage:
 
@@ -88,17 +89,19 @@ class Project(_BaseObject):
         Master attributes dictionary
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
+
     """
     def __init__(self, project_id, attributes=None, connection=None):
         """
-        Initialize a Project by providing a project name/id
+        Initialize a Project by providing a project name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
 
         Parameters
         ----------
         project_id: str
             Project name or id in string form
         attributes: Optional[dict]
-            Attributes of the object
+            Attributes of the project
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
@@ -124,13 +127,13 @@ class Project(_BaseObject):
             self.connection.update_environment(project_id=self.id)
             project_runs = self.connection.runs()
             self._runs = pd.DataFrame([[pr['id'], pr['title']] for pr in project_runs])
-            self._runs.columns = ['Id', 'Name']
+            self._runs.columns = ['id', 'Name']
             self.connection.env_args = temp
         return self._runs
 
     def submit(self, protocol, title, test_mode=False):
         """
-        Submit a run under this project
+        Submit a run to this project
 
         Parameters
         ----------
@@ -161,25 +164,27 @@ class Run(_BaseObject):
         Run id
     name: str
         Run name
+    data: DataFrame
+        DatafFrame of all datasets which belong to this project
+    instructions: List[Instructions]
+        List of all Instruction objects for this project
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
-    data: DataFrame
-        Dictionary of all datasets which belong to this project
-    instructions: List[Instructions]
-        List of all Instruction objects for this project
+
     """
     def __init__(self, run_id, attributes=None, connection=None):
         """
-        Initialize a Run by providing a run name/id
+        Initialize a Run by providing a run name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
 
         Parameters
         ----------
         run_id: str
             Run name or id in string form
         attributes: Optional[dict]
-            Attributes of the object
+            Attributes of the run
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
@@ -210,8 +215,8 @@ class Run(_BaseObject):
                                     connection=self.connection)
                          for k in list(datasets.keys()) if datasets[k]}
             self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
-            self._data.columns = ["Name", "Dataset"]
-            self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Dataset]))
+            self._data.columns = ["Name", "Datasets"]
+            self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
         return self._data
 
     def monitoring(self, instruction_id, data_type='pressure'):
@@ -251,25 +256,46 @@ class Dataset(_BaseObject):
     Attributes
     ----------
     id : str
-        Run id
+        Dataset id
     name: str
-        Run name
+        Dataset name
+    data : DataFrame
+        DataFrame of well-indexed data values. Note that associated metadata is found in attributes dictionary
+    container: Container
+        Container object that was used for this dataset
+    operation: str
+        Operation used for generating the dataset
+    data_type: str
+        Data type of this dataset
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
         Transcriptic Connection object associated with this specific object
-    data : DataFrame
-        DataFrame of raw data values. Note that associated metadata is found in attributes dictionary
+
     """
-    def __init__(self, obj_id, attributes=None, connection=None):
-        super(Dataset, self).__init__('dataset', obj_id, attributes, connection)
+    def __init__(self, data_id, attributes=None, connection=None):
+        """
+        Initialize a Dataset by providing a data name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
+
+        Parameters
+        ----------
+        data_id: str
+            Dataset name or id in string form
+        attributes: Optional[dict]
+            Attributes of the dataset
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
+        """
+        super(Dataset, self).__init__('dataset', data_id, attributes, connection)
         # TODO: Get BaseObject to handle dataset name
         self.name = self.attributes["title"]
-        self.id = obj_id
+        self.id = data_id
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
         self._data = pd.DataFrame()
-        self.well_names = {aq["well_idx"]: aq["name"] for aq in self.attributes["container"]["aliquots"]}
+        self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
+                                   connection=connection)
 
     @property
     def data(self, key="*"):
@@ -319,15 +345,25 @@ class Container(_BaseObject):
     contains relevant information on the container type as well as the
     aliquots present in the container.
 
-    Parameters
+    Example Usage:
+        .. code-block:: python
+
+          my_container = container("ct186apgz6a374")
+          my_container.well_map
+
+          my_container.container_type.col_count
+          my_container.container_type.robotize("B1")
+          my_container.container_type.humanize(12)
+
+    Attributes
     ----------
     name: str
         Name of container
-    wellMap: dict
+    well_map: dict
         Well mapping with well indices for keys and well names as values
     aliquots: list
         List of aliquots present in the container
-    containerType: autoprotocol.container_type.ContainerType
+    container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
 
@@ -337,42 +373,57 @@ class Container(_BaseObject):
 
           my_container = container("ct186apgz6a374")
 
-          my_container.wellMap
+          my_container.well_map
 
-          my_container.containerType.col_count
-          my_container.containerType.robotize("B1")
-          my_container.containerType.humanize(12)
+          my_container.container_type.col_count
+          my_container.container_type.robotize("B1")
+          my_container.container_type.humanize(12)
 
 
     """
 
-    def __init__(self, obj_id, attributes=None, connection=None):
-        # super(Container, self).__init__(obj_id, attributes, connection)
+    def __init__(self, container_id, attributes=None, connection=None):
+        """
+        Initialize a Container by providing a container name/id. The attributes and connection parameters are generally
+        not specified unless one wants to manually initialize the object.
+
+        Parameters
+        ----------
+        container_id: str
+            Container name or id in string form
+        attributes: Optional[dict]
+            Attributes of the container
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
+        """
+        # super(Container, self).__init__(container_id, attributes, connection)
         # TODO: Unify container "label" with name, add Containers route
-        self.id = obj_id
+        self.id = container_id
+        self.attributes = attributes
         self.name = self.attributes["label"]
 
         self.aliquots = self.attributes["aliquots"]
-        self.wellMap = {aliquot["well_idx"]: aliquot["name"]
+        self.well_map = {aliquot["well_idx"]: aliquot["name"]
                         for aliquot in self.aliquots}
-        self.containerType = self.parse_containerType()
+        self.container_type = self._parse_container_type()
 
-    def _parse_containerType(self):
+    def _parse_container_type(self):
+        """Helper function for parsing container string into container object"""
         from autoprotocol.container_type import _CONTAINER_TYPES
         from autoprotocol.container_type import ContainerType
         from copy import deepcopy
-        containerType = deepcopy(self.attributes["container_type"])
+        container_type = deepcopy(self.attributes["container_type"])
 
-        containerType.pop("well_type", None)
-        containerType.pop("id", None)
-        if "dead_volume" not in containerType:
-            containerType["dead_volume_ul"] = _CONTAINER_TYPES[
-                containerType["shortname"]].dead_volume_ul
-        if "safe_min_volume_ul" not in containerType:
-            containerType["safe_min_volume_ul"] = _CONTAINER_TYPES[
-                containerType["shortname"]].safe_min_volume_ul
+        container_type.pop("well_type", None)
+        container_type.pop("id", None)
+        if "dead_volume" not in container_type:
+            container_type["dead_volume_ul"] = _CONTAINER_TYPES[
+                container_type["shortname"]].dead_volume_ul
+        if "safe_min_volume_ul" not in container_type:
+            container_type["safe_min_volume_ul"] = _CONTAINER_TYPES[
+                container_type["shortname"]].safe_min_volume_ul
 
-        return ContainerType(**containerType)
+        return ContainerType(**container_type)
 
     def __repr__(self):
         """

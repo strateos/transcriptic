@@ -60,6 +60,7 @@ class Connection(object):
         else:
             return "%s/%s/%s" % (self.env_args['api_root'], self.env_args['org_id'], path)
 
+
     def preview_protocol(self, protocol):
         route = self.get_route('preview_protocol')
         return api.post(route,
