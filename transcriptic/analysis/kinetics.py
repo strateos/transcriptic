@@ -80,7 +80,7 @@ class Spectrophotometry(Kinetics):
             If not specified, this plots all the wells associated with the Datasets given. Otherwise, specifiy
             a list of well indices (["A1", "B1"]) or a specific well ("A1")
         groupby: Optional[str]
-            When specified, this groups the wells with the same property value together. On the title, each group will
+            When specified, this groups the wells with the same property value together. On the plot, each group will
             be represented by a single curve with the mean values and error bars of 1 std. dev. away from the mean
         title: Optional[str]
             Plot title. Default: "Kinectics Curve (`run-id`)"
