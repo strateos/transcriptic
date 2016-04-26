@@ -43,7 +43,7 @@ except NameError:
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
     """A command line tool for working with Transcriptic."""
-    if ctx.invoked_subcommand not in ['login']:
+    if ctx.invoked_subcommand not in ['login', 'compile', 'preview', 'summarize', 'init']:
         try:
             ctx.obj = Connection.from_file(config)
             if organization is not None:
