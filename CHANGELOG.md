@@ -4,6 +4,9 @@
 Changed
 - Transcriptic CLI subcommands: compile, init, preview, summarize no longer require login
 
+Fixed
+- `transcriptic runs` command now works in CLI
+
 ## v2.3.0
 Added
 - `__version__` variable for checking version. Enable version checking in CLI using `transcriptic --version`

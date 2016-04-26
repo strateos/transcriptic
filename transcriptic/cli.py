@@ -356,10 +356,10 @@ def runs(ctx, project_name):
     run_list = []
     if project_id:
         req = ctx.obj.runs(project_id=project_id)
-        if not req['runs']:
+        if not req:
             click.echo("Project '%s' is empty." % project_name)
             return
-        for r in req['runs']:
+        for r in req:
             run_list.append([r['title'] or "(Untitled)",
                              r['id'],
                              r['completed_at'].split("T")[0] if r['completed_at']
