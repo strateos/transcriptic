@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Changed
+- Transcriptic CLI subcommands: compile, init, preview, summarize no longer require login
 
 ## v2.3.0
 Added
