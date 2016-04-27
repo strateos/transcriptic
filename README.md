@@ -1,64 +1,47 @@
-# Testing
+# ![](https://www.transcriptic.com/images/logo-transcriptic-blobs-880e2f7b.svg) Transcriptic Python Library
 
-## Overview
+The Transcriptic Python Library (TxPy) provides a Python interface for managing Transcriptic organizations, projects, runs, datasets and more.
+One can either interface with our library through the bundled command line interface (CLI) or through a Jupyter notebook.
 
-We use the [pytest](http://pytest.org/latest/getting-started.html) framework for writing tests. A helpful resource for a
-list of supported assertions can be found [here](https://pytest.org/latest/assert.html).
-We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests.
+We recommend using the Jupyter interface as it provides a nice rendering and presentation of the objects, as well as provide
+additional analysis and properties functions specific to the Transcriptic objects.
 
-Ensure that all tests pass when you run `tox` in the main folder.
-Alternatively, one can run `py.test <path_to_test>` if you are trying to test a specific module.
+Transcriptic is the robotic cloud laboratory for the life sciences. [https://www.transcriptic.com](https://www.transcriptic.com)
 
-## Structure
-Helper functions should go into the helpers folder, and autoprotocol json in the autoprotocol folder.
-The `conftest.py` file contains any pytest related configurations.
+## Setup
 
-## Fixtures
-[Pytest Fixtures](https://pytest.org/latest/fixture.html) are used through out the package to reduce the need for
-duplicated code. This is also used for environment setup/teardown effects.
-There are a couple of common fixtures shared throughout the test package.
-- `mock_api_call`: This monkeypatches the API _req_call command with an offline/mock equivalent and can be used in
-conjunction with the `response_db` fixture
-- `test_ctx`: This sets up a test Connection and is often used in conjuction with the `mock_api_call` fixture
-- `response_db`, `json_db`: These fixtures are used for holding our MockResponse objects and Json objects respectively.
+```
+$ pip install transcriptic
+```
 
-## Writing API Tests
+or
 
-###Background Information
-For API tests, we overwrite the base call command with a mock call that draws from the `mockDB` dictionary.
-To mock responses, we use the `MockResponse` class, which basically mirrors the `Response` class from the
-requests library. The three key fields to mock here are the `status_code`, `json` and `text` fields.
-Similar to the `Response` object, the `status_code` corresponds to the HTML response codes (e.g. 404, 201),
-the `json` method corresponds to the `json` response which is usually returned when the call is succesful.
-Lastly, the `text` field is what's commonly used for displaying logs/error messages.
+```
+$ git clone https://github.com/transcriptic/transcriptic.git
+$ cd transcriptic
+$ pip install .
+```
 
-### Example
-Writing an `api test`:
-1.  First define a test class if necessary (e.g. `TestAnalyze`). This should hold all tests related to the functionality
-you are trying to test.
-2.  Mark fixtures you plan to use throughout the class using the `@pytest.mark.usefixtures` decorator. Since we are
- testing the API, we will use the `mock_api_fixture` by declaring `@pytest.mark.usefixtures('mock_api_call')`. This allows
- one to skip declaring that fixture throughout the test class.
-3.  If there is a common set of setup steps you intend to do for each test function, define an initialization function and decorate it with the
- `@pytest.fixture(autouse=True)` decorator. In this case, we define an `init_db` function which uses both the `json_db`
- and `response_db` fixtures for getting/loading a set of json and MockResponses.
-4.  Write your test function, feeding in all the required fixtures. For exampe, here I would like to test the default
-responses for an `analyze` call. I know I require the `test_ctx`, `json_db` and `response_db` fixtures, so I list them
-as arguments.
-5.  To test any mocked API calls, I'll need the `mockRoute` function. This mocks any `call`s made to a specific `route`
-with a MockResponse object. If `max_calls` is specified, the `response` will be returned `max_calls` number of times.
-Note that if the same route is mocked multiple times, responses will join a queue.
-If `max_calls` is not specified, the response will be set as the default response of that route. The default response
- will then be returned when there are no more elements in the queue.
-6.  Here, my route is given by `test_ctx.get_route('analyze_run')` and the call is `post`. So let's mock a route for testing
- 404 responses.
-`mockRoute(post, test_ctx.get_route('analyze_run'), response_db["mock404"], max_calls=1)`.
-7.  To test if a 404 is indeed returned, I use the pytest syntax for checking exceptions. And I call `analyze_run` with
-an invalid protocol json
-    `with pytest.raises(Exception):`
-        `test_ctx.analyze_run(json_db['invalidTransfer'])`
+to upgrade to the latest version using pip or check whether you're already up to date:
+```
+$ pip install transcriptic --upgrade
+```
 
-The final code block can be seen in the `TestAnalyze` class, in the `api_test` module
+Then, login to your Transcriptic account:
 
+```
+$ transcriptic login
+Email: me@example.com
+Password:
+Logged in as me@example.com (example-lab)
+```
 
+## Documentation
 
+See the [Transcriptic Developer Documentation](https://developers.transcriptic.com/docs/getting-started-with-the-cli) for detailed information about how to use this package, including learning about how to package protocols and build releases.
+
+View [developer specific documentation] (http://transcriptic.github.io/transcriptic/index.html)
+
+## Contributing
+
+Read CONTRIBUTING.mmd for more information on contributing to TxPy
