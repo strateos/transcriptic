@@ -1,43 +1,46 @@
-import unittest
-from .mockAPI import mockRoute, MockResponse, _req_call as mockCall
-from .helper import load_protocol
-from transcriptic import api
-from transcriptic.config import Connection, AnalysisException
+import pytest
+from transcriptic.config import AnalysisException
+from mockAPI import mockRoute
 
 
-
-api._req_call = mockCall
-
-test_ctx = Connection(email="mock@api.com", organization_id="mock", api_root="mock-api")
-
-invalid_transfer_protocol = load_protocol('invalidTransfer')
-invalid_transfer_response = load_protocol('invalidTransfer_response')
-single_transfer_protocol = load_protocol('singleTransfer')
-single_transfer_response = load_protocol('singleTransfer_response')
+@pytest.fixture()
+def test_ctx():
+    from transcriptic.config import Connection
+    return Connection(email="mock@api.com", organization_id="mock", api_root="mock-api")
 
 
-class AnalyzeTestCase(unittest.TestCase):
-    def testDefaultResponses(self):
-        # Setup default parameters
+@pytest.mark.usefixtures('mock_api_call')
+class TestAnalyze:
+    @pytest.fixture(autouse=True)
+    def init_db(self, json_db, response_db):
+        # Load all the protocol and response json we may use for this test class
+        json_db.load('invalidTransfer')
+        json_db.load('invalidTransfer_response')
+        json_db.load('singleTransfer')
+        json_db.load('singleTransfer_response')
+
+        # Load all our mock responses
+        response_db.load(name='mock404', status_code=404, text='404')
+        response_db.load(name='mock400', status_code=400, text='400')
+        response_db.load(name='mock422', status_code=422, json=json_db['invalidTransfer_response'])
+        response_db.load(name='mock200', status_code=200, json=json_db['singleTransfer_response'])
+
+    def testDefaultResponses(self, test_ctx, json_db, response_db):
+        # Setup default parameters for route mocking
         route = test_ctx.get_route('analyze_run')
         call = 'post'
-        # Mocks
-        mock404 = MockResponse(status_code=404, text='404')
-        mock400 = MockResponse(status_code=400, text='400')
-        mock422 = MockResponse(status_code=422, json=invalid_transfer_response)
-        mock200 = MockResponse(status_code=200, json=single_transfer_response)
 
-        mockRoute(call, route, mock404, max_calls=1)
-        with self.assertRaises(Exception):
-            test_ctx.analyze_run(invalid_transfer_protocol)
+        mockRoute(call, route, response_db["mock404"], max_calls=1)
+        with pytest.raises(Exception):
+            test_ctx.analyze_run(json_db['invalidTransfer'])
 
-        mockRoute(call, route, mock400, max_calls=1)
-        with self.assertRaises(Exception):
-            test_ctx.analyze_run(invalid_transfer_protocol)
+        mockRoute(call, route, response_db["mock400"], max_calls=1)
+        with pytest.raises(Exception):
+            test_ctx.analyze_run(json_db['invalidTransfer'])
 
-        mockRoute(call, route, mock422, max_calls=1)
-        with self.assertRaises(AnalysisException):
-            test_ctx.analyze_run(invalid_transfer_protocol)
+        mockRoute(call, route, response_db["mock422"], max_calls=1)
+        with pytest.raises(AnalysisException):
+            test_ctx.analyze_run(json_db['invalidTransfer'])
 
-        mockRoute(call, route, mock200, max_calls=1)
-        self.assertEqual(test_ctx.analyze_run(single_transfer_protocol), single_transfer_response)
+        mockRoute(call, route, response_db["mock200"], max_calls=1)
+        assert test_ctx.analyze_run(json_db['singleTransfer']) == json_db['singleTransfer_response']

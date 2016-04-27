@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- New documentation for the new testing framework and how to write tests
+
+Changed
+- Migrated the test framework from vanilla unittest2 to py.test
 
 ## v2.3.1
 Changed

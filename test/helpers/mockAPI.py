@@ -9,18 +9,22 @@ class MockResponse(object):
     """Mocks requests.Response"""
 
     def __init__(self, status_code=None, json=None, text=None):
-        self.status_code = status_code
-        self.json_data = json
-        self.text_data = text
+        self._status_code = status_code
+        self._text = text
+        self._json = json
 
+    @property
     def status_code(self):
-        return self.status_code
+        return self._status_code
+
+    @property
+    def text(self):
+        return self._text
 
     def json(self):
-        return self.json_data
+        return self._json
 
-    def text(self):
-        return self.text_data
+
 
 
 def _req_call(method, route, **kwargs):
