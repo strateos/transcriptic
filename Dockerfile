@@ -49,5 +49,7 @@ RUN pip install tox pytest
 RUN useradd -u $uid -m -s /bin/bash txpy
 ENV HOME /home/txpy
 WORKDIR /home/txpy
+
+RUN chown -R txpy /home/txpy
 USER txpy
 
