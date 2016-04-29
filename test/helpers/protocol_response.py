@@ -9,13 +9,13 @@ def protocol_response(method, protocol_path=None, response_path=None, **kwargs):
     Helper function for getting protocol response and dumping json to response path
     Caveat Emptor: Does not do any additional checks on the response object, just dumps to json if possible
     """
-    from transcriptic import ctx
-    if not ctx:
+    from transcriptic import api
+    if not api:
         from transcriptic.config import Connection
-        ctx = Connection.from_file("~/.transcriptic")
+        api = Connection.from_file("~/.transcriptic")
     protocol = json.loads(open(protocol_path).read())
 
-    response = requests.post(ctx.get_route(method), headers=ctx.headers, data=json.dumps({'protocol': protocol}))
+    response = requests.post(api.get_route(method), headers=api.headers, data=json.dumps({'protocol': protocol}))
     with open(response_path, 'w') as out_file:
         json.dump(response.json(), out_file, indent=2)
 

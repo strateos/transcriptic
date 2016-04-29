@@ -2,14 +2,6 @@ import pytest
 from transcriptic.config import AnalysisException
 from mockAPI import mockRoute
 
-
-@pytest.fixture()
-def test_ctx():
-    from transcriptic.config import Connection
-    return Connection(email="mock@api.com", organization_id="mock", api_root="mock-api")
-
-
-@pytest.mark.usefixtures('mock_api_call')
 class TestAnalyze:
     @pytest.fixture(autouse=True)
     def init_db(self, json_db, response_db):
@@ -25,22 +17,22 @@ class TestAnalyze:
         response_db.load(name='mock422', status_code=422, json=json_db['invalidTransfer_response'])
         response_db.load(name='mock200', status_code=200, json=json_db['singleTransfer_response'])
 
-    def testDefaultResponses(self, test_ctx, json_db, response_db):
+    def testDefaultResponses(self, test_api, json_db, response_db):
         # Setup default parameters for route mocking
-        route = test_ctx.get_route('analyze_run')
+        route = test_api.get_route('analyze_run')
         call = 'post'
 
         mockRoute(call, route, response_db["mock404"], max_calls=1)
         with pytest.raises(Exception):
-            test_ctx.analyze_run(json_db['invalidTransfer'])
+            test_api.analyze_run(json_db['invalidTransfer'])
 
         mockRoute(call, route, response_db["mock400"], max_calls=1)
         with pytest.raises(Exception):
-            test_ctx.analyze_run(json_db['invalidTransfer'])
+            test_api.analyze_run(json_db['invalidTransfer'])
 
         mockRoute(call, route, response_db["mock422"], max_calls=1)
         with pytest.raises(AnalysisException):
-            test_ctx.analyze_run(json_db['invalidTransfer'])
+            test_api.analyze_run(json_db['invalidTransfer'])
 
         mockRoute(call, route, response_db["mock200"], max_calls=1)
-        assert test_ctx.analyze_run(json_db['singleTransfer']) == json_db['singleTransfer_response']
+        assert test_api.analyze_run(json_db['singleTransfer']) == json_db['singleTransfer_response']

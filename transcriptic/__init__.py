@@ -4,7 +4,7 @@ from transcriptic.objects import Container, Dataset, ProtocolPreview
 from transcriptic.config import Connection
 from .version import __version__
 
-ctx = None
+api = None
 
 
 def run(obj_id):
@@ -28,24 +28,24 @@ def container(obj_id):
 
 
 def preview(protocol):
-    return ProtocolPreview(protocol, connection=ctx)
+    return ProtocolPreview(protocol, connection=api)
 
 
 def analyze(protocol, test_mode=False):
-    return ctx.analyze_run(protocol, test_mode)
+    return api.analyze_run(protocol, test_mode)
 
 
 def submit(protocol, project_id, title=None, test_mode=False):
-    return ctx.submit_run(protocol, project_id=project_id, title=title, test_mode=test_mode)
+    return api.submit_run(protocol, project_id=project_id, title=title, test_mode=test_mode)
 
 
 def dataset(data_id, key="*"):
-    return ctx.dataset(data_id=data_id, key=key)
+    return api.dataset(data_id=data_id, key=key)
 
 
 def connect(transcriptic_path="~/.transcriptic"):
     #TODO: Mirror login code from CLI
     try:
-        ctx = Connection.from_file(transcriptic_path)
+        api = Connection.from_file(transcriptic_path)
     except:
         print ("Unable to find .transcriptic file, please ensure the right path is provided")

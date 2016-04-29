@@ -101,20 +101,19 @@ class Connection(object):
         else:
             return "%s/%s/%s" % (self.env_args['api_root'], self.env_args['org_id'], path)
 
-
     def preview_protocol(self, protocol):
         """Post protocol preview"""
         route = self.get_route('preview_protocol')
         return self.post(route,
-                        json={
-                            "protocol": json.dumps(protocol.as_dict()) if
-                            isinstance(protocol, Protocol) else protocol
-                        },
-                        allow_redirects=False,
-                        status_response={
-                            '302': lambda resp: resp.headers['Location'],
-                            'default': lambda resp: Exception("cannot preview protocol.")
-                        })
+                         json={
+                             "protocol": json.dumps(protocol.as_dict()) if
+                             isinstance(protocol, Protocol) else protocol
+                         },
+                         allow_redirects=False,
+                         status_response={
+                             '302': lambda resp: resp.headers['Location'],
+                             'default': lambda resp: Exception("cannot preview protocol.")
+                         })
 
     def projects(self):
         """Get list of projects in organization"""
@@ -165,9 +164,9 @@ class Connection(object):
         """Archive project with given project_id"""
         route = self.get_route('archive_project', project_id=project_id)
         return self.put(route, data=json.dumps({"project": {"archived": True}}),
-                       status_response={
-                           '200': lambda resp: True
-                       })
+                        status_response={
+                            '200': lambda resp: True
+                        })
 
     def packages(self):
         """Get list of packages in organization"""
@@ -252,29 +251,29 @@ class Connection(object):
                                       ))
 
         return self.post(self.get_route('analyze_run'),
-                        data=json.dumps({
-                            "protocol": protocol,
-                            "test_mode": test_mode
-                        }),
-                        status_response={'422': lambda response: error_string(response)})
+                         data=json.dumps({
+                             "protocol": protocol,
+                             "test_mode": test_mode
+                         }),
+                         status_response={'422': lambda response: error_string(response)})
 
     def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
         """Submit given protocol"""
         if isinstance(protocol, Protocol):
             protocol = protocol.as_dict()
         return self.post(self.get_route('submit_run', project_id=project_id),
-                        data=json.dumps({
-                            "title": title,
-                            "protocol": protocol,
-                            "test_mode": test_mode
-                        }),
-                        status_response={
-                            '404': lambda resp: AnalysisException("Error: Couldn't create run (404). \n"
-                                                                  "Are you sure the project %s "
-                                                                  "exists, and that you have access to it?" %
-                                                                  self.url(project_id)),
-                            '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
-                        })
+                         data=json.dumps({
+                             "title": title,
+                             "protocol": protocol,
+                             "test_mode": test_mode
+                         }),
+                         status_response={
+                             '404': lambda resp: AnalysisException("Error: Couldn't create run (404). \n"
+                                                                   "Are you sure the project %s "
+                                                                   "exists, and that you have access to it?" %
+                                                                   self.url(project_id)),
+                             '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
+                         })
 
     def dataset(self, data_id, key="*"):
         """Get dataset with given data_id"""
@@ -332,17 +331,16 @@ class Connection(object):
         """Base function for handling all requests"""
         if not custom_request:
             if self.verbose:
-                print ("{0}: {1}".format(method.upper(), route))
+                print("{0}: {1}".format(method.upper(), route))
             if 'headers' not in kwargs:
                 return self._handle_response(self._req_call(method, route, headers=self.headers, **kwargs),
-                                        merge_status=merge_status, **status_response)
+                                             merge_status=merge_status, **status_response)
             else:
                 return self._handle_response(self._req_call(method, route, **kwargs), merge_status=merge_status,
-                                        **status_response)
+                                             **status_response)
         else:
             return self._handle_response(self._req_call(method, route, **kwargs), merge_status=merge_status,
-                                    **status_response)
-
+                                         **status_response)
 
     def _handle_response(self, response, **kwargs):
         default_status_response = {'200': lambda resp: resp.json(),

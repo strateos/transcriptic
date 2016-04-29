@@ -9,6 +9,8 @@ Added
 Changed
 - Migrated the test framework from vanilla unittest2 to py.test
 - Rewrote documentation structure and added misc. documentation related changes
+- `api` module has been removed and merged into `config` module. The Connection object now handles all api calls.
+- All references to `ctx` has been renamed to `api`
 
 Fixed
 - Fixed bug in spectrophotometry handling attributes
