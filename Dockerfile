@@ -2,10 +2,14 @@ FROM debian:jessie
 
 MAINTAINER Transcriptic <team@transcriptic.com>
 
+# Set default uid to 1000 (for mac virtualbox reasons)
+ARG uid=1000
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
 	python-dev \
 	python \
 	python-pip \
+	python3-pip \
 	python-virtualenv \
 	python-setuptools \
 	libfreetype6-dev \
@@ -19,14 +23,31 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
 	git \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN pip install -U virtualenv
 
-RUN pip install numpy scipy pandas matplotlib pillow future
+# Change default install directory of pip
+RUN mkdir /pip_cache
+ENV XDG_CONFIG_HOME /pip_cache
 
+# Change default install directory of eggs
+RUN mkdir /python_eggs
+ENV PYTHON_EGG_CACHE /python_eggs
+
+# Upgrade pip and virtualenv to enable wheels
+RUN pip install -U pip virtualenv
+RUN pip3 install -U pip
+
+# Install TxPy for Python2
+RUN pip install transcriptic
+
+# Install TxPy for Python3
+RUN pip3 install transcriptic
+
+# Install test dependencies
 RUN pip install tox pytest
 
-RUN useradd -ms /bin/bash txtron
-ENV HOME /home/txtron
-WORKDIR /home/txtron
-USER root
+# Add user txpy with specified uid
+RUN useradd -u $uid -m -s /bin/bash txpy
+ENV HOME /home/txpy
+WORKDIR /home/txpy
+USER txpy
 
