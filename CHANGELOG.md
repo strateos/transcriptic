@@ -7,6 +7,9 @@ Added
 Changed
 - Migrated the test framework from vanilla unittest2 to py.test
 
+Fixed 
+- Fixed bug in spectrophotometry handling attributes
+
 ## v2.3.1
 Changed
 - Transcriptic CLI subcommands: compile, init, preview, summarize no longer require login
