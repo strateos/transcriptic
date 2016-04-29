@@ -1,5 +1,5 @@
 from __future__ import print_function
-from transcriptic.objects import Run, Project, Aliquot, Resource, _check_ctx
+from transcriptic.objects import Run, Project, Aliquot, Resource
 from transcriptic.objects import Container, Dataset, ProtocolPreview
 from transcriptic.config import Connection
 from .version import __version__

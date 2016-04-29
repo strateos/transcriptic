@@ -17,7 +17,7 @@ from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json
-from transcriptic import api, routes
+from transcriptic import routes
 from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -43,7 +43,10 @@ except NameError:
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
     """A command line tool for working with Transcriptic."""
-    if ctx.invoked_subcommand not in ['login', 'compile', 'preview', 'summarize', 'init']:
+    if ctx.invoked_subcommand in ['login']:
+        # Initialize empty connection
+        ctx.obj = Connection(use_environ=False)
+    elif ctx.invoked_subcommand not in ['compile', 'preview', 'summarize', 'init']:
         try:
             ctx.obj = Connection.from_file(config)
             if organization is not None:
@@ -149,7 +152,7 @@ def upload_release(ctx, archive, package):
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
         bar.update(10)
-        info = api.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
+        info = ctx.obj.get(ctx.obj.get_route('upload_sign'), params={'name': archive})
         bar.update(30)
         aws_url = ctx.obj.get_route('aws_upload')
         files = {'file': open(os.path.basename(archive), 'rb')}
@@ -161,7 +164,7 @@ def upload_release(ctx, archive, package):
             ('policy', info['policy']),
             ('signature', info['signature']),
         ])
-        response = api.post(aws_url, data=data, files=files, headers={},
+        response = ctx.obj.post(aws_url, data=data, files=files, headers={},
                             status_response={'201': lambda resp: resp})
         bar.update(20)
         response_tree = ET.fromstring(response.content)
@@ -680,7 +683,7 @@ def login(ctx, api_root):
     """Authenticate to your Transcriptic account."""
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = api.post(routes.login(api_root=api_root), data=json.dumps({
+    r = ctx.obj.post(routes.login(api_root=api_root), data=json.dumps({
         'user': {
             'email': email,
             'password': password,
@@ -692,7 +695,7 @@ def login(ctx, api_root):
         '200': lambda resp: resp,
         'default': lambda resp: resp
     },
-     use_ctx=False)
+     custom_request=False)
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
@@ -726,7 +729,7 @@ def login(ctx, api_root):
             value_proc=lambda x: parse_valid_org(x)
         )
 
-    r = api.get(routes.get_organizations(api_root=api_root, org_id=organization), headers={
+    r = ctx.obj.get(routes.get_organizations(api_root=api_root, org_id=organization), headers={
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',
@@ -734,7 +737,7 @@ def login(ctx, api_root):
         '200': lambda resp: resp,
         'default': lambda resp: resp
     },
-        use_ctx=False)
+        custom_request=True)
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
