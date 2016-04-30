@@ -1,0 +1,29 @@
+.wy-side-nav-search{
+	background-color: none;
+	background-image: radial-gradient(98% 100%, #242e36 0%,#0e202e 100%);
+}
+.wy-side-nav-search>a img.logo, .wy-side-nav-search .wy-dropdown>a img.logo{
+	max-width: 80%;
+}
+.rst-content dl:not(.docutils) dt {
+	border-top: solid 3px #242e36;
+	color: #2d5b8e;
+}
+.rst-content .viewcode-link, .rst-content .viewcode-back{
+	color: #242e36;
+}
+dd>p:first-child{
+	font-weight: 600;
+}
+.section a,
+.section a:visited,
+.toctree-wrapper a,
+.toctree-wrapper a:visited,
+.wy-breadcrumbs a,
+.wy-breadcrumbs a:visited{
+	color: #2d5b8e;
+}
+.section a:hover,
+.toctree-wrapper a:hover {
+	color: #ffc40c;
+}
