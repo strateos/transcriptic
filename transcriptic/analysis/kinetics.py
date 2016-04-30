@@ -5,9 +5,9 @@ import pandas as pd
 from builtins import set
 
 
-class Kinetics(object):
+class _Kinetics(object):
     """
-    An Kinetics object generalizes the parsing of a time series of datasets
+    A Kinetics object generalizes the parsing of a time series of datasets
     Parameters
     ----------
     datasets: List[dataset]
@@ -20,7 +20,7 @@ class Kinetics(object):
         self.readings = self.readings.transpose()
 
 
-class Spectrophotometry(Kinetics):
+class Spectrophotometry(_Kinetics):
     """
     A Spectrophotomery object is used to analyze a kinetic series of PlateRead datasets
 
@@ -67,6 +67,7 @@ class Spectrophotometry(Kinetics):
         Example Usage:
 
         .. code-block:: python
+
             from transcriptic.analysis.kinetics import Spectrophotometry
             growth_curve = Spectrophotometry(myRun.data.Datasets)
             growth_curve.plot(wells=["A1", "A2", "B1", "B2"])

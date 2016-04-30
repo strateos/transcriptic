@@ -13,7 +13,7 @@ from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
 
 
-class PlateRead(object):
+class _PlateRead(object):
 
     """
     A PlateRead object generalizes the parsing of datasets derived from the
@@ -165,7 +165,7 @@ class PlateRead(object):
             return py.iplot(pyfig)
 
 
-class Absorbance(PlateRead):
+class Absorbance(_PlateRead):
 
     """
     An Absorbance object parses a dataset object and provides functions for
@@ -191,8 +191,8 @@ class Absorbance(PlateRead):
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_abs=None, name=None):
-        PlateRead.__init__(self, "absorbance", dataset, group_labels,
-                           group_wells, control_abs, name)
+        _PlateRead.__init__(self, "absorbance", dataset, group_labels,
+                            group_wells, control_abs, name)
 
     def beers_law(self, conc_list=None, use_adj=True, **kwargs):
         """"
@@ -249,7 +249,7 @@ class Absorbance(PlateRead):
             print("%s R^2: %s" % (self.name, (1-old_div(ss_res, ss_tot))))
 
 
-class Fluorescence(PlateRead):
+class Fluorescence(_PlateRead):
 
     """
     An Fluorescence object parses a dataset object and provides functions for
@@ -275,11 +275,11 @@ class Fluorescence(PlateRead):
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_fluor=None, name=None):
-        PlateRead.__init__(self, "fluorescence", dataset, group_labels,
-                           group_wells, control_fluor, name)
+        _PlateRead.__init__(self, "fluorescence", dataset, group_labels,
+                            group_wells, control_fluor, name)
 
 
-class Luminescence(PlateRead):
+class Luminescence(_PlateRead):
 
     """
     An Luminescence object parses a dataset object and provides functions for
@@ -305,8 +305,8 @@ class Luminescence(PlateRead):
 
     def __init__(self, dataset, group_labels, group_wells=None,
                  control_lumi=None, name=None):
-        PlateRead.__init__(self, "luminescence", dataset, group_labels,
-                           group_wells, control_lumi, name)
+        _PlateRead.__init__(self, "luminescence", dataset, group_labels,
+                            group_wells, control_lumi, name)
 
 
 def compare_standards(pr_obj, std_pr_obj):
@@ -319,9 +319,9 @@ def compare_standards(pr_obj, std_pr_obj):
     Parameters
     ----------
 
-    pr_obj: PlateRead
+    pr_obj: _PlateRead
         Sample plate read object
-    std_pr_obj: PlateRead
+    std_pr_obj: _PlateRead
         Standard plate read object
     """
     # Compare against mean of standard absorbance

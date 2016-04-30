@@ -10,6 +10,45 @@ from autoprotocol import Protocol
 
 
 class Connection(object):
+    """
+    A Connection object is the object used for communicating with Transcriptic.
+
+    Local usage: This is most easily instantiated by using the `from_file` function after
+    calling `transcriptic login` from the command line.
+
+    .. code-block:: shell
+        :caption: shell
+
+        $ transcriptic login
+        Email: me@example.com
+        Password:
+        Logged in as me@example.com (example-lab)
+
+    .. code-block:: python
+        :caption: python
+
+        from transcriptic.config import Connection
+        api = Connection.from_file("~/.transcriptic")
+
+    Webapp usage: For transcriptic notebooks, this is automatically instantiated as an `api`.
+
+    .. code-block:: python
+        :caption: python
+
+        from transcriptic import api
+
+    The `api` object can then be used for making any api calls. It is recommended to use the objects
+    in `transcriptic.objects` since that warps the response in a more friendly format.
+
+    Example Usage:
+
+    .. code-block:: python
+        :caption: python
+
+        api.projects()
+        api.runs(project_id="p123456789")
+
+    """
     def __init__(self, email=None, token=None, organization_id=False,
                  api_root="https://secure.transcriptic.com", organization=False,
                  cookie=False, verbose=False):
@@ -35,13 +74,13 @@ class Connection(object):
 
     @staticmethod
     def from_file(path):
-        """Loads context from file"""
+        """Loads connection from file"""
         with open(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             return Connection(**cfg)
 
     def save(self, path):
-        """Saves context into file"""
+        """Saves current connection into file"""
         with open(expanduser(path), 'w') as f:
             f.write(json.dumps({
                 'email': self.email,
@@ -55,6 +94,7 @@ class Connection(object):
         self.env_args = dict(self.env_args, **kwargs)
 
     def url(self, path):
+        """url format helper"""
         if path.startswith("/"):
             return "%s%s" % (self.env_args['api_root'], path)
         else:
@@ -62,6 +102,7 @@ class Connection(object):
 
 
     def preview_protocol(self, protocol):
+        """Post protocol preview"""
         route = self.get_route('preview_protocol')
         return api.post(route,
                         json={
@@ -75,6 +116,7 @@ class Connection(object):
                         })
 
     def projects(self):
+        """Get list of projects in organization"""
         route = self.get_route('get_projects')
         return api.get(route, status_response={
             '200': lambda resp: resp.json()["projects"],
@@ -85,6 +127,7 @@ class Connection(object):
         })
 
     def project(self, project_id=None):
+        """Get particular project"""
         route = self.get_route('get_project', project_id=project_id)
         return api.get(route, status_response={
             'default': lambda resp: RuntimeError(
@@ -93,6 +136,7 @@ class Connection(object):
         })
 
     def runs(self, project_id=None):
+        """Get list of runs in project"""
         route = self.get_route('get_project_runs', project_id=project_id)
         return api.get(route, status_response={
             "200": lambda resp: resp.json()["runs"],
@@ -103,18 +147,21 @@ class Connection(object):
         })
 
     def create_project(self, title):
+        """Create project with given title"""
         route = self.get_route('create_project')
         return api.post(route, data=json.dumps({
             'name': title
         }))
 
     def delete_project(self, project_id=None):
+        """Delete project with given project_id"""
         route = self.get_route('delete_project', project_id=project_id)
         return api.delete(route, status_response={
             '200': lambda resp: True
         })
 
     def archive_project(self, project_id=None):
+        """Archive project with given project_id"""
         route = self.get_route('archive_project', project_id=project_id)
         return api.put(route, data=json.dumps({"project": {"archived": True}}),
                        status_response={
@@ -122,14 +169,17 @@ class Connection(object):
                        })
 
     def packages(self):
+        """Get list of packages in organization"""
         route = self.get_route("get_packages")
         return api.get(route)
 
     def package(self, package_id=None):
+        """Get package with given package_id"""
         route = self.get_route("get_package", package_id=package_id)
         return api.get(route)
 
     def create_package(self, name, description):
+        """Create package with given name and description"""
         route = self.get_route('create_package')
         return api.post(route, data=json.dumps({
             "name": "%s%s" % ("com.%s." % self.organization_id, name),
@@ -137,45 +187,55 @@ class Connection(object):
         }))
 
     def delete_package(self, package_id=None):
+        """Delete package with given package_id"""
         route = self.get_route('delete_package', package_id=package_id)
         return api.delete(route, status_response={'200': lambda resp: True})
 
     def post_release(self, data, package_id=None):
+        """Create release with given data and package_id"""
         route = self.get_route('post_release', package_id=package_id)
         return api.post(route, data=data)
 
     def get_release_status(self, package_id=None, release_id=None, timestamp=None):
+        """Get status of current release upload"""
         route = self.get_route('get_release_status', package_id=package_id, release_id=release_id, timestamp=timestamp)
         return api.get(route)
 
     def get_quick_launch(self, project_id=None, quick_launch_id=None):
+        """Get quick launch object"""
         route = self.get_route('get_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
         return api.get(route)
 
     def create_quick_launch(self, data, project_id=None):
+        """Create quick launch object"""
         route = self.get_route('create_quick_launch', project_id=project_id)
         return api.post(route, data=data)
 
     def resources(self, query):
+        """Get resources"""
         route = self.get_route('query_resources', query=query)
         return api.get(route)
 
     def monitoring_data(self, data_type, project_id=None, run_id=None, instruction_id=None):
+        """Get monitoring_data"""
         route = self.get_route('monitoring_data', project_id=project_id, run_id=run_id,
                                instruction_id=instruction_id, data_type=data_type)
         return api.get(route)
 
     def raw_image_data(self, data_id=None):
+        """Get raw image data"""
         route = self.get_route('view_raw_image', data_id=data_id)
         return api.get(route, status_response={'200': lambda resp: resp}, stream=True)
 
     def _get_object(self, obj_id):
+        """Helper function for deref objects"""
         route = self.get_route('deref_route', obj_id=obj_id)
         return api.get(route, status_response={
             '404': lambda resp: Exception("[404] No object found for ID " + obj_id)
         })
 
     def analyze_run(self, protocol, test_mode=False):
+        """Analyze given protocol"""
         if isinstance(protocol, Protocol):
             protocol = protocol.as_dict()
         if "errors" in protocol:
@@ -198,6 +258,7 @@ class Connection(object):
                         status_response={'422': lambda response: error_string(response)})
 
     def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
+        """Submit given protocol"""
         if isinstance(protocol, Protocol):
             protocol = protocol.as_dict()
         return api.post(self.get_route('submit_run', project_id=project_id),
@@ -215,10 +276,12 @@ class Connection(object):
                         })
 
     def dataset(self, data_id, key="*"):
+        """Get dataset with given data_id"""
         route = self.get_route('dataset', data_id=data_id, key=key)
         return api.get(route)
 
     def datasets(self, project_id=None, run_id=None):
+        """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
         return api.get(route, status_response={
             '404': lambda resp: Exception("[404] No run found for ID " + id)
@@ -245,6 +308,7 @@ class Connection(object):
         return self.headers
 
     def _merge_headers(self, kwargs):
+        """Helper function for merging headers"""
         return dict(kwargs.pop('headers', {}), **self.headers)
 
 
