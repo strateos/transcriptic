@@ -15,7 +15,7 @@ setup(
     version=__version__,
     packages=['transcriptic', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
-    test_requires=['pytest'],
+    tests_require=['pytest>=2.9.0', 'tox>=2.3.1'],
     install_requires=[
         'Click>=5.1',
         'requests',
@@ -47,6 +47,6 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.5'
     ]
 )
