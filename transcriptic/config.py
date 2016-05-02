@@ -30,7 +30,8 @@ class Connection(object):
         from transcriptic.config import Connection
         api = Connection.from_file("~/.transcriptic")
 
-    Webapp usage: For transcriptic notebooks, this is automatically instantiated as an `api`.
+    For those using Jupyter notebooks on secure.transcriptic.com (beta), a Connection object is automatically
+    instatianted as api.
 
     .. code-block:: python
         :caption: python
@@ -38,7 +39,7 @@ class Connection(object):
         from transcriptic import api
 
     The `api` object can then be used for making any api calls. It is recommended to use the objects
-    in `transcriptic.objects` since that warps the response in a more friendly format.
+    in `transcriptic.objects` since that wraps the response in a more friendly format.
 
     Example Usage:
 

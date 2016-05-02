@@ -44,4 +44,4 @@ View [developer specific documentation](http://transcriptic.readthedocs.io/en/la
 
 ## Contributing
 
-Read CONTRIBUTING.mmd for more information on contributing to TxPy
+Read `CONTRIBUTING.md` for more information on contributing to TxPy

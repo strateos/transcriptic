@@ -35,12 +35,13 @@ Then, login to your Transcriptic account:
 Overview
 --------
 
-When using the command line interface (CLI), you can use `transcriptic --help` to understand the function
-arguments and effect of each function.
+In the command line interface (CLI), use `transcriptic --help` for a summary of
+arguments and their function.
 
-We recommend using Jupyter notebooks to interface with the Transcriptic library. To do so, we recommend using
-the `transcriptic.object` and `transcriptic.analysis` modules to load and analyze data.
-For more advanced users, please refer to the `transcriptic.config` module for API calls.
+Transcriptic library objects are developed with Jupyter notebooks in mind and are best utilized
+alongside that interface. Use `transcriptic.object` and `transcriptic.analysis` to load and
+analyze data respectively.
+API calls are located in the `transcriptic.config` module for more advanced connection needs.
 
 Further Documentation
 ---------------------
