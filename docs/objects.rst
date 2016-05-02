@@ -1,32 +1,7 @@
 transcriptic.objects
 ---------------------
 
-protocol.Instructions
-~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: transcriptic.objects.Instructions
-
-
-protocol.Dataset
-~~~~~~~~~~~~~~~~
-
-.. autoclass:: transcriptic.objects.Dataset
-
-protocol.Run
-~~~~~~~~~~~~
-
-.. autoclass:: transcriptic.objects.Run
-
-Run.monitoring()
-^^^^^^^^^^^^^^^^
-.. automethod:: transcriptic.objects.Run.monitoring
-
-Run.data()
-^^^^^^^^^^
-.. automethod:: transcriptic.objects.Run.data
-
-
-protocol.Project
+Project
 ~~~~~~~~~~~~~~~~
 
 .. autoclass:: transcriptic.objects.Project
@@ -40,12 +15,35 @@ Project.submit()
 ^^^^^^^^^^^^^^^^
 .. automethod:: transcriptic.objects.Project.submit
 
-protocol.Aliquot
+
+Run
+~~~~~~~~~~~~
+
+.. autoclass:: transcriptic.objects.Run
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Dataset
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: transcriptic.objects.Dataset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Instructions
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: transcriptic.objects.Instructions
+
+
+Aliquot
 ~~~~~~~~~~~~~~~~
 
 .. autoclass:: transcriptic.objects.Aliquot
 
-protocol.Resource
+Resource
 ~~~~~~~~~~~~~~~~~
 
 .. autoclass:: transcriptic.objects.Resource

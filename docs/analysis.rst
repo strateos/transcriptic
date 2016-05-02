@@ -1,25 +1,26 @@
 transcriptic.analysis
 ---------------------
 
-PlateRead
-~~~~~~~~~
-.. autoclass:: transcriptic.analysis.spectrophotometry.PlateRead
+Kinetics
+~~~~~~~~
+
+.. automodule:: transcriptic.analysis.kinetics
     :members:
+    :undoc-members:
+    :show-inheritance:
 
-Absorbance
-~~~~~~~~~~
-.. autoclass:: transcriptic.analysis.spectrophotometry.Absorbance
+Imaging
+~~~~~~~
+
+.. automodule:: transcriptic.analysis.imaging
     :members:
+    :undoc-members:
+    :show-inheritance:
 
-Fluorescence
-~~~~~~~~~~~~
-.. autoclass:: transcriptic.analysis.spectrophotometry.Fluorescence
+Spectrophotometry
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: transcriptic.analysis.spectrophotometry
     :members:
-
-Luminescence
-~~~~~~~~~~~~
-.. autoclass:: transcriptic.analysis.spectrophotometry.Luminescence
-    :members:
-
-
-
+    :undoc-members:
+    :show-inheritance:

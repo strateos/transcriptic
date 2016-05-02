@@ -32,7 +32,25 @@ Then, login to your Transcriptic account:
     Logged in as me@example.com (example-lab)
 
 
+Overview
+--------
+
+In the command line interface (CLI), use `transcriptic --help` for a summary of
+arguments and their function.
+
+Transcriptic library objects are developed with Jupyter notebooks in mind and are best utilized
+alongside that interface. Use `transcriptic.object` and `transcriptic.analysis` to load and
+analyze data respectively.
+API calls are located in the `transcriptic.config` module for more advanced connection needs.
+
 Further Documentation
 ---------------------
 
 See the `Transcriptic Developer Documentation <https://developers.transcriptic.com/docs/getting-started-with-the-cli/>`_ for detailed information about how to use this package, including learning about how to package protocols and build releases.
+
+
+Contributing
+------------
+
+You can find our Github repository at https://github.com/transcriptic/transcriptic
+Please read `CONTRIBUTING.md` for more information.

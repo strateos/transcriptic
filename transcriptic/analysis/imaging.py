@@ -3,7 +3,7 @@ standard_library.install_aliases()
 from builtins import object
 from transcriptic import ctx
 
-from io import cStringIO as BytesIO
+from io import StringIO as BytesIO
 from PIL import Image
 
 
@@ -11,10 +11,12 @@ class ImagePlate(object):
     """
     An ImagePlate object generalizes the parsing of datasets derived from the
     plate camera for easy visualization.
+
     Parameters
     ----------
     dataset: dataset
         Single dataset selected from datasets object
+
     Attributes
     ----------
     raw: BytesIO
@@ -42,11 +44,11 @@ class ImagePlate(object):
         """
         Displays the original full-sized image. Helpful when used in an IPython
         kernel
+
         Returns
         -------
         HTML
-            Returns a HTML iframe of the full-size image which is rendered
-            nicely in IPython (if IPython is present)
+            Returns a HTML iframe of the full-size image which is rendered nicely in IPython (if IPython is present)
         """
         try:
             from IPython.display import HTML

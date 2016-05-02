@@ -74,6 +74,7 @@ class Project(_BaseObject):
     Example Usage:
 
     .. code-block:: python
+
         myProject = Project("My Project")
         projectRuns = myProject.runs()
         myRunId = projectRuns.query("title == 'myRun'").id.item()

@@ -40,8 +40,8 @@ Logged in as me@example.com (example-lab)
 
 See the [Transcriptic Developer Documentation](https://developers.transcriptic.com/docs/getting-started-with-the-cli) for detailed information about how to use this package, including learning about how to package protocols and build releases.
 
-View [developer specific documentation] (http://transcriptic.github.io/transcriptic/index.html)
+View [developer specific documentation](http://transcriptic.readthedocs.io/en/latest/)
 
 ## Contributing
 
-Read CONTRIBUTING.mmd for more information on contributing to TxPy
+Read `CONTRIBUTING.md` for more information on contributing to TxPy

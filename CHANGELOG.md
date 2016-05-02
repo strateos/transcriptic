@@ -4,11 +4,13 @@
 Added
 - New documentation for the new testing framework and how to write tests
 - Added Dockerfile for running Transcriptic containers. Compatible with CI tools (e.g. Jenkins) as well
+- New documentation added and hosted on http://transcriptic.readthedocs.io/en/latest/
 
 Changed
 - Migrated the test framework from vanilla unittest2 to py.test
+- Rewrote documentation structure and added misc. documentation related changes
 
-Fixed 
+Fixed
 - Fixed bug in spectrophotometry handling attributes
 
 ## v2.3.1
