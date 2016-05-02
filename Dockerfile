@@ -2,7 +2,7 @@ FROM debian:jessie
 
 MAINTAINER Transcriptic <team@transcriptic.com>
 
-# Set default uid to 1000 (for mac virtualbox reasons)
+# Default userid=1000 as that is the first non-root userid on linux
 ARG uid=1000
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
