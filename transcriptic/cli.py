@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import object
 from builtins import next
 from builtins import str
 
@@ -30,7 +31,7 @@ except NameError:
     pass
 
 
-class ContextObject:
+class ContextObject(object):
     """Object passed along Click context"""
     def __init__(self):
         self._api = None
