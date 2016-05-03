@@ -1,7 +1,7 @@
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
-from transcriptic import ctx
+from transcriptic import api
 
 from io import StringIO as BytesIO
 from PIL import Image
@@ -31,7 +31,7 @@ class ImagePlate(object):
             raise RuntimeError("No data found in given dataset.")
         self.id = dataset.id
         self.raw = BytesIO()
-        req = ctx.raw_image_data(data_id=self.id)
+        req = api.raw_image_data(data_id=self.id)
         # Buffer download of data
         chunk_sz = 512
         for chunk in req.iter_content(chunk_sz):
@@ -54,7 +54,7 @@ class ImagePlate(object):
             from IPython.display import HTML
             return (HTML("""<iframe src="%s")" frameborder="0" \
                 allowtransparency="true" style="height:500px;" seamless> \
-                </iframe>""" % ctx.get_route('view_raw_image', data_id=self.id)))
+                </iframe>""" % api.get_route('view_raw_image', data_id=self.id)))
 
         except:
             # If IPython module is not present or unable to show, display using

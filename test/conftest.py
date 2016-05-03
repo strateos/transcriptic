@@ -5,6 +5,16 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
+
+@pytest.fixture()
+def test_api(monkeypatch):
+    from transcriptic.config import Connection
+    from mockAPI import _req_call as mockCall
+    api = Connection(email="mock@api.com", organization_id="mock", api_root="mock-api")
+    monkeypatch.setattr(api, '_req_call', mockCall)
+    return api
+
+
 from util import load_protocol
 
 
@@ -27,14 +37,6 @@ class JsonDB:
 @pytest.fixture(scope="module")
 def json_db():
     return JsonDB()
-
-
-@pytest.fixture()
-def mock_api_call(monkeypatch):
-    """Monkey patches normal api call to use mock call. Use this fixture when you need to mock a connection"""
-    from transcriptic import api
-    from mockAPI import _req_call as mockCall
-    monkeypatch.setattr(api, '_req_call', mockCall)
 
 
 from mockAPI import MockResponse

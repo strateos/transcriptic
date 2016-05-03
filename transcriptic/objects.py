@@ -5,11 +5,11 @@ import pandas as pd
 from builtins import object
 
 
-def _check_ctx(obj_type):
-    from transcriptic import ctx
-    if not ctx:
+def _check_api(obj_type):
+    from transcriptic import api
+    if not api:
         raise RuntimeError("You have to be logged in to be able to create %s objects" % obj_type)
-    return ctx
+    return api
 
 
 class ProtocolPreview(object):
@@ -32,7 +32,7 @@ class _BaseObject(object):
             self.attributes = attributes
         else:
             if not connection:
-                self.connection = _check_ctx(obj_type)
+                self.connection = _check_api(obj_type)
             else:
                 self.connection = connection
             (self.id, self.name) = self.load_object(obj_type, obj_id)
