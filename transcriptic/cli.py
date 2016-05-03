@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import bytes
 from builtins import object
 from builtins import next
 from builtins import str
@@ -872,14 +873,14 @@ def run_protocol(ctx, manifest, protocol, inputs, view=False):
     from subprocess import check_output, CalledProcessError
     import tempfile
     with tempfile.NamedTemporaryFile() as fp:
-        fp.write(json.dumps(inputs))
+        fp.write(bytes(json.dumps(inputs), 'UTF-8'))
         fp.flush()
         try:
             protocol = check_output(["bash", "-c", command + " " + fp.name])
             click.echo(protocol)
             if view:
                 click.echo("View your protocol's raw JSON above or see the "
-                           "intructions rendered at the following link: \n%s" %
+                           "instructions rendered at the following link: \n%s" %
                            ProtocolPreview(protocol, ctx.obj.api).preview_url)
         except CalledProcessError as e:
             click.echo(e.output)

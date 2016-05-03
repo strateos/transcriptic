@@ -14,6 +14,7 @@ Changed
 
 Fixed
 - Fixed bug in spectrophotometry handling attributes
+- Fixed compatibility issue with running `transcriptic preview` on python3
 
 ## v2.3.1
 Changed
