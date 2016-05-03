@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.0.0
 Added
 - New documentation for the new testing framework and how to write tests
 - Added Dockerfile for running Transcriptic containers. Compatible with CI tools (e.g. Jenkins) as well
