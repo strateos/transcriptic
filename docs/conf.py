@@ -79,7 +79,7 @@ project = u'TxPy'
 copyright = u'2016, Max Hodak, Tali Herzka, Jeremy Apthorp, Yang Choo, Peter Lee'
 
 
-exec(open('transcriptic/version.py').read())
+exec(open('../transcriptic/version.py').read())
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
