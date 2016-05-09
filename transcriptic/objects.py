@@ -397,10 +397,9 @@ class Container(_BaseObject):
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
         """
-        # super(Container, self).__init__(container_id, attributes, connection)
+        super(Container, self).__init__('container', container_id, attributes, connection)
         # TODO: Unify container "label" with name, add Containers route
         self.id = container_id
-        self.attributes = attributes
         self.name = self.attributes["label"]
 
         self.aliquots = self.attributes["aliquots"]

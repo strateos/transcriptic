@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Fixed
+- Better handling of Datasets with no `well_map` property in kinetics.spectrophotometry
 
 ## v3.0.0
 Added

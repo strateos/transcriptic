@@ -52,12 +52,19 @@ class Spectrophotometry(_Kinetics):
         # Assume that well names are consistent across all runs
         ref_dataset = datasets[0]
         ref_container = ref_dataset.container
-        self.properties = pd.DataFrame.from_dict(ref_container.well_map, orient='index')
+        # Check if well_map is defined
+        if len(ref_container.well_map) != 0:
+            self.properties = pd.DataFrame.from_dict(ref_container.well_map, orient='index')
+        else:
+            self.properties = pd.DataFrame.from_dict({ref_container.container_type.robotize(x): x
+                                                      for x in ref_dataset.data.columns
+                                                      if x not in ["GAIN"]},
+                                                     orient='index')
         self.properties.columns = ['name']
         self.properties.insert(1, "column", (self.properties.index % ref_container.container_type.col_count))
         self.properties.insert(1, "row", (self.properties.index // ref_container.container_type.col_count))
         self.properties.row = self.properties.row.apply(lambda x: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[x])
-        self.properties.index = ref_container.container_type.humanize(list(ref_container.well_map.keys()))
+        self.properties.index = [ref_container.container_type.humanize(int(x)) for x in list(self.properties.index)]
 
     def plot(self, wells="*", groupby=None, title=None, xlabel=None, ylabel=None, max_legend_len=20):
         """
@@ -105,6 +112,7 @@ class Spectrophotometry(_Kinetics):
                 wells = [wells]
             else:
                 well_readings = self.readings
+                wells = list(self.properties.index)
         if isinstance(wells, list):
             well_readings = self.readings.loc[wells]
 
