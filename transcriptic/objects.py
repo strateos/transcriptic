@@ -402,8 +402,8 @@ class Container(_BaseObject):
         Name of container
     well_map: dict
         Well mapping with well indices for keys and well names as values
-    aliquots: list
-        List of aliquots present in the container
+    aliquots: DataFrame
+        DataFrame of aliquots present in the container
     container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
@@ -441,11 +441,10 @@ class Container(_BaseObject):
         # TODO: Unify container "label" with name, add Containers route
         self.id = container_id
         self.name = self.attributes["label"]
-
-        self.aliquots = self.attributes["aliquots"]
         self.well_map = {aliquot["well_idx"]: aliquot["name"]
-                        for aliquot in self.aliquots}
+                        for aliquot in attributes["aliquots"]}
         self.container_type = self._parse_container_type()
+        self._aliquots = pd.DataFrame()
 
     def _parse_container_type(self):
         """Helper function for parsing container string into container object"""
@@ -465,20 +464,20 @@ class Container(_BaseObject):
 
         return ContainerType(**container_type)
 
-    def __repr__(self):
+    @property
+    def aliquots(self):
+        if self._aliquots.empty:
+            aliquot_list = self.attributes["aliquots"]
+            self._aliquots = pd.DataFrame([dict({'Name': x['name'], 'Id': x['id'],
+                                            'Volume': x['volume_ul']}, **x['properties'])
+                                           for x in aliquot_list])
+        return self._aliquots
+
+
+def __repr__(self):
         """
         Return a string representation of a Container using the specified name.
         (ex. Container('my_plate'))
 
         """
         return "Container(%s)" % (str(self.name))
-
-
-class Aliquot(_BaseObject):
-    def __init__(self, obj_id, attributes=None, connection=False):
-        super(Aliquot, self).__init__('aliquot', obj_id, attributes, connection)
-
-
-class Resource(_BaseObject):
-    def __init__(self, obj_id, attributes=None, connection=False):
-        super(Resource, self).__init__('resource', obj_id, attributes, connection)
