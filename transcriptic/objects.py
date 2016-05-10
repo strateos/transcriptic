@@ -166,9 +166,11 @@ class Run(_BaseObject):
     name: str
         Run name
     data: DataFrame
-        DatafFrame of all datasets which belong to this project
-    instructions: List[Instructions]
-        List of all Instruction objects for this project
+        DataFrame of all datasets which belong to this run
+    instructions: DataFrame
+        DataFrame of all Instruction objects which belong to this run
+    project_id : str
+        Project id which run belongs to
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
@@ -190,13 +192,21 @@ class Run(_BaseObject):
             Connection context. The default context object will be used unless explicitly provided
         """
         super(Run, self).__init__('run', run_id, attributes, connection)
-        self._instructions = None
+        self.project_id = self.attributes['project']['url']
+        self._instructions = pd.DataFrame()
         self._data = pd.DataFrame()
 
     @property
     def instructions(self):
-        if not self._instructions:
-            self._instructions = Instructions(self.attributes["instructions"])
+        if self._instructions.empty:
+            instruction_list = [Instruction(dict(x, **{'project_id': self.project_id, 'run_id': self.id}),
+                                              connection=self.connection)
+                                  for x in self.attributes["instructions"]]
+            self._instructions = pd.DataFrame(instruction_list)
+            self._instructions.columns = ["Instructions"]
+            self._instructions.insert(0, "Name", [inst.name for inst in self._instructions.Instructions])
+            self._instructions.insert(1, "Started", [inst.started_at for inst in self._instructions.Instructions])
+            self._instructions.insert(2, "Completed", [inst.completed_at for inst in self._instructions.Instructions])
         return self._instructions
 
     @property
@@ -211,7 +221,7 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            datasets = self.connection.datasets(project_id=self.attributes['project']['url'], run_id=self.id)
+            datasets = self.connection.datasets(project_id=self.project_id, run_id=self.id)
             data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
                                     connection=self.connection)
                          for k in list(datasets.keys()) if datasets[k]}
@@ -237,7 +247,7 @@ class Run(_BaseObject):
             Returns a pandas dataframe of the monitoring data
         """
         response = self.connection.monitoring_data(
-            project_id=self.attributes['project']['url'],
+            project_id=self.project_id,
             run_id=self.id,
             instruction_id=instruction_id,
             data_type=data_type
@@ -246,8 +256,8 @@ class Run(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:450px;" seamless></iframe>""" % \
-               self.connection.get_route('view_run', project_id=self.attributes['project']['url'], run_id=self.id)
+        style="height:450px; width:450px" seamless></iframe>""" % \
+               self.connection.get_route('view_run', project_id=self.project_id, run_id=self.id)
 
 
 class Dataset(_BaseObject):
@@ -315,29 +325,69 @@ class Dataset(_BaseObject):
                self.connection.get_route('view_data', data_id=self.id)
 
 
-class Instructions(object):
+class Instruction(object):
     """
-    An instruction object contains raw instructions as JSON as well as list of
+    An instruction object contains raw instruction as JSON as well as list of
     operations and warps generated from the raw instructions
+
+    Parameters
+    ----------
+    id : str
+        Instruction id
+    name: str
+        Instruction name
+    warps : DataFrame
+        DataFrame of warps in the instruction
+    started_at : str
+        Time where instruction begun
+    completed_at : str
+        Time where instruction ended
+    attributes: dict
+        Master attributes dictionary
+    connection: transcriptic.config.Connection
+        Transcriptic Connection object associated with this specific object
     """
 
-    def __init__(self, attributes):
+    def __init__(self, attributes, connection=None):
         """
         Parameters
         ----------
         attributes : dict
             Instruction attributes
         """
-        self.raw_instructions = attributes
-        op_name_list = []
-        op_warp_list = []
-        for instruction in attributes:
-            op_name_list.append(instruction["operation"]["op"])
-            op_warp_list.append(instruction["warps"])
-        instruct_dict = {}
-        instruct_dict["name"] = op_name_list
-        instruct_dict["warp_list"] = op_warp_list
-        self.df = pd.DataFrame(instruct_dict)
+        self.connection = connection
+        self.attributes = attributes
+        self.id = attributes["id"]
+        self.name = attributes["operation"]["op"]
+        self.started_at = attributes["started_at"]
+        self.completed_at = attributes["completed_at"]
+        self._warps = pd.DataFrame()
+        #op_name_list = []
+        #op_warp_list = []
+        #for instruction in attributes:
+        #    op_name_list.append(instruction["operation"]["op"])
+        #    op_warp_list.append(instruction["warps"])
+        #instruct_dict = {}
+        #instruct_dict["name"] = op_name_list
+        #instruct_dict["warp_list"] = op_warp_list
+        #self.df = pd.DataFrame(instruct_dict)
+
+    @property
+    def warps(self):
+        if self._warps.empty:
+            warp_list = self.attributes["warps"]
+            self._warps = pd.DataFrame(x['command'] for x in warp_list)
+            self._warps.insert(len(self._warps.columns), "device", [x["device_id"] for x in warp_list])
+            self._warps.insert(len(self._warps.columns), "started", [x["reported_started_at"] for x in warp_list])
+            self._warps.insert(len(self._warps.columns), "completed", [x["reported_completed_at"] for x in warp_list])
+
+        return self._warps
+
+    def _repr_html_(self):
+        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
+            style="height:500px;width:550px" seamless></iframe>""" % \
+               self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
+                                         project_id= self.attributes["project_id"], instruction_id=self.id)
 
 
 class Container(_BaseObject):

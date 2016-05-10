@@ -112,6 +112,10 @@ def view_run(api_root, org_id, project_id, run_id):
     return "{api_root}/{org_id}/{project_id}/runs/{run_id}.embed".format(**locals())
 
 
+def view_instruction(api_root, org_id, project_id, run_id, instruction_id):
+    return "{api_root}/{org_id}/{project_id}/runs/{run_id}/instructions/{instruction_id}.embed".format(**locals())
+
+
 def view_raw_image(api_root, data_id):
     return "{api_root}/-/{data_id}.raw".format(**locals())
 
