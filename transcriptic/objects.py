@@ -19,7 +19,7 @@ class ProtocolPreview(object):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px;" seamless></iframe>""" % self.preview_url
+        style="height:500px" seamless></iframe>""" % self.preview_url
 
 
 class _BaseObject(object):
@@ -321,7 +321,7 @@ class Dataset(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px;" seamless></iframe>""" % \
+            style="height:500px" seamless></iframe>""" % \
                self.connection.get_route('view_data', data_id=self.id)
 
 
@@ -371,12 +371,11 @@ class Instruction(object):
             self._warps.insert(len(self._warps.columns), "device", [x["device_id"] for x in warp_list])
             self._warps.insert(len(self._warps.columns), "started", [x["reported_started_at"] for x in warp_list])
             self._warps.insert(len(self._warps.columns), "completed", [x["reported_completed_at"] for x in warp_list])
-
         return self._warps
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px;" seamless></iframe>""" % \
+            style="height:750px" seamless></iframe>""" % \
                self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
                                          project_id= self.attributes["project_id"], instruction_id=self.id)
 
