@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Changed
+- Reworked `Instruction` object
+- Reworked `Run.instructions` to return a Dataframe of `Instruction` objects
+
 Fixed
 - Change check for ImagePlate to be more generic
 - Setup now requires plotly 1.9.6 (for plotly offline/ipython compatibility reasons)

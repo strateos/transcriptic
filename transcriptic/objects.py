@@ -256,7 +256,7 @@ class Run(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:450px; width:450px" seamless></iframe>""" % \
+        style="height:450px" seamless></iframe>""" % \
                self.connection.get_route('view_run', project_id=self.project_id, run_id=self.id)
 
 
@@ -385,7 +385,7 @@ class Instruction(object):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px;width:550px" seamless></iframe>""" % \
+            style="height:500px;" seamless></iframe>""" % \
                self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
                                          project_id= self.attributes["project_id"], instruction_id=self.id)
 
