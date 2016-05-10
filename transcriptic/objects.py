@@ -375,7 +375,7 @@ class Instruction(object):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:750px" seamless></iframe>""" % \
+            style="height:1000px" seamless></iframe>""" % \
                self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
                                          project_id= self.attributes["project_id"], instruction_id=self.id)
 
