@@ -321,7 +321,7 @@ class Dataset(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px;width:450px" seamless></iframe>""" % \
+            style="height:500px;" seamless></iframe>""" % \
                self.connection.get_route('view_data', data_id=self.id)
 
 
@@ -362,15 +362,6 @@ class Instruction(object):
         self.started_at = attributes["started_at"]
         self.completed_at = attributes["completed_at"]
         self._warps = pd.DataFrame()
-        #op_name_list = []
-        #op_warp_list = []
-        #for instruction in attributes:
-        #    op_name_list.append(instruction["operation"]["op"])
-        #    op_warp_list.append(instruction["warps"])
-        #instruct_dict = {}
-        #instruct_dict["name"] = op_name_list
-        #instruct_dict["warp_list"] = op_warp_list
-        #self.df = pd.DataFrame(instruct_dict)
 
     @property
     def warps(self):
