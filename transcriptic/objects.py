@@ -159,6 +159,14 @@ class Run(_BaseObject):
     A Run object contains helper methods for accessing Run-related information such as Instructions, Datasets
     and monitoring data
 
+    Example Usage:
+
+        .. code-block:: python
+
+        myRun = Run('r12345')
+        myRun.data
+        myRun.instructions
+
     Attributes
     ----------
     id : str
@@ -327,10 +335,26 @@ class Dataset(_BaseObject):
 
 class Instruction(object):
     """
-    An instruction object contains raw instruction as JSON as well as list of
-    operations and warps generated from the raw instructions
+    An Instruction object contains information related to the current instruction such as the start,
+    completed time as well as warps associated with the instruction.
+    Note that Instruction objects are usually created as part of a run and not created explicity.
 
-    Parameters
+    Additionally, if diagnostic information is available, one can click on the `Show Diagnostics Data`
+    button to view relevant diagnostic information.
+
+    Example Usage:
+
+        .. code-block:: python
+
+        myRun = Run('r12345')
+        myRun.instructions
+
+        # Access instruction object
+        myRun.instructions.Instructions[1]
+        myRun.instructions.Instructions[1].warps
+
+
+    Attributes
     ----------
     id : str
         Instruction id
@@ -354,6 +378,8 @@ class Instruction(object):
         ----------
         attributes : dict
             Instruction attributes
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
         """
         self.connection = connection
         self.attributes = attributes
@@ -391,6 +417,7 @@ class Container(_BaseObject):
 
           my_container = container("ct186apgz6a374")
           my_container.well_map
+          my_container.aliquots
 
           my_container.container_type.col_count
           my_container.container_type.robotize("B1")
