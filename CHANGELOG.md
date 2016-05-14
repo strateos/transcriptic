@@ -2,6 +2,7 @@
 
 ## Unreleased
 Added
+- Tab completion for CLI (enabled by sourcing `transcriptic_complete.sh`)
 - New API route for getting zipfiles: `api.get_zip`
 - Made -h option synonymous with --help
 
