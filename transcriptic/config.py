@@ -287,6 +287,14 @@ class Connection(object):
             '404': lambda resp: Exception("[404] No run found for ID " + id)
         })
 
+    def get_zip(self, data_id):
+        """Get zip file with given data_id. Returns Python Zipfile"""
+        import zipfile
+        from io import BytesIO
+        route = self.get_route('get_data_zip', data_id=data_id)
+        req = self.get(route, status_response={'200': lambda resp: resp}, stream=True)
+        return zipfile.ZipFile(BytesIO(req.content))
+
     def get_route(self, method, **kwargs):
         """Helper function to automatically match and supply required arguments"""
         route_method = getattr(routes, method)

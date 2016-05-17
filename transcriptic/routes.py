@@ -116,5 +116,9 @@ def view_raw_image(api_root, data_id):
     return "{api_root}/-/{data_id}.raw".format(**locals())
 
 
+def get_data_zip(api_root, data_id):
+    return "{api_root}/-/{data_id}.zip".format(**locals())
+
+
 def monitoring_data(api_root, org_id, project_id, run_id, instruction_id, data_type):
     return "{api_root}/{org_id}/{project_id}/runs/{run_id}/{instruction_id}/monitoring/{data_type}".format(**locals())
