@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Made -h option synonymous with --help
+
 ## v3.0.2
 Changed
 - Setup now requires plotly 1.9.6 or greater

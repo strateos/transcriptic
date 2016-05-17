@@ -45,8 +45,9 @@ class ContextObject(object):
     def api(self, value):
         self._api = value
 
+_CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-@click.group()
+@click.group(context_settings=_CONTEXT_SETTINGS)
 @click.option('--apiroot', default=None)
 @click.option(
     '--config',
