@@ -2,6 +2,7 @@
 
 ## Unreleased
 Added
+- New API route for getting zipfiles: `api.get_zip`
 - Made -h option synonymous with --help
 
 ## v3.0.2
