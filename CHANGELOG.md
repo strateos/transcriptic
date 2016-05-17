@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.0.2
+Changed
+- Setup now requires plotly 1.9.6 or greater
+
 ## v3.0.1
 Fixed
 - Better handling of Datasets with no `well_map` property in kinetics.spectrophotometry
