@@ -13,6 +13,7 @@ setup(
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
     version=__version__,
+    include_package_data=True,
     packages=['transcriptic', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest>=2.9.0', 'tox>=2.3.1'],
