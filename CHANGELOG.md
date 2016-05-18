@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.1.0
 Added
 - Tab completion for CLI (enabled by sourcing `transcriptic_complete.sh`)
 - New API route for getting zipfiles: `api.get_zip`
