@@ -36,11 +36,14 @@ Password:
 Logged in as me@example.com (example-lab)
 ```
 
+To enable auto tab-completion for the Transcriptic CLI, enter `source transcriptic_complete.sh` into your terminal.
+To enable this for every single session automatically, add `. path/to/transcriptic_complete.sh` to your `.bashrc`/`.zshrc` file.
+
 ## Documentation
 
 See the [Transcriptic Developer Documentation](https://developers.transcriptic.com/docs/getting-started-with-the-cli) for detailed information about how to use this package, including learning about how to package protocols and build releases.
 
-View [developer specific documentation](http://transcriptic.readthedocs.io/en/latest/)
+View [Developer Specific Documentation](http://transcriptic.readthedocs.io/en/latest/)
 
 ## Contributing
 
