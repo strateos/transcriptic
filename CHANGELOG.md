@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.1
+Fixed
+- Add `include_package_data` to setup.py to enable downloading of static assets
+
 ## v3.1.0
 Added
 - Tab completion for CLI (enabled by sourcing `transcriptic_complete.sh`)
