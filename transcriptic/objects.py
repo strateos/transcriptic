@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from builtins import str
 import pandas as pd
 from builtins import object
-
+import warnings
 
 def _check_api(obj_type):
     from transcriptic import api
@@ -366,8 +366,8 @@ class Instruction(object):
         Time where instruction begun
     completed_at : str
         Time where instruction ended
-    device_ids: list[str]
-        Id of device(s) which instruction was executed on
+    device_id: str
+        Id of device which instruction was executed on
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
@@ -391,9 +391,13 @@ class Instruction(object):
         self.completed_at = attributes["completed_at"]
         if len(attributes["warps"]) > 0:
             device_id_set = set([warp["device_id"] for warp in self.attributes["warps"]])
-            self.device_ids = list(device_id_set)
+            self.device_id = device_id_set.pop()
+            if len(device_id_set) > 1:
+                warnings.warn("There is more than one device involved in this instruction. Please contact "
+                              "Transcriptic for assistance.")
+
         else:
-            self.device_ids = None
+            self.device_id = None
         self._warps = pd.DataFrame()
 
     @property
