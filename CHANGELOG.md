@@ -1,6 +1,14 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Changed
+- Reworked `Instruction` object
+- Reworked `Run.instructions` to return a Dataframe of `Instruction` objects
+- `Aliquot` object has been reworked into Container object as an `aliquots` property
+
+Removed
+- `Resource` object has been removed from the library as its currently unused
+
 Fixed
 - Change check for ImagePlate to be more generic
 - Setup now requires plotly 1.9.6 (for plotly offline/ipython compatibility reasons)

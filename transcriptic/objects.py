@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from builtins import str
 import pandas as pd
 from builtins import object
-
+import warnings
 
 def _check_api(obj_type):
     from transcriptic import api
@@ -19,7 +19,7 @@ class ProtocolPreview(object):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px;" seamless></iframe>""" % self.preview_url
+        style="height:500px" seamless></iframe>""" % self.preview_url
 
 
 class _BaseObject(object):
@@ -159,6 +159,14 @@ class Run(_BaseObject):
     A Run object contains helper methods for accessing Run-related information such as Instructions, Datasets
     and monitoring data
 
+    Example Usage:
+
+        .. code-block:: python
+
+        myRun = Run('r12345')
+        myRun.data
+        myRun.instructions
+
     Attributes
     ----------
     id : str
@@ -166,9 +174,11 @@ class Run(_BaseObject):
     name: str
         Run name
     data: DataFrame
-        DatafFrame of all datasets which belong to this project
-    instructions: List[Instructions]
-        List of all Instruction objects for this project
+        DataFrame of all datasets which belong to this run
+    instructions: DataFrame
+        DataFrame of all Instruction objects which belong to this run
+    project_id : str
+        Project id which run belongs to
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
@@ -190,13 +200,21 @@ class Run(_BaseObject):
             Connection context. The default context object will be used unless explicitly provided
         """
         super(Run, self).__init__('run', run_id, attributes, connection)
-        self._instructions = None
+        self.project_id = self.attributes['project']['url']
+        self._instructions = pd.DataFrame()
         self._data = pd.DataFrame()
 
     @property
     def instructions(self):
-        if not self._instructions:
-            self._instructions = Instructions(self.attributes["instructions"])
+        if self._instructions.empty:
+            instruction_list = [Instruction(dict(x, **{'project_id': self.project_id, 'run_id': self.id}),
+                                              connection=self.connection)
+                                  for x in self.attributes["instructions"]]
+            self._instructions = pd.DataFrame(instruction_list)
+            self._instructions.columns = ["Instructions"]
+            self._instructions.insert(0, "Name", [inst.name for inst in self._instructions.Instructions])
+            self._instructions.insert(1, "Started", [inst.started_at for inst in self._instructions.Instructions])
+            self._instructions.insert(2, "Completed", [inst.completed_at for inst in self._instructions.Instructions])
         return self._instructions
 
     @property
@@ -211,7 +229,7 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            datasets = self.connection.datasets(project_id=self.attributes['project']['url'], run_id=self.id)
+            datasets = self.connection.datasets(project_id=self.project_id, run_id=self.id)
             data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
                                     connection=self.connection)
                          for k in list(datasets.keys()) if datasets[k]}
@@ -237,7 +255,7 @@ class Run(_BaseObject):
             Returns a pandas dataframe of the monitoring data
         """
         response = self.connection.monitoring_data(
-            project_id=self.attributes['project']['url'],
+            project_id=self.project_id,
             run_id=self.id,
             instruction_id=instruction_id,
             data_type=data_type
@@ -246,8 +264,8 @@ class Run(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:450px;" seamless></iframe>""" % \
-               self.connection.get_route('view_run', project_id=self.attributes['project']['url'], run_id=self.id)
+        style="height:450px" seamless></iframe>""" % \
+               self.connection.get_route('view_run', project_id=self.project_id, run_id=self.id)
 
 
 class Dataset(_BaseObject):
@@ -311,33 +329,92 @@ class Dataset(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px;width:450px" seamless></iframe>""" % \
+            style="height:500px" seamless></iframe>""" % \
                self.connection.get_route('view_data', data_id=self.id)
 
 
-class Instructions(object):
+class Instruction(object):
     """
-    An instruction object contains raw instructions as JSON as well as list of
-    operations and warps generated from the raw instructions
+    An Instruction object contains information related to the current instruction such as the start,
+    completed time as well as warps associated with the instruction.
+    Note that Instruction objects are usually created as part of a run and not created explicity.
+
+    Additionally, if diagnostic information is available, one can click on the `Show Diagnostics Data`
+    button to view relevant diagnostic information.
+
+    Example Usage:
+
+        .. code-block:: python
+
+        myRun = Run('r12345')
+        myRun.instructions
+
+        # Access instruction object
+        myRun.instructions.Instructions[1]
+        myRun.instructions.Instructions[1].warps
+
+
+    Attributes
+    ----------
+    id : str
+        Instruction id
+    name: str
+        Instruction name
+    warps : DataFrame
+        DataFrame of warps in the instruction
+    started_at : str
+        Time where instruction begun
+    completed_at : str
+        Time where instruction ended
+    device_id: str
+        Id of device which instruction was executed on
+    attributes: dict
+        Master attributes dictionary
+    connection: transcriptic.config.Connection
+        Transcriptic Connection object associated with this specific object
     """
 
-    def __init__(self, attributes):
+    def __init__(self, attributes, connection=None):
         """
         Parameters
         ----------
         attributes : dict
             Instruction attributes
+        connection: Optional[transcriptic.config.Connection]
+            Connection context. The default context object will be used unless explicitly provided
         """
-        self.raw_instructions = attributes
-        op_name_list = []
-        op_warp_list = []
-        for instruction in attributes:
-            op_name_list.append(instruction["operation"]["op"])
-            op_warp_list.append(instruction["warps"])
-        instruct_dict = {}
-        instruct_dict["name"] = op_name_list
-        instruct_dict["warp_list"] = op_warp_list
-        self.df = pd.DataFrame(instruct_dict)
+        self.connection = connection
+        self.attributes = attributes
+        self.id = attributes["id"]
+        self.name = attributes["operation"]["op"]
+        self.started_at = attributes["started_at"]
+        self.completed_at = attributes["completed_at"]
+        if len(attributes["warps"]) > 0:
+            device_id_set = set([warp["device_id"] for warp in self.attributes["warps"]])
+            self.device_id = device_id_set.pop()
+            if len(device_id_set) > 1:
+                warnings.warn("There is more than one device involved in this instruction. Please contact "
+                              "Transcriptic for assistance.")
+
+        else:
+            self.device_id = None
+        self._warps = pd.DataFrame()
+
+    @property
+    def warps(self):
+        if self._warps.empty:
+            warp_list = self.attributes["warps"]
+            self._warps = pd.DataFrame(x['command'] for x in warp_list)
+            self._warps.columns = [x.title() for x in self._warps.columns.tolist()]
+            self._warps.insert(1, "Started", [x["reported_started_at"] for x in warp_list])
+            self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
+        return self._warps
+
+    def _repr_html_(self):
+        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
+            style="height:1000px" seamless></iframe>""" % \
+               self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
+                                         project_id= self.attributes["project_id"], instruction_id=self.id)
 
 
 class Container(_BaseObject):
@@ -351,6 +428,7 @@ class Container(_BaseObject):
 
           my_container = container("ct186apgz6a374")
           my_container.well_map
+          my_container.aliquots
 
           my_container.container_type.col_count
           my_container.container_type.robotize("B1")
@@ -362,8 +440,8 @@ class Container(_BaseObject):
         Name of container
     well_map: dict
         Well mapping with well indices for keys and well names as values
-    aliquots: list
-        List of aliquots present in the container
+    aliquots: DataFrame
+        DataFrame of aliquots present in the container
     container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
@@ -401,11 +479,10 @@ class Container(_BaseObject):
         # TODO: Unify container "label" with name, add Containers route
         self.id = container_id
         self.name = self.attributes["label"]
-
-        self.aliquots = self.attributes["aliquots"]
         self.well_map = {aliquot["well_idx"]: aliquot["name"]
-                        for aliquot in self.aliquots}
+                        for aliquot in attributes["aliquots"]}
         self.container_type = self._parse_container_type()
+        self._aliquots = pd.DataFrame()
 
     def _parse_container_type(self):
         """Helper function for parsing container string into container object"""
@@ -425,20 +502,20 @@ class Container(_BaseObject):
 
         return ContainerType(**container_type)
 
-    def __repr__(self):
+    @property
+    def aliquots(self):
+        if self._aliquots.empty:
+            aliquot_list = self.attributes["aliquots"]
+            self._aliquots = pd.DataFrame([dict({'Name': x['name'], 'Id': x['id'],
+                                            'Volume': x['volume_ul']}, **x['properties'])
+                                           for x in aliquot_list])
+        return self._aliquots
+
+
+def __repr__(self):
         """
         Return a string representation of a Container using the specified name.
         (ex. Container('my_plate'))
 
         """
         return "Container(%s)" % (str(self.name))
-
-
-class Aliquot(_BaseObject):
-    def __init__(self, obj_id, attributes=None, connection=False):
-        super(Aliquot, self).__init__('aliquot', obj_id, attributes, connection)
-
-
-class Resource(_BaseObject):
-    def __init__(self, obj_id, attributes=None, connection=False):
-        super(Resource, self).__init__('resource', obj_id, attributes, connection)
