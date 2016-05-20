@@ -24,7 +24,7 @@ setup(
         'matplotlib>=1.4',
         'scipy>=0.16',
         'numpy>=1.10',
-        'plotly>=1.9.6',
+        'plotly==1.9.6',
         'pillow>=3.1.0',
         'future>=0.15'
     ],

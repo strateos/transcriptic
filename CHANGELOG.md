@@ -3,6 +3,7 @@
 ## Unreleased
 Fixed
 - Change check for ImagePlate to be more generic
+- Setup now requires plotly 1.9.6 (for plotly offline/ipython compatibility reasons)
 
 ## v3.1.0
 Added
