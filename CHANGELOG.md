@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.2.0
 Changed
 - Reworked `Instruction` object
 - Reworked `Run.instructions` to return a Dataframe of `Instruction` objects
