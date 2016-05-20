@@ -366,6 +366,8 @@ class Instruction(object):
         Time where instruction begun
     completed_at : str
         Time where instruction ended
+    device_ids: list[str]
+        Id of device(s) which instruction was executed on
     attributes: dict
         Master attributes dictionary
     connection: transcriptic.config.Connection
@@ -387,6 +389,11 @@ class Instruction(object):
         self.name = attributes["operation"]["op"]
         self.started_at = attributes["started_at"]
         self.completed_at = attributes["completed_at"]
+        if len(attributes["warps"]) > 0:
+            device_id_set = set([warp["device_id"] for warp in self.attributes["warps"]])
+            self.device_ids = list(device_id_set)
+        else:
+            self.device_ids = None
         self._warps = pd.DataFrame()
 
     @property
@@ -394,9 +401,9 @@ class Instruction(object):
         if self._warps.empty:
             warp_list = self.attributes["warps"]
             self._warps = pd.DataFrame(x['command'] for x in warp_list)
-            self._warps.insert(len(self._warps.columns), "device", [x["device_id"] for x in warp_list])
-            self._warps.insert(len(self._warps.columns), "started", [x["reported_started_at"] for x in warp_list])
-            self._warps.insert(len(self._warps.columns), "completed", [x["reported_completed_at"] for x in warp_list])
+            self._warps.columns = [x.title() for x in self._warps.columns.tolist()]
+            self._warps.insert(1, "Started", [x["reported_started_at"] for x in warp_list])
+            self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
         return self._warps
 
     def _repr_html_(self):
