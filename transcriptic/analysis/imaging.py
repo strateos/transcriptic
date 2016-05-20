@@ -3,7 +3,7 @@ standard_library.install_aliases()
 from builtins import object
 from transcriptic import api
 
-from io import StringIO as BytesIO
+from io import BytesIO
 from PIL import Image
 
 
@@ -26,9 +26,8 @@ class ImagePlate(object):
     """
 
     def __init__(self, dataset):
-        if ("image_normalized_loc" not in dataset.attributes or
-                len(dataset.attributes["image_normalized_loc"]) == 0):
-            raise RuntimeError("No data found in given dataset.")
+        if (dataset.attributes["instruction"]["operation"]["op"] != "image_plate"):
+            raise RuntimeError("No image_plate operation found for given dataset.")
         self.id = dataset.id
         self.raw = BytesIO()
         req = api.raw_image_data(data_id=self.id)

@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Fixed
+- Change check for ImagePlate to be more generic
 
 ## v3.1.0
 Added
