@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.2.1
+Fixed
+- Update docs/requirements.txt to be PEP440 compatible
+
 ## v3.2.0
 Changed
 - Reworked `Instruction` object
