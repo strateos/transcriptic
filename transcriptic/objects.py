@@ -163,9 +163,9 @@ class Run(_BaseObject):
 
         .. code-block:: python
 
-        myRun = Run('r12345')
-        myRun.data
-        myRun.instructions
+            myRun = Run('r12345')
+            myRun.data
+            myRun.instructions
 
     Attributes
     ----------
@@ -346,12 +346,12 @@ class Instruction(object):
 
         .. code-block:: python
 
-        myRun = Run('r12345')
-        myRun.instructions
+            myRun = Run('r12345')
+            myRun.instructions
 
-        # Access instruction object
-        myRun.instructions.Instructions[1]
-        myRun.instructions.Instructions[1].warps
+            # Access instruction object
+            myRun.instructions.Instructions[1]
+            myRun.instructions.Instructions[1].warps
 
 
     Attributes

@@ -49,6 +49,17 @@ class Connection(object):
         api.projects()
         api.runs(project_id="p123456789")
 
+    If you have multiple organizations and would like to switch to a specific organization, or if you
+    would like to auto-load certain projects, you can use the `update_environment` function call.
+
+    Example Usage:
+
+    .. code-block:: python
+        :caption: python
+
+        api.update_environment(org_id="my_other_org", project_id="p123")
+
+
     """
     def __init__(self, email=None, token=None, organization_id=False,
                  api_root="https://secure.transcriptic.com", organization=False,

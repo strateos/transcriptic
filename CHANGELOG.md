@@ -1,6 +1,13 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.2.2
+Added
+- additional documentation for `Connection` object
+Changed
+- update relevant documentation.rst files
+
 ## v3.2.1
 Changed
 - Updated "url" reference in run attributes to use "id" instead, in-line with a web update

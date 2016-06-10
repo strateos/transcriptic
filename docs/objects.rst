@@ -32,18 +32,18 @@ Dataset
     :undoc-members:
     :show-inheritance:
 
-Instructions
+Instruction
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Instructions
+.. autoclass:: transcriptic.objects.Instruction
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-
-Aliquot
+Container
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Aliquot
-
-Resource
-~~~~~~~~~~~~~~~~~
-
-.. autoclass:: transcriptic.objects.Resource
+.. autoclass:: transcriptic.objects.Container
+    :members:
+    :undoc-members:
+    :show-inheritance:
