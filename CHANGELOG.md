@@ -1,8 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
-
 ## v3.2.1
+Changed
+- Updated "url" reference in run attributes to use "id" instead, in-line with a web update
 Fixed
 - Update docs/requirements.txt to be PEP440 compatible
 

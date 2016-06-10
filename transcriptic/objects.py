@@ -200,7 +200,7 @@ class Run(_BaseObject):
             Connection context. The default context object will be used unless explicitly provided
         """
         super(Run, self).__init__('run', run_id, attributes, connection)
-        self.project_id = self.attributes['project']['url']
+        self.project_id = self.attributes['project']['id']
         self._instructions = pd.DataFrame()
         self._data = pd.DataFrame()
 
