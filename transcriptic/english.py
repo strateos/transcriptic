@@ -29,7 +29,19 @@ class AutoprotocolParser(object):
                 parsed_output.append("[Unknown instruction]")
         for i, p in enumerate(parsed_output):
             print("%d. %s" % (i + 1, p))
-    # add a graph maker and maybe take out the integer count for each step...?
+
+    def parse_return(self, obj):
+        self.instructions = obj['instructions']
+        self.refs = obj['refs']
+        parsed_output = []
+        for i in self.instructions:
+            try:
+                output = getattr(self, i['op'])(i)
+                parsed_output.extend(output) if isinstance(
+                    output, list) else parsed_output.append(output)
+            except AttributeError:
+                parsed_output.append("[Unknown instruction]")
+        return ", ".join(parsed_output)
 
     def absorbance(self, opts):
         return ("Measure absorbance at %s for %s of plate %s" %
@@ -60,13 +72,6 @@ class AutoprotocolParser(object):
     def cover(opts):
         return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
 
-    # @staticmethod
-    # def dispense(opts):
-    #     return "Dispense %s to %d column(s) of %s" % (opts['reagent'],
-    #                                                   len(opts['columns']),
-    #                                                   opts['object'])
-
-    # ----- Gautam's edits 6/7 -----
     def dispense(self, opts):
         unique_vol = []
         for col in opts['columns']:
@@ -75,10 +80,11 @@ class AutoprotocolParser(object):
                 unique_vol.append(vol)
 
         if len(opts['columns']) == 12 and len(unique_vol) == 1:
-            return "Dispense %s of %s to the full plate of %s" % (unique_vol[0], opts['reagent'], opts['object'])
+            return "Dispense %s of %s to the full plate of %s" % (
+                unique_vol[0], opts['reagent'], opts['object'])
         else:
-            return "Dispense corresponding amounts of %s to %d column(s) of %s" % (opts['reagent'], len(opts['columns']), opts['object'])
-    # ------------------------------
+            return "Dispense corresponding amounts of %s to %d column(s) of %s" % (
+                opts['reagent'], len(opts['columns']), opts['object'])
 
     def flash_freeze(self, opts):
         return ("Flash freeze %s for %s" %
@@ -97,7 +103,6 @@ class AutoprotocolParser(object):
                 "a %s agarose gel for %s" % (opts['matrix'].split(',')[1][:-1],
                                              self.unit(opts['duration'])))
 
-    # ----- Gautam's edits 6/7 -----
     @staticmethod
     def gel_purify(opts):
         unique_bl = []
@@ -110,11 +115,11 @@ class AutoprotocolParser(object):
                 "-" + str(unique_bl[i]['max_bp'])
 
         if len(unique_bl) <= 3:
-            return "Perform gel purification on the %s agarose gel with band range(s) %s" % (opts['matrix'].split(',')[1][:-1], ', '.join(unique_bl))
+            return "Perform gel purification on the %s agarose gel with band range(s) %s" % (
+                opts['matrix'].split(',')[1][:-1], ', '.join(unique_bl))
         else:
-            return "Perform gel purification on the %s agarose gel with %s band ranges" % (opts['matrix'].split(',')[1][:-1], len(unique_bl))
-
-    # ------------------------------
+            return "Perform gel purification on the %s agarose gel with %s band ranges" % (
+                opts['matrix'].split(',')[1][:-1], len(unique_bl))
 
     def incubate(self, opts):
         shaking = " (shaking)" if opts['shaking'] else ""
@@ -128,11 +133,13 @@ class AutoprotocolParser(object):
         return "Take an image of %s" % opts['object']
 
     def luminescence(self, opts):
-        return ("Read luminescence of %s of plate %s" % (self.well_list(opts['wells']), opts['object']))
+        return ("Read luminescence of %s of plate %s" %
+                (self.well_list(opts['wells']), opts['object']))
 
     @staticmethod
     def oligosynthesize(opts):
-        return (["Oligosynthesize sequence '%s' into '%s'" % (o['sequence'], o['destination']) for o in opts['oligos']])
+        return (["Oligosynthesize sequence '%s' into '%s'" %
+                 (o['sequence'], o['destination']) for o in opts['oligos']])
 
     def provision(self, opts):
         provisions = []
@@ -151,7 +158,6 @@ class AutoprotocolParser(object):
         elif opts['type'] == "rca":
             return seq + " with %s" % self.platename(opts['primer'])
 
-    # ----- Gautam's edits 6/7 -----
     def get_unique_wells(self, list_of_wells):
         unique_wells = []
         for well in list_of_wells:
@@ -183,7 +189,6 @@ class AutoprotocolParser(object):
                 wells.append(sample['well'])
 
         return "Perform flow cytometry on %s with the respective FSC and SSC channel parameters" % ", ".join(wells)
-    # ------------------------------
 
     @staticmethod
     def seal(opts):
@@ -260,9 +265,7 @@ class AutoprotocolParser(object):
                                      g[pip]['to']))
         return pipettes
 
-    # ----- Gautam's edits 6/7 -----
     def magnetic_transfer(self, opts):
-        # dry, incubate, collect, release, mix
         specific_op = list(opts['groups'][0][0].keys())[0]
         specs_dict = opts['groups'][0][0][specific_op]
         seq = "Magnetically %s %s" % (specific_op, specs_dict["object"])
@@ -270,11 +273,14 @@ class AutoprotocolParser(object):
         if specific_op == "dry":
             return seq + " for %s" % self.unit(specs_dict["duration"])
         elif specific_op == "incubate":
-            return seq + " for %s with a tip position of %s" % (self.unit(specs_dict["duration"]), specs_dict["tip_position"])
+            return seq + " for %s with a tip position of %s" % (
+                self.unit(specs_dict["duration"]), specs_dict["tip_position"])
         elif specific_op == "collect":
-            return seq + " beads for %s cycles with a pause duration of %s" % (specs_dict["cycles"], self.unit(specs_dict["pause_duration"]))
+            return seq + " beads for %s cycles with a pause duration of %s" % (
+                specs_dict["cycles"], self.unit(specs_dict["pause_duration"]))
         elif specific_op == "release" or "mix":
-            return seq + " beads for %s at an aplitude of %s" % (self.unit(specs_dict["duration"]), specs_dict["amplitude"])
+            return seq + " beads for %s at an amplitude of %s" % (
+                self.unit(specs_dict["duration"]), specs_dict["amplitude"])
 
     def get_unique_plates(self, list_of_wells):
         unique_plates = []
@@ -292,16 +298,18 @@ class AutoprotocolParser(object):
     def measure_volume(self, opts):
         unique_plates = self.get_unique_plates(opts['object'])
         if len(unique_plates) <= 3:
-            return "Mesaure volume of %s wells from %s" % (len(opts['object']), ", ".join(unique_plates))
+            return "Mesaure volume of %s wells from %s" % (
+                len(opts['object']), ", ".join(unique_plates))
         else:
-            return "Mesaure volume of %s wells from the %s plates" % (len(opts['object']), len(unique_plates))
+            return "Mesaure volume of %s wells from the %s plates" % (
+                len(opts['object']), len(unique_plates))
 
     def measure_mass(self, opts):
         return "Measure mass of %s" % ", ".join(opts['object'])
 
     def measure_concentration(self, opts):
-        return "Measure concentration of %s %s source aliquots" % (self.unit(opts['volume']), opts['measurement'])
-    # ------------------------------
+        return "Measure concentration of %s %s source aliquots" % (
+            self.unit(opts['volume']), opts['measurement'])
 
     @staticmethod
     def uncover(opts):
