@@ -487,20 +487,15 @@ class Container(_BaseObject):
     def _parse_container_type(self):
         """Helper function for parsing container string into container object"""
         from autoprotocol.container_type import _CONTAINER_TYPES
-        from autoprotocol.container_type import ContainerType
-        from copy import deepcopy
-        container_type = deepcopy(self.attributes["container_type"])
+        container_type = self.attributes["container_type"]
 
-        container_type.pop("well_type", None)
-        container_type.pop("id", None)
-        if "dead_volume" not in container_type:
-            container_type["dead_volume_ul"] = _CONTAINER_TYPES[
-                container_type["shortname"]].dead_volume_ul
-        if "safe_min_volume_ul" not in container_type:
-            container_type["safe_min_volume_ul"] = _CONTAINER_TYPES[
-                container_type["shortname"]].safe_min_volume_ul
-
-        return ContainerType(**container_type)
+        # Return the corresponding AP-Py container object for now. In the future, consider merging
+        # the current and future dictionary when instantianting container_type
+        try:
+            return _CONTAINER_TYPES[container_type["shortname"]]
+        except KeyError:
+            warnings.warn("ContainerType given is not supported yet in AP-Py")
+            return None
 
     @property
     def aliquots(self):
