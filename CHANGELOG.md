@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.2.3
 Changed
 - Simplified `Container._parse_container_type` to use matching AP-Py container-type object whenever possible
 
