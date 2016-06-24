@@ -2,26 +2,227 @@ import pytest
 from transcriptic.config import AnalysisException
 import unittest
 import json
-from autoprotocol.container import Container, WellGroup
-from autoprotocol.instruction import Thermocycle, Incubate, Spin
-from autoprotocol.pipette_tools import *  # flake8: noqa
-from autoprotocol.protocol import Protocol, Ref
+from autoprotocol.protocol import Protocol
 from autoprotocol.unit import Unit
 from transcriptic import english
-from transcriptic import cli
 
 
 class AP2EnTestCase(unittest.TestCase):
 
     maxDiff = None
 
+    def test_med_json_job_tree(self):
+
+        pjsonString = """{
+              "refs": {
+                "3-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "5-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "4-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "1-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "0-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "6-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }, 
+                "2-384-pcr": {
+                  "new": "384-pcr", 
+                  "discard": true
+                }
+              }, 
+              "instructions": [
+                {
+                  "groups": [
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "3-384-pcr/383", 
+                          "from": "3-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "3-384-pcr/382", 
+                          "from": "3-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "5-384-pcr/383", 
+                          "from": "5-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "5-384-pcr/382", 
+                          "from": "5-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "4-384-pcr/383", 
+                          "from": "4-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "4-384-pcr/382", 
+                          "from": "4-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "1-384-pcr/383", 
+                          "from": "1-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "1-384-pcr/382", 
+                          "from": "1-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "0-384-pcr/383", 
+                          "from": "0-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "0-384-pcr/382", 
+                          "from": "0-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "6-384-pcr/383", 
+                          "from": "6-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "6-384-pcr/382", 
+                          "from": "6-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "2-384-pcr/383", 
+                          "from": "2-384-pcr/0"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }, 
+                    {
+                      "transfer": [
+                        {
+                          "volume": "10.0:microliter", 
+                          "to": "2-384-pcr/382", 
+                          "from": "2-384-pcr/1"
+                        }
+                      ], 
+                      "x_tip_type": "filtered50"
+                    }
+                  ], 
+                  "op": "pipette"
+                }
+              ]
+            }
+            """
+        pjson = json.loads(pjsonString)
+        parser_instance = english.AutoprotocolParser(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
+
+        self.assertEqual(forest, [[1, [2]], [3, [4]], [5, [6]], [
+            7, [8]], [9, [10]], [21, [22]], [23, [24]]])
+
+    def test_large_json_parse(self):
+        with open("test/autoprotocol/longrun.json") as json_file:
+            pjson = json.load(json_file)
+            parser_instance = english.AutoprotocolParser(pjson)
+            # Not running job_tree() on this due to size
+
+            # parser_instance.job_tree()
+            # parsed_output = parser_instance.parsed_output
+            # steps = parser_instance.object_list
+            # forest = parser_instance.forest_list
+            # Desired: no ["Unkown Instruction"] prints
+
     def test_measure_suite(self):
         """
         Desired Output:
         1. Measure concentration of 2.0 microliters DNA source aliquots
         2. Measure mass of test_plate2
-        3. Mesaure volume of 12 wells from test_plate
-        4. Mesaure volume of 8 wells from test_plate2
+        3. Measure volume of 12 wells from test_plate
+        4. Measure volume of 8 wells from test_plate2
         """
 
         p = Protocol()
@@ -40,13 +241,18 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Measure concentration of 2.0 microliters DNA source aliquots, " +
-            "Measure mass of test_plate2, " +
-            "Mesaure volume of 12 wells from test_plate, " +
-            "Mesaure volume of 8 wells from test_plate2")
+            parsed_output, ["Measure concentration of 2.0 microliters DNA source aliquots of test_plate2",
+                            "Measure mass of test_plate2",
+                            "Measure volume of 12 wells from test_plate",
+                            "Measure volume of 8 wells from test_plate2"])
+        self.assertEqual(forest, [[1, [2, [4]]], [3]])
 
     def test_mag_incubate(self):
         """
@@ -79,14 +285,19 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0, " +
-            "Distribute from test/1 into wells test/7, test/8, test/9, " +
-            "Distribute from test/2 into wells test/10, " +
-            "Distribute from test/0 into wells test/1, " +
-            "Magnetically incubate pcr_0 for 30.0 minutes with a tip position of 1.5")
+            parsed_output, ["Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0",
+                            "Distribute from test/1 into wells test/7, test/8, test/9",
+                            "Distribute from test/2 into wells test/10",
+                            "Distribute from test/0 into wells test/1",
+                            "Magnetically incubate pcr_0 for 30.0 minutes with a tip position of 1.5"])
+        self.assertEqual(forest, [[1, [5]], [2, [4]], [3]])
 
     def test_mag_mix(self):
         """
@@ -119,14 +330,19 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0, " +
-            "Distribute from test/1 into wells test/7, test/8, test/9, " +
-            "Distribute from test/2 into wells test/10, " +
-            "Distribute from test/0 into wells test/1, " +
-            "Magnetically mix pcr_0 beads for 30.0 seconds at an amplitude of 0")
+            parsed_output, ["Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0",
+                            "Distribute from test/1 into wells test/7, test/8, test/9",
+                            "Distribute from test/2 into wells test/10",
+                            "Distribute from test/0 into wells test/1",
+                            "Magnetically mix pcr_0 beads for 30.0 seconds at an amplitude of 0"])
+        self.assertEqual(forest, [[1, [5]], [2, [4]], [3]])
 
     def test_mag_dry(self):
         """
@@ -159,14 +375,19 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0, " +
-            "Distribute from test/1 into wells test/7, test/8, test/9, " +
-            "Distribute from test/2 into wells test/10, " +
-            "Distribute from test/0 into wells test/1, " +
-            "Magnetically dry pcr_0 for 30.0 minutes")
+            parsed_output, ["Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0",
+                            "Distribute from test/1 into wells test/7, test/8, test/9",
+                            "Distribute from test/2 into wells test/10",
+                            "Distribute from test/0 into wells test/1",
+                            "Magnetically dry pcr_0 for 30.0 minutes"])
+        self.assertEqual(forest, [[1, [5]], [2, [4]], [3]])
 
     def test_mag_collect(self):
         """
@@ -199,14 +420,19 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0, " +
-            "Distribute from test/1 into wells test/7, test/8, test/9, " +
-            "Distribute from test/2 into wells test/10, " +
-            "Distribute from test/0 into wells test/1, " +
-            "Magnetically collect pcr_0 beads for 5 cycles with a pause duration of 30.0 seconds")
+            parsed_output, ["Magnetically release pcr_0 beads for 30.0 seconds at an amplitude of 0",
+                            "Distribute from test/1 into wells test/7, test/8, test/9",
+                            "Distribute from test/2 into wells test/10",
+                            "Distribute from test/0 into wells test/1",
+                            "Magnetically collect pcr_0 beads for 5 cycles with a pause duration of 30.0 seconds"])
+        self.assertEqual(forest, [[1, [5]], [2, [4]], [3]])
 
     def test_purify(self):
         """
@@ -241,12 +467,17 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Perform gel purification on the 0.8" + "% " + "agarose gel with band range(s) 0-10, " +
-            "Perform gel purification on the 0.8" + "% " + "agarose gel with band range(s) 0-10, " +
-            "Perform gel purification on the 0.8" + "% " + "agarose gel with band range(s) 0-10")
+            parsed_output, ["Perform gel purification on the 0.8% agarose gel with band range(s) 0-10",
+                            "Perform gel purification on the 0.8% agarose gel with band range(s) 0-10",
+                            "Perform gel purification on the 0.8% agarose gel with band range(s) 0-10"])
+        self.assertEqual(forest, [[1, [2, [3]]]])
 
     def test_dispense_suite(self):
         """
@@ -278,11 +509,16 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Dispense 100 microliters of water to the full plate of sample_plate5, " +
-            "Dispense corresponding amounts of water to 12 column(s) of sample_plate5")
+            parsed_output, ["Dispense 100 microliters of water to the full plate of sample_plate5",
+                            "Dispense corresponding amounts of water to 12 column(s) of sample_plate5"])
+        self.assertEqual(forest, [[1, [2]]])
 
     def test_illumina(self):
         """
@@ -299,10 +535,15 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Illumina sequence wells test_plate6/0, test_plate6/1 with library size 34")
+            parsed_output, ["Illumina sequence wells test_plate6/0, test_plate6/1 with library size 34"])
+        self.assertEqual(forest, [[1]])
 
     def test_flow(self):
         """
@@ -327,7 +568,12 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
-        parsed_output = parser_instance.parse_return(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, "Perform flow cytometry on well0 with the respective FSC and SSC channel parameters")
+            parsed_output, ["Perform flow cytometry on well0 with the respective FSC and SSC channel parameters"])
+        self.assertEqual(forest, [[1]])
