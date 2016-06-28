@@ -277,8 +277,7 @@ class AutoprotocolParser(object):
                             hits.append(index)
                             index += len(match)
 
-                    # find all locations of repeated branch and remove and
-                    # remove
+                    # find all locations of repeated branch and remove
                     if len(hits) > 1:
                         for start_loc in hits[1:]:
                             tString = tString[:start_loc] + \
