@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.2.4
 Added
 - Helper function `flatmap` into util
 Fixed
