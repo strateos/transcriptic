@@ -3,12 +3,17 @@ from builtins import str
 from past.builtins import basestring
 from past.utils import old_div
 import re
+import itertools
 
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
+
+
+def flatmap(func, items):
+    return itertools.chain.from_iterable(map(func, items))
 
 
 def pull(nested_dict):

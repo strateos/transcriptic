@@ -52,8 +52,12 @@ def get_release_status(api_root, org_id, package_id, release_id, timestamp):
     return "{api_root}/{org_id}/packages/{package_id}/releases/{release_id}?_={timestamp}".format(**locals())
 
 
-def query_resources(api_root, query):
+def query_kits(api_root, query):
     return "{api_root}/_commercial/kits?q={query}&per_page=1000".format(**locals())
+
+
+def query_resources(api_root, query):
+    return "{api_root}/_commercial/resources?q={query}&per_page=1000".format(**locals())
 
 
 def get_quick_launch(api_root, org_id, project_id, quick_launch_id):
