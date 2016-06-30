@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Ability for `api.get_zip` to handle larger zip-files by downloading to a local file
 
 ## v3.2.5
 Fixed
