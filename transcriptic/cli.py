@@ -471,7 +471,7 @@ def resources(ctx, query):
         kit_water = ctx.obj.api.kits(query)
         flat_items = list(flatmap(lambda x: [{"name": y["resource"]["name"],
                                               "id": y["resource"]["id"],
-                                              "vendor": x["vendor"]["name"] if "vendor" in x.keys() else ''}
+                                              "vendor": x["vendor"]["name"] if "vendor" in list(x.keys()) else ''}
                                              for y in x["kit_items"] if
                                              (y["provisionable"] and not y["reservable"])],
                                   kit_water["results"]))
@@ -489,9 +489,9 @@ def resources(ctx, query):
                        '{:^40}'.format("Resource ID"))
             click.echo('{:-^120}'.format(''))
             for resource in matched_resources:
-                click.echo('{:^40}'.format(resource["name"]) + '|' +
-                           '{:^40}'.format(resource["vendor"]) + '|' +
-                           '{:^40}'.format(resource["id"]))
+                click.echo('{:^40}'.format(resource["name"].encode('ascii', errors='ignore').decode("ascii")) + '|' +
+                           '{:^40}'.format(resource["vendor"].encode('ascii', errors='ignore').decode("ascii")) + '|' +
+                           '{:^40}'.format(resource["id"].encode('ascii', errors='ignore').decode("ascii")))
             click.echo('{:-^120}'.format(''))
         else:
             click.echo("No usable resource for '{}'.".format(query))
