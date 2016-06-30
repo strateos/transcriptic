@@ -1,6 +1,13 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.2.4
+Added
+- Helper function `flatmap` into util
+Fixed
+- Fixed resources route in CLI. `transcriptic resources 'query'` now works
+
 ## v3.2.3
 Changed
 - Simplified `Container._parse_container_type` to use matching AP-Py container-type object whenever possible

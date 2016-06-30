@@ -227,6 +227,11 @@ class Connection(object):
         route = self.get_route('query_resources', query=query)
         return self.get(route)
 
+    def kits(self, query):
+        """Get kits"""
+        route = self.get_route('query_kits', query=query)
+        return self.get(route)
+
     def monitoring_data(self, data_type, project_id=None, run_id=None, instruction_id=None):
         """Get monitoring_data"""
         route = self.get_route('monitoring_data', project_id=project_id, run_id=run_id,

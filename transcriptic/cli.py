@@ -18,7 +18,7 @@ import zipfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
-from transcriptic.util import iter_json
+from transcriptic.util import iter_json, flatmap, ascii_encode
 from transcriptic import routes
 from os.path import isfile
 from collections import OrderedDict
@@ -466,25 +466,37 @@ def delete_project(ctx, name, force):
 @click.pass_context
 def resources(ctx, query):
     """Search catalog of provisionable resources"""
-    req = ctx.obj.api.resources(query)
-    if req["results"]:
-        click.echo("Results for '%s':" % query)
-        click.echo('{:^40}'.format("Resource Name") + '|' +
-                   '{:^40}'.format("Vendor") + '|' +
-                   '{:^40}'.format("Resource ID"))
-        click.echo('{:-^120}'.format(''))
-    else:
-        click.echo("No results for '%s'." % query)
-    for i in req["results"]:
-        if i["provisionable"] and not i["reservable"]:
-            name = i['name'].encode('ascii', errors='ignore')
-            resource_id = i['kit_items'][0]['resource_id']
-            click.echo('{:^40}'.format(name) + '|' +
-                       '{:^40}'.format(i['vendor']['name'] if 'vendor' in
-                                       list(i.keys()) else ''
-                                       ) +
-                       '|' + '{:^40}'.format(resource_id))
+    resource_req = ctx.obj.api.resources(query)
+    if resource_req["results"]:
+        kit_req = ctx.obj.api.kits(query)
+        flat_items = list(flatmap(lambda x: [{"name": y["resource"]["name"],
+                                              "id": y["resource"]["id"],
+                                              "vendor": x["vendor"]["name"] if "vendor" in list(x.keys()) else ''}
+                                             for y in x["kit_items"] if
+                                             (y["provisionable"] and not y["reservable"])],
+                                  kit_req["results"]))
+        rs_id_list = [rs["id"] for rs in resource_req["results"]]
+
+        matched_resources = []
+        for item in flat_items:
+            if item["id"] in rs_id_list and item not in matched_resources:
+                matched_resources.append(item)
+
+        if matched_resources:
+            click.echo("Results for '%s':" % query)
+            click.echo('{:^40}'.format("Resource Name") + '|' +
+                       '{:^40}'.format("Vendor") + '|' +
+                       '{:^40}'.format("Resource ID"))
             click.echo('{:-^120}'.format(''))
+            for resource in matched_resources:
+                click.echo('{:^40}'.format(ascii_encode(resource["name"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["vendor"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["id"])))
+            click.echo('{:-^120}'.format(''))
+        else:
+            click.echo("No usable resource for '{}'.".format(query))
+    else:
+        click.echo("No results for '{}'.".format(query))
 
 
 @cli.command()
