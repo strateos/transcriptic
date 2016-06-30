@@ -18,7 +18,7 @@ import zipfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.objects import ProtocolPreview
-from transcriptic.util import iter_json, flatmap
+from transcriptic.util import iter_json, flatmap, ascii_encode
 from transcriptic import routes
 from os.path import isfile
 from collections import OrderedDict
@@ -466,16 +466,16 @@ def delete_project(ctx, name, force):
 @click.pass_context
 def resources(ctx, query):
     """Search catalog of provisionable resources"""
-    rs_water = ctx.obj.api.resources(query)
-    if rs_water["results"]:
-        kit_water = ctx.obj.api.kits(query)
+    resource_req = ctx.obj.api.resources(query)
+    if resource_req["results"]:
+        kit_req = ctx.obj.api.kits(query)
         flat_items = list(flatmap(lambda x: [{"name": y["resource"]["name"],
                                               "id": y["resource"]["id"],
                                               "vendor": x["vendor"]["name"] if "vendor" in list(x.keys()) else ''}
                                              for y in x["kit_items"] if
                                              (y["provisionable"] and not y["reservable"])],
-                                  kit_water["results"]))
-        rs_id_list = [rs["id"] for rs in rs_water["results"]]
+                                  kit_req["results"]))
+        rs_id_list = [rs["id"] for rs in resource_req["results"]]
 
         matched_resources = []
         for item in flat_items:
@@ -489,9 +489,9 @@ def resources(ctx, query):
                        '{:^40}'.format("Resource ID"))
             click.echo('{:-^120}'.format(''))
             for resource in matched_resources:
-                click.echo('{:^40}'.format(resource["name"].encode('ascii', errors='ignore').decode("ascii")) + '|' +
-                           '{:^40}'.format(resource["vendor"].encode('ascii', errors='ignore').decode("ascii")) + '|' +
-                           '{:^40}'.format(resource["id"].encode('ascii', errors='ignore').decode("ascii")))
+                click.echo('{:^40}'.format(ascii_encode(resource["name"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["vendor"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["id"])))
             click.echo('{:-^120}'.format(''))
         else:
             click.echo("No usable resource for '{}'.".format(query))

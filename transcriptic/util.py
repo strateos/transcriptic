@@ -16,6 +16,11 @@ def flatmap(func, items):
     return itertools.chain.from_iterable(map(func, items))
 
 
+def ascii_encode(non_compatible_string):
+    """Primarily used for ensuring terminal display compatibility"""
+    return non_compatible_string.encode('ascii', errors='ignore').decode("ascii")
+
+
 def pull(nested_dict):
     if "type" in nested_dict and "inputs" not in nested_dict:
         return nested_dict
