@@ -303,13 +303,50 @@ class Connection(object):
             '404': lambda resp: Exception("[404] No run found for ID " + id)
         })
 
-    def get_zip(self, data_id):
-        """Get zip file with given data_id. Returns Python Zipfile"""
+    def get_zip(self, data_id, file_path=None):
+        """
+        Get zip file with given data_id. Downloads to memory and returns a Python ZipFile by default.
+        When dealing with larger files where it may not be desired to load the entire file into memory,
+        specifying `file_path` will enable the file to be downloaded locally.
+
+        Example Usage:
+
+        .. code-block:: python
+
+            small_zip_id = 'd12345'
+            small_zip = api.get_zip(small_zip_id)
+
+            my_big_zip_id = 'd99999'
+            api.get_zip(my_big_zip_id, file_path='big_file.zip')
+
+        Parameters
+        ----------
+        data_id: data_id
+            Data id of file to download
+        file_path: Optional[str]
+            Path to file which to save the response to. If specified, will not return ZipFile explicitly.
+
+        Returns
+        ----------
+        zip: zipfile.ZipFile
+            A Python ZipFile is returned unless `file_path` is specified
+
+        """
         import zipfile
         from io import BytesIO
         route = self.get_route('get_data_zip', data_id=data_id)
         req = self.get(route, status_response={'200': lambda resp: resp}, stream=True)
-        return zipfile.ZipFile(BytesIO(req.content))
+        if file_path:
+            f = open(file_path, 'wb')
+            # Buffer download of data into memory with smaller chunk sizes
+            chunk_sz = 1024  # 1kb chunks
+            for chunk in req.iter_content(chunk_sz):
+                if chunk:
+                    f.write(chunk)
+            f.close()
+            print("Zip file downloaded locally to {}.".format(file_path))
+        else:
+            return zipfile.ZipFile(BytesIO(req.content))
 
     def get_route(self, method, **kwargs):
         """Helper function to automatically match and supply required arguments"""
