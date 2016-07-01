@@ -480,7 +480,7 @@ class Container(_BaseObject):
         self.id = container_id
         self.name = self.attributes["label"]
         self.well_map = {aliquot["well_idx"]: aliquot["name"]
-                        for aliquot in attributes["aliquots"]}
+                        for aliquot in self.attributes["aliquots"]}
         self.container_type = self._parse_container_type()
         self._aliquots = pd.DataFrame()
 

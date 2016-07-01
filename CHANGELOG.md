@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Fixed
+- Fixed initialization of Container object
 
 ## v3.2.4
 Added
