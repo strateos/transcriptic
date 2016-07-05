@@ -15,11 +15,11 @@ setup(
     version=__version__,
     packages=['transcriptic', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest>=2.9.0', 'tox>=2.3.1'],
+    tests_require=['pytest>=2.9.0', 'tox>=2.3.1', 'jsonschema>=2.5'],
     install_requires=[
         'Click>=5.1',
         'requests',
-        'autoprotocol>=3.4',
+        'autoprotocol>=3.7',
         'pandas>=0.18',
         'matplotlib>=1.4',
         'scipy>=0.16',

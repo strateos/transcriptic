@@ -1,5 +1,4 @@
 import pytest
-from transcriptic.config import AnalysisException
 import unittest
 import json
 from autoprotocol.protocol import Protocol
