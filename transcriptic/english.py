@@ -39,6 +39,7 @@ class AutoprotocolParser(object):
             print("%d. %s" % (i + 1, p))
 
     def job_tree(self):
+
         # steps => unflattened list of objects per instruction/step
         # the following are a series of utility/helper functions with job tree
         # construction
@@ -285,10 +286,16 @@ class AutoprotocolParser(object):
 
                 # increment all numbers in string to match the protocol
                 newString = ""
+                numString = ""
                 for el in tString:
-                    if el.isdigit():
-                        el = str(int(el) + 1)
-                    newString += el
+                    if el.isdigit():  # build number
+                        numString += el
+                    else:
+                        if numString != "":  # convert it to int and reinstantaite numString
+                            numString = str(int(numString) + 1)
+                        newString += numString
+                        newString += el
+                        numString = ""
                 tString = newString
                 del newString
 
@@ -315,10 +322,9 @@ class AutoprotocolParser(object):
         # 5
         self.forest_list = dict_to_list(forest)
         # 6
-        print("\n" + "A suggested job tree based on container dependency: \n")
+        print("\n" + "A suggested Job Tree based on container dependency: \n")
         for tree_list in self.forest_list:
             print_tree(tree_list)
-        print("\n")
 
     def absorbance(self, opts):
         self.object_list.append([opts['object']])

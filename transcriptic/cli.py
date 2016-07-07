@@ -24,6 +24,10 @@ from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
 
+import subprocess as sub
+import threading
+
+
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
 try:
@@ -604,9 +608,11 @@ def preview(ctx, protocol_name, view):
 @cli.command()
 @click.argument('file', default='-')
 @click.pass_context
-# @click.option('--verbose', '-v', is_flag=True,
-#               help='Job tree with or without instructions tacked on')
-def summarize(ctx, file):
+@click.option('--tree', '-t', is_flag=True,
+              help='Prints a job tree with instructions as leaf nodes')
+# default allowance set to 5 seconds
+@click.option('--runtime', "-r", type=click.INT, default=5)
+def summarize(ctx, file, tree, runtime):
     """Summarize Autoprotocol as a list of plain English steps."""
     with click.open_file(file, 'r') as f:
         try:
@@ -615,7 +621,29 @@ def summarize(ctx, file):
             click.echo(
                 "The autoprotocol you're trying to summarize is invalid.")
             return
-    AutoprotocolParser(protocol)
+    parser = AutoprotocolParser(protocol)
+
+    if tree:
+        import multiprocessing
+
+        print("\nGenerating Job Tree...")
+        p = multiprocessing.Process(target=parser.job_tree)
+        p.start()
+
+        # Wait for <runtime_allowance> seconds or until process finishes
+        p.join(runtime)
+
+        # If thread is still active
+        if p.is_alive():
+            print("Still running... Aborting tree construction.")
+            print(
+                "Please allow for more runtime allowance, or opt for no tree construction.\n")
+
+            # Terminate
+            p.terminate()
+            p.join()
+        else:
+            print("\nYour Job Tree is complete!\n")
 
 
 @cli.command()

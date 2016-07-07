@@ -8,7 +8,33 @@ from transcriptic import english
 
 class AP2EnTestCase(unittest.TestCase):
 
-    maxDiff = None
+    def test_web_example(self):
+
+        p = Protocol()
+
+        bacterial_sample = p.ref("bacteria", None, "micro-1.5", discard=True)
+        test_plate = p.ref("test_plate", None, "96-flat", storage="cold_4")
+
+        p.dispense_full_plate(test_plate, "lb-broth-noAB", "50:microliter")
+        w = 0
+        amt = 1
+        while amt < 20:
+            p.transfer(bacterial_sample.well(
+                0), test_plate.well(w), "%d:microliter" % amt)
+            amt += 2
+            w += 1
+
+        pjsonString = json.dumps(p.as_dict(), indent=2)
+        pjson = json.loads(pjsonString)
+        parser_instance = english.AutoprotocolParser(pjson)
+        parser_instance.job_tree()
+
+        parsed_output = parser_instance.parsed_output
+        steps = parser_instance.object_list
+        forest = parser_instance.forest_list
+
+        self.assertEqual(forest, [[1], [2], [3], [4], [5], [
+                         6], [7], [8], [9], [10], [11]])
 
     def test_med_json_job_tree(self):
 
@@ -201,7 +227,7 @@ class AP2EnTestCase(unittest.TestCase):
         forest = parser_instance.forest_list
 
         self.assertEqual(forest, [[1, [2]], [3, [4]], [5, [6]], [
-            7, [8]], [9, [10]], [21, [22]], [23, [24]]])
+            7, [8]], [9, [10]], [11, [12]], [13, [14]]])
 
     def test_large_json_parse(self):
         with open("test/autoprotocol/longrun.json") as json_file:
