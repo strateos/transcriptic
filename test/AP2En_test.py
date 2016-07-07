@@ -578,17 +578,20 @@ class AP2EnTestCase(unittest.TestCase):
 
         p = Protocol()
         dataref = "test_ref"
+        well0 = p.ref("test_plate", None, "96-pcr",
+                      discard=True).well(0)
         FSC = {"voltage_range": {"low": "230:volt", "high": "280:volt"},
                "area": True, "height": True, "weight": False}
         SSC = {"voltage_range": {"low": "230:volt", "high": "280:volt"},
                "area": True, "height": True, "weight": False}
-        neg_controls = {"well": "well0", "volume": "100:microliter",
-                        "captured_events": 5, "channel": "channel0"}
-        samples = [
-            {"well": "well0", "volume": "100:microliter", "captured_events": 9}]
+        channel0 = [FSC, SSC]
+        neg_controls = [{"well": well0, "volume": "100:microliter",
+                         "captured_events": 5, "channel": channel0}]
+        samples = [{"well": well0,
+                    "volume": "100:microliter", "captured_events": 9}]
 
         p.flow_analyze(dataref, FSC, SSC, neg_controls,
-                       samples, colors=None, pos_controls=None)
+                       samples)
 
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
@@ -600,5 +603,5 @@ class AP2EnTestCase(unittest.TestCase):
         forest = parser_instance.forest_list
 
         self.assertEqual(
-            parsed_output, ["Perform flow cytometry on well0 with the respective FSC and SSC channel parameters"])
+            parsed_output, ["Perform flow cytometry on test_plate/0 with the respective FSC and SSC channel parameters"])
         self.assertEqual(forest, [[1]])
