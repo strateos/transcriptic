@@ -24,10 +24,6 @@ from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
 
-import subprocess as sub
-import threading
-
-
 # Workaround to support the correct input for both Python 2 and 3. Always use
 # input() which will point to the correct builtin.
 try:
