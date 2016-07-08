@@ -3,6 +3,7 @@
 ## Unreleased
 Added
 - Ability for `api.get_zip` to handle larger zip-files by downloading to a local file
+- `cover` and `storage` attributes to Container object
 
 ## v3.2.5
 Fixed

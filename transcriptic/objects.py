@@ -445,6 +445,10 @@ class Container(_BaseObject):
     container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
+    cover: str
+        Cover type of container
+    storage: str
+        Storage condition of container
 
         Example Usage:
 
@@ -478,9 +482,11 @@ class Container(_BaseObject):
         super(Container, self).__init__('container', container_id, attributes, connection)
         # TODO: Unify container "label" with name, add Containers route
         self.id = container_id
+        self.cover = self.attributes["cover"]
         self.name = self.attributes["label"]
+        self.storage = self.attributes["storage_condition"]
         self.well_map = {aliquot["well_idx"]: aliquot["name"]
-                        for aliquot in self.attributes["aliquots"]}
+                         for aliquot in self.attributes["aliquots"]}
         self.container_type = self._parse_container_type()
         self._aliquots = pd.DataFrame()
 
