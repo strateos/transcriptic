@@ -4,6 +4,9 @@
 Added
 - Ability for `api.get_zip` to handle larger zip-files by downloading to a local file
 - `cover` and `storage` attributes to Container object
+- Ability to construct and visualize a given protocol's job tree using a flag on the CLI
+Updated
+- Updated english's summarize to handle all currently-implemented instructions
 
 ## v3.2.5
 Fixed

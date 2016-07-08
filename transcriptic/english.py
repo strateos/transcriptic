@@ -39,10 +39,67 @@ class AutoprotocolParser(object):
             print("%d. %s" % (i + 1, p))
 
     def job_tree(self):
+        """
+        A Job Tree visualizes the instructions of a protocol in a hierarchical
+        structure based on container dependency to help human readers with manual
+        execution. Its construction utilizes the algorithm below, as well as the
+        Node object class (to store relational information) at the bottom of this 
+        script.
 
-        # steps => unflattened list of objects per instruction/step
-        # the following are a series of utility/helper functions with job tree
-        # construction
+        Example Usage:
+            .. code-block:: python
+
+                p = Protocol()
+
+                bacterial_sample = p.ref("bacteria", None, "micro-1.5", discard=True)
+                test_plate = p.ref("test_plate", None, "96-flat", storage="cold_4")
+
+                p.dispense_full_plate(test_plate, "lb-broth-noAB", "50:microliter")
+                w = 0
+                amt = 1
+                while amt < 20:
+                    p.transfer(bacterial_sample.well(
+                        0), test_plate.well(w), "%d:microliter" % amt)
+                    amt += 2
+                    w += 1
+
+                pjsonString = json.dumps(p.as_dict(), indent=2)
+                pjson = json.loads(pjsonString)
+                parser_instance = english.AutoprotocolParser(pjson)
+                parser_instance.job_tree()
+
+                Output:
+                1
+                +---2
+                3
+                +---4
+                5
+                +---6
+                7
+                +---8
+                9
+                +---10
+                11
+                +---12
+
+
+        Variables 
+        ---------
+        steps: list
+            deep list of objects per instruction/step;
+            is primary information job tree is built from
+        nodes: list
+            list of node objects
+        proto_forest: list
+            list of lists grouped by connected nodes
+        forest: list
+            list of nested dictionaries, depicting parent-children relations
+        forest_list: list
+            list of nested lists, depticting parent-children relations 
+
+        The following are a series of modularized helper functions
+        used in Job Tree construction:
+        """
 
         # 1. Enforce depth of 1 for steps
         def depth_one(steps):
@@ -669,6 +726,34 @@ class AutoprotocolParser(object):
 
 
 class Node(object):
+    """
+    A Node represents a Job Tree element that fulfils a broader child-parent 
+    relational structure. It contains relevant information on its relationships
+    in the form of edges. The job_tree algorithm above then constructs the 
+    actual hierachy of the aforementioned relational structure.
+
+    Example Usage:
+        .. code-block:: python
+
+        a = Node("a")
+        b = Node("b")
+        c = Node("c")
+        d = Node("d")
+        e = Node("e")
+        f = Node("f")      structure:
+        a.add_edge(b)          a
+        a.add_edge(c)         / \
+        b.add_edge(d)        b   c
+        c.add_edge(e)       /   / \
+        c.add_edge(f)      d   e   f
+
+    Attributes
+    ----------
+    name: str
+        Name the Node object
+    edges: set
+        Set of edges that each node owns
+    """
 
     def __init__(self, name):
         self.__name = name

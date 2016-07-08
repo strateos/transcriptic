@@ -236,10 +236,11 @@ class AP2EnTestCase(unittest.TestCase):
             # Not running job_tree() on this due to size
 
             # parser_instance.job_tree()
+            # Desired: for now, aborted run via cli.py
+
             # parsed_output = parser_instance.parsed_output
             # steps = parser_instance.object_list
             # forest = parser_instance.forest_list
-            # Desired: no ["Unkown Instruction"] prints
 
     def test_measure_suite(self):
         """
