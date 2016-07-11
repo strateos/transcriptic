@@ -96,9 +96,6 @@ class AutoprotocolParser(object):
             list of nested dictionaries, depicting parent-children relations
         forest_list: list
             list of nested lists, depticting parent-children relations 
-
-        The following are a series of modularized helper functions
-        used in Job Tree construction:
         """
 
         # 1. Enforce depth of 1 for steps

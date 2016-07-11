@@ -610,12 +610,18 @@ def preview(ctx, protocol_name, view):
 @click.option('--runtime', "-r", type=click.INT, default=5)
 def summarize(ctx, file, tree, runtime):
     """Summarize Autoprotocol as a list of plain English steps, as well as a
-    visualized job tree contingent upon desired runtime allowance. Example usage 
+    visualized Job Tree contingent upon desired runtime allowance. A Job Tree 
+    refers to a structure of protocol based on container dependency, where each 
+    node, and its corresponding number, represents an instruction of the protocol.
+    More specifically, the tree structure contians process branches, in which the 
+    x-axis refers to the dependency depth in a given branch, while the y-axis refers
+    to the traversal of branches themselves.
+
+    Example usage 
     is as follows:
 
     python my_script.py | transcriptic summarize --tree
     python my_script.py | transcriptic summarize --tree --runtime 20
-
     """
     with click.open_file(file, 'r') as f:
         try:
