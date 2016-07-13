@@ -41,178 +41,178 @@ class AP2EnTestCase(unittest.TestCase):
         pjsonString = """{
               "refs": {
                 "3-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "5-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "4-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "1-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "0-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "6-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
-                }, 
+                },
                 "2-384-pcr": {
-                  "new": "384-pcr", 
+                  "new": "384-pcr",
                   "discard": true
                 }
-              }, 
+              },
               "instructions": [
                 {
                   "groups": [
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "3-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "3-384-pcr/383",
                           "from": "3-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "3-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "3-384-pcr/382",
                           "from": "3-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "5-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "5-384-pcr/383",
                           "from": "5-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "5-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "5-384-pcr/382",
                           "from": "5-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "4-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "4-384-pcr/383",
                           "from": "4-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "4-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "4-384-pcr/382",
                           "from": "4-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "1-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "1-384-pcr/383",
                           "from": "1-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "1-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "1-384-pcr/382",
                           "from": "1-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "0-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "0-384-pcr/383",
                           "from": "0-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "0-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "0-384-pcr/382",
                           "from": "0-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "6-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "6-384-pcr/383",
                           "from": "6-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "6-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "6-384-pcr/382",
                           "from": "6-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "2-384-pcr/383", 
+                          "volume": "10.0:microliter",
+                          "to": "2-384-pcr/383",
                           "from": "2-384-pcr/0"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
-                    }, 
+                    },
                     {
                       "transfer": [
                         {
-                          "volume": "10.0:microliter", 
-                          "to": "2-384-pcr/382", 
+                          "volume": "10.0:microliter",
+                          "to": "2-384-pcr/382",
                           "from": "2-384-pcr/1"
                         }
-                      ], 
+                      ],
                       "x_tip_type": "filtered50"
                     }
-                  ], 
+                  ],
                   "op": "pipette"
                 }
               ]
@@ -228,19 +228,6 @@ class AP2EnTestCase(unittest.TestCase):
 
         self.assertEqual(forest, [[1, [2]], [3, [4]], [5, [6]], [
             7, [8]], [9, [10]], [11, [12]], [13, [14]]])
-
-    def test_large_json_parse(self):
-        with open("test/autoprotocol/longrun.json") as json_file:
-            pjson = json.load(json_file)
-            parser_instance = english.AutoprotocolParser(pjson)
-            # Not running job_tree() on this due to size
-
-            # parser_instance.job_tree()
-            # Desired: for now, aborted run via cli.py
-
-            # parsed_output = parser_instance.parsed_output
-            # steps = parser_instance.object_list
-            # forest = parser_instance.forest_list
 
     def test_measure_suite(self):
         """

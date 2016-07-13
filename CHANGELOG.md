@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.3.0
 Added
 - Ability for `api.get_zip` to handle larger zip-files by downloading to a local file
 - `cover` and `storage` attributes to Container object
