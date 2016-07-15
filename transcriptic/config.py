@@ -150,7 +150,7 @@ class Connection(object):
         """Get list of runs in project"""
         route = self.get_route('get_project_runs', project_id=project_id)
         return self.get(route, status_response={
-            "200": lambda resp: resp.json()["runs"],
+            "200": lambda resp: resp.json(),
             "default": lambda resp: RuntimeError(
                 "There was an error fetching the runs in project %s" %
                 project_id
