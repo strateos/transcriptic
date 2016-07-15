@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.3.1
+Fixed
+- Updated `transcriptic runs` route to reflect reality
+
 ## v3.3.0
 Added
 - Ability for `api.get_zip` to handle larger zip-files by downloading to a local file
