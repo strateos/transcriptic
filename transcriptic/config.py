@@ -80,7 +80,13 @@ class Connection(object):
             "X-User-Token": token,
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-agent": "txpy/{} {}".format(__version__, platform.platform())
+            "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(__version__,
+                                                                  platform.python_implementation(),
+                                                                  platform.python_version(),
+                                                                  platform.system(),
+                                                                  platform.release(),
+                                                                  platform.machine(),
+                                                                  platform.architecture()[0])
         }
         # Preload known environment arguments
         self.env_args = dict(api_root=self.api_root, org_id=self.organization_id)
