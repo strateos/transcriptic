@@ -7,6 +7,8 @@ from os.path import expanduser
 from . import routes
 from autoprotocol import Protocol
 import requests
+from .version import __version__
+import platform
 
 
 class Connection(object):
@@ -77,9 +79,9 @@ class Connection(object):
             "X-User-Email": email,
             "X-User-Token": token,
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "User-agent": "txpy/{} {}".format(__version__, platform.platform())
         }
-
         # Preload known environment arguments
         self.env_args = dict(api_root=self.api_root, org_id=self.organization_id)
         transcriptic.api = self
@@ -125,6 +127,17 @@ class Connection(object):
                              '302': lambda resp: resp.headers['Location'],
                              'default': lambda resp: Exception("cannot preview protocol.")
                          })
+
+    def organizations(self):
+        """Get list of organizations"""
+        route = self.get_route('get_organizations')
+        return self.get(route)
+
+    def get_organization(self, org_id=None):
+        """Get particular organization"""
+        route = self.get_route('get_organization', org_id=org_id)
+        resp = self.get(route, status_response={'200': lambda resp: resp, 'default': lambda resp: resp})
+        return resp
 
     def projects(self):
         """Get list of projects in organization"""
