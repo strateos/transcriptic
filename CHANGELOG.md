@@ -1,7 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
-- Updated `Run` class to return all containers used in a run as a data frame, accessed through `Run.containers`
+- Added `Run.containers` to return a list of containers used within the run
 
 ## v3.3.1
 Fixed
