@@ -4,6 +4,7 @@
 ## v3.3.1
 Fixed
 - Updated `transcriptic runs` route to reflect reality
+- Updated `Run` class to return all containers used in a run as a data frame, accessed through `Run.containers`
 
 ## v3.3.0
 Added
@@ -240,4 +241,3 @@ Fixed
     - `new-project` --> `create-project`
     - `new-package` --> `create-package`
     - `run` --> `compile`
-
