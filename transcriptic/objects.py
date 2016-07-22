@@ -221,9 +221,6 @@ class Run(_BaseObject):
     @property
     def containers(self):
         if self._containers.empty:
-            # container_list = [Container(dict(x, **{'project_id': self.project_id, 'run_id': self.id}),
-            #                                   connection=self.connection)
-            #                       for x in self.attributes["containers"]]
             container_list = []
             for ref in Run(self.id).attributes["refs"]:
                 container_list.append(Container(ref["container"]["id"]))
