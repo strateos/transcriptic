@@ -202,6 +202,7 @@ class Run(_BaseObject):
         super(Run, self).__init__('run', run_id, attributes, connection)
         self.project_id = self.attributes['project']['id']
         self._instructions = pd.DataFrame()
+        self._containers = pd.DataFrame()
         self._data = pd.DataFrame()
 
     @property
@@ -216,6 +217,21 @@ class Run(_BaseObject):
             self._instructions.insert(1, "Started", [inst.started_at for inst in self._instructions.Instructions])
             self._instructions.insert(2, "Completed", [inst.completed_at for inst in self._instructions.Instructions])
         return self._instructions
+
+    @property
+    def containers(self):
+        if self._containers.empty:
+            container_list = []
+            for ref in Run(self.id).attributes["refs"]:
+                container_list.append(Container(ref["container"]["id"]))
+            self._containers = pd.DataFrame(container_list)
+            self._containers.columns = ["Containers"]
+            self._containers.insert(0, "Name", [container.name for container in self._containers.Containers])
+            self._containers.insert(1, "container_id", [container.id for container in self._containers.Containers])
+            self._containers.insert(2, "Type", [container.container_type.shortname for container in self._containers.Containers])
+            self._containers.insert(3, "Status", [container.attributes["status"] for container in self._containers.Containers])
+            self._containers.insert(4, "Storage Condition", [container.storage for container in self._containers.Containers])
+        return self._containers
 
     @property
     def data(self):

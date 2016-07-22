@@ -1,9 +1,12 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
 Added
 - `transcriptic select_org` in CLI now allows you to switch organizations without re-authenticating
-- Added `User-agent` information to headers
+-  `User-agent` information to headers
+-  `Run.containers` to return a list of containers used within the run
+
 
 ## v3.3.1
 Fixed
@@ -244,4 +247,3 @@ Fixed
     - `new-project` --> `create-project`
     - `new-package` --> `create-package`
     - `run` --> `compile`
-
