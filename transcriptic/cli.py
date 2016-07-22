@@ -771,21 +771,21 @@ def select_org(ctx):
             click.echo("{}.  {} ({})".format(indx + 1, o['name'], o['subdomain']))
 
         def parse_valid_org(indx):
+            from click.exceptions import BadParameter
             try:
                 return org_list[int(indx) - 1]['subdomain']
             except:
-                click.echo("Please enter an integer between 1 and %s" %
-                           (len(org_list)))
-                sys.exit(1)
+                raise BadParameter("Please enter an integer between 1 and %s" %
+                                   (len(org_list)), ctx=ctx)
 
         organization = click.prompt(
-            'Which organization would you like to login as',
+            'Which organization would you like to log in as',
             default=1,
             prompt_suffix='? ', type=int,
             value_proc=lambda x: parse_valid_org(x)
         )
 
-    r = ctx.obj.api.get_organization()
+    r = ctx.obj.api.get_organization(org_id=organization)
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
@@ -834,15 +834,15 @@ def login(ctx, api_root):
             click.echo("%s.  %s (%s)" % (indx + 1, o['name'], o['subdomain']))
 
         def parse_valid_org(indx):
+            from click.exceptions import BadParameter
             try:
                 return user['organizations'][int(indx) - 1]['subdomain']
             except:
-                click.echo("Please enter an integer between 1 and %s" %
-                           (len(user['organizations'])))
-                sys.exit(1)
+                raise BadParameter("Please enter an integer between 1 and %s" %
+                                   (len(user['organizations'])), ctx=ctx)
 
         organization = click.prompt(
-            'Which organization would you like to login as',
+            'Which organization would you like to log in as',
             default=1,
             prompt_suffix='? ', type=int,
             value_proc=lambda x: parse_valid_org(x)
