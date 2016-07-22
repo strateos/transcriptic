@@ -80,7 +80,11 @@ def login(api_root):
     return "{api_root}/users/sign_in".format(**locals())
 
 
-def get_organizations(api_root, org_id):
+def get_organizations(api_root):
+    return "{api_root}/organizations".format(**locals())
+
+
+def get_organization(api_root, org_id):
     return "{api_root}/{org_id}".format(**locals())
 
 

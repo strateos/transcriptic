@@ -1,7 +1,12 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
-- Added `Run.containers` to return a list of containers used within the run
+
+Added
+- `transcriptic select_org` in CLI now allows you to switch organizations without re-authenticating
+-  `User-agent` information to headers
+-  `Run.containers` to return a list of containers used within the run
+
 
 ## v3.3.1
 Fixed

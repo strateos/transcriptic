@@ -36,3 +36,27 @@ class TestAnalyze:
 
         mockRoute(call, route, response_db["mock200"], max_calls=1)
         assert test_api.analyze_run(json_db['singleTransfer']) == json_db['singleTransfer_response']
+
+    def testGetOrganizations(self, test_api, json_db, response_db):
+        # Setup parameters for route mocking
+        route = test_api.get_route('get_organizations')
+        call = 'get'
+
+        mockRoute(call, route, response_db["mock404"], max_calls=1)
+        with pytest.raises(Exception):
+            test_api.organizations()
+
+        mockRoute(call, route, response_db["mock200"], max_calls=1)
+        assert test_api.organizations() == json_db['singleTransfer_response']
+
+    def testGetOrganization(self, test_api, json_db, response_db):
+        # Setup parameters for route mocking
+        route = test_api.get_route('get_organization', org_id="mock")
+        call = 'get'
+
+        mockRoute(call, route, response_db["mock404"], max_calls=1)
+        with pytest.raises(Exception):
+            test_api.get_organization(org_id="mock")
+
+        mockRoute(call, route, response_db["mock200"], max_calls=1)
+        assert (test_api.get_organization(org_id="mock")).json() == json_db['singleTransfer_response']
