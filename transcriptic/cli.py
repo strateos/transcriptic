@@ -754,6 +754,48 @@ def launch(ctx, protocol, project, save_input):
 
 
 @cli.command()
+@click.pass_context
+def select_org(ctx):
+    """Allows you to switch organizations"""
+    org_list = [{"name": org['name'], "subdomain": org['subdomain']} for org in ctx.obj.api.organizations()]
+    if len(org_list) < 1:
+        click.echo("Error: You don't appear to belong to any organizations. \n"
+                   "Visit {} and create an organization.".format('https://secure.transcriptic.com'))
+        sys.exit(1)
+    if len(org_list) == 1:
+        organization = org_list[0]['subdomain']
+    else:
+        click.echo("You belong to %s organizations:" %
+                   len(org_list))
+        for indx, o in enumerate(org_list):
+            click.echo("{}.  {} ({})".format(indx + 1, o['name'], o['subdomain']))
+
+        def parse_valid_org(indx):
+            from click.exceptions import BadParameter
+            try:
+                return org_list[int(indx) - 1]['subdomain']
+            except:
+                raise BadParameter("Please enter an integer between 1 and %s" %
+                                   (len(org_list)), ctx=ctx)
+
+        organization = click.prompt(
+            'Which organization would you like to log in as',
+            default=1,
+            prompt_suffix='? ', type=int,
+            value_proc=lambda x: parse_valid_org(x)
+        )
+
+    r = ctx.obj.api.get_organization(org_id=organization)
+    if r.status_code != 200:
+        click.echo("Error accessing organization: %s" % r.text)
+        sys.exit(1)
+
+    ctx.obj.api.organization_id = organization
+    ctx.obj.api.save(ctx.parent.params['config'])
+    click.echo('Logged in with organization: {}'.format(organization))
+
+
+@cli.command()
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
 def login(ctx, api_root):
@@ -792,21 +834,21 @@ def login(ctx, api_root):
             click.echo("%s.  %s (%s)" % (indx + 1, o['name'], o['subdomain']))
 
         def parse_valid_org(indx):
+            from click.exceptions import BadParameter
             try:
                 return user['organizations'][int(indx) - 1]['subdomain']
             except:
-                click.echo("Please enter an integer between 1 and %s" %
-                           (len(user['organizations'])))
-                sys.exit(1)
+                raise BadParameter("Please enter an integer between 1 and %s" %
+                                   (len(user['organizations'])), ctx=ctx)
 
         organization = click.prompt(
-            'Which organization would you like to login as',
+            'Which organization would you like to log in as',
             default=1,
             prompt_suffix='? ', type=int,
             value_proc=lambda x: parse_valid_org(x)
         )
 
-    r = ctx.obj.api.get(routes.get_organizations(api_root=api_root, org_id=organization), headers={
+    r = ctx.obj.api.get(routes.get_organization(api_root=api_root, org_id=organization), headers={
         'X-User-Email': email,
         'X-User-Token': token,
         'Accept': 'application/json',

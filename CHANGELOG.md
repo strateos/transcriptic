@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- `transcriptic select_org` in CLI now allows you to switch organizations without re-authenticating
+- Added `User-agent` information to headers
+
 ## v3.3.1
 Fixed
 - Updated `transcriptic runs` route to reflect reality
