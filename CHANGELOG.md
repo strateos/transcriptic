@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Usage analytics support to CLI as well as opt-in option
+
 ## v3.4.0
 Added
 - `transcriptic select_org` in CLI now allows you to switch organizations without re-authenticating
