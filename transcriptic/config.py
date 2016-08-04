@@ -65,7 +65,7 @@ class Connection(object):
     """
     def __init__(self, email=None, token=None, organization_id=False,
                  api_root="https://secure.transcriptic.com", organization=False,
-                 cookie=False, verbose=False, use_environ=True):
+                 cookie=False, verbose=False, use_environ=True, analytics=True, user_id="default"):
         if email is None and use_environ:
             email = os.environ['USER_EMAIL']
             token = os.environ['USER_TOKEN']
@@ -75,6 +75,8 @@ class Connection(object):
         self.token = token
         self.organization_id = organization_id or organization
         self.verbose = verbose
+        self.analytics = analytics
+        self.user_id = user_id
         self.headers = {
             "X-User-Email": email,
             "X-User-Token": token,
@@ -97,6 +99,10 @@ class Connection(object):
         """Loads connection from file"""
         with open(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
+            expected_keys = ['email', 'token', 'organization_id', 'api_root', 'analytics', "user_id"]
+
+            def key_not_found(): raise OSError("Key not found")
+            [key_not_found() for key in expected_keys if key not in cfg.keys()]
             return Connection(**cfg)
 
     def save(self, path):
@@ -107,6 +113,8 @@ class Connection(object):
                 'token': self.token,
                 'organization_id': self.organization_id,
                 'api_root': self.api_root,
+                'analytics': self.analytics,
+                'user_id': self.user_id
             }, indent=2))
 
     def update_environment(self, **kwargs):
@@ -439,6 +447,13 @@ class Connection(object):
             raise return_val(response)
         else:
             return return_val(response)
+
+    def _post_analytics(self, client_id=None, event_action=None, event_category="cli"):
+        route = "https://www.google-analytics.com/collect"
+        if not client_id:
+            client_id = self.user_id
+        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
+        requests.post(route, packet)
 
 
 class AnalysisException(Exception):

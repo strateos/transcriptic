@@ -74,10 +74,14 @@ def cli(ctx, apiroot, config, organization):
                 ctx.obj.api.organization_id = organization
             if apiroot is not None:
                 ctx.obj.api.api_root = apiroot
-        except IOError:
-            click.echo("Error reading config file, running "
-                       "`transcriptic login` ...")
-            ctx.invoke(login)
+        except OSError:
+            click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file is missing or out of date")
+            analytics = click.confirm("Send TxPy CLI usage information to improve the CLI user "
+                                      "experience?", default=True)
+            ctx.obj.api = Connection(use_environ=False)  # Initialize empty connection
+            ctx.invoke(login, analytics=analytics)
+    if ctx.obj.api.analytics:
+        ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand, event_category="cli")
 
 
 @cli.command()
@@ -798,7 +802,7 @@ def select_org(ctx):
 @cli.command()
 @click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
-def login(ctx, api_root):
+def login(ctx, api_root, analytics=True):
     """Authenticate to your Transcriptic account."""
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
@@ -821,6 +825,7 @@ def login(ctx, api_root):
     user = r.json()
     token = (user.get('authentication_token') or
              user['test_mode_authentication_token'])
+    user_id = user.get("id")
     if len(user['organizations']) < 1:
         click.echo("Error: You don't appear to belong to any organizations. \n"
                    "Visit %s and create an organization." % api_root)
@@ -861,7 +866,8 @@ def login(ctx, api_root):
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
     ctx.obj.api = Connection(email=email, token=token,
-                             organization_id=organization, api_root=api_root)
+                             organization_id=organization, api_root=api_root,
+                             user_id=user_id, analytics=analytics)
     ctx.obj.api.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
