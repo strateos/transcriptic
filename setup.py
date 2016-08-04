@@ -18,7 +18,7 @@ setup(
     tests_require=['pytest>=2.9.0', 'tox>=2.3.1', 'jsonschema>=2.5'],
     install_requires=[
         'Click>=5.1',
-        'requests',
+        'requests>=2.0',
         'autoprotocol>=3.4',
         'pandas>=0.18',
         'matplotlib>=1.4',

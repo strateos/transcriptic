@@ -8,7 +8,6 @@ import pandas
 import matplotlib.pyplot as plt
 import plotly.tools as tls
 import numpy as np
-from IPython.display import HTML, display
 from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
 
@@ -342,8 +341,15 @@ def compare_standards(pr_obj, std_pr_obj):
         pr_obj.df.var(), columns=["Sample Variance"])
     sampleCV = pandas.DataFrame(pr_obj.cv, columns=["Sample (%) CV"])
 
-    if pr_obj.name:
-        display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
-    print(sampleVariance)
-    print(sampleCV)
-    print(RMSE)
+    try:
+        from IPython.display import HTML, display
+        if pr_obj.name:
+            display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
+        display(sampleVariance)
+        display(sampleCV)
+        display(RMSE)
+    except:
+        # If IPython module is not present or unable to show, print results
+        print(sampleVariance)
+        print(sampleCV)
+        print(RMSE)
