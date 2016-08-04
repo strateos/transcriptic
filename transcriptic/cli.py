@@ -74,7 +74,7 @@ def cli(ctx, apiroot, config, organization):
                 ctx.obj.api.organization_id = organization
             if apiroot is not None:
                 ctx.obj.api.api_root = apiroot
-        except OSError:
+        except:
             click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file is missing or out of date")
             analytics = click.confirm("Send TxPy CLI usage information to improve the CLI user "
                                       "experience?", default=True)
