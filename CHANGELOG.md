@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.4.2
+Fixed
+- Broaden exception clause for general Python compatibility
+
 ## v3.4.1
 Added
 - Usage analytics support to CLI
