@@ -271,8 +271,6 @@ class Run(_BaseObject):
             Returns a pandas dataframe of the monitoring data
         """
         response = self.connection.monitoring_data(
-            project_id=self.project_id,
-            run_id=self.id,
             instruction_id=instruction_id,
             data_type=data_type
         )
