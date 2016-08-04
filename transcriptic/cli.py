@@ -75,9 +75,9 @@ def cli(ctx, apiroot, config, organization):
             if apiroot is not None:
                 ctx.obj.api.api_root = apiroot
         except OSError:
-            click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file has not been correctly initialized")
-            analytics = click.confirm("Would you like to submit TxPy CLI usage information to improve the CLI user "
-                                      "experience?")
+            click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file is missing or out of date")
+            analytics = click.confirm("Send TxPy CLI usage information to improve the CLI user "
+                                      "experience?", default=True)
             ctx.obj.api = Connection(use_environ=False)  # Initialize empty connection
             ctx.invoke(login, analytics=analytics)
     if ctx.obj.api.analytics:

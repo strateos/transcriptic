@@ -1,8 +1,12 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.4.1
 Added
-- Usage analytics support to CLI as well as opt-in option
+- Usage analytics support to CLI
+Updated
+- Minor documentation fixes
 
 ## v3.4.0
 Added
