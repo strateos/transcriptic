@@ -5,6 +5,7 @@ import pandas as pd
 from builtins import object
 import warnings
 
+
 def _check_api(obj_type):
     from transcriptic import api
     if not api:
@@ -24,6 +25,7 @@ class ProtocolPreview(object):
 
 class _BaseObject(object):
     """Base object which other objects inherit from"""
+
     # TODO: Inherit more stuff from here. Need to ensure web has unified fields for objects
     def __init__(self, obj_type, obj_id, attributes, connection=None):
         # If attributes and connection are explicitly provided, just return and not do any smart parsing
@@ -43,7 +45,7 @@ class _BaseObject(object):
 
     def load_object(self, obj_type, obj_id):
         """Find and match object by name"""
-        #TODO: Remove the try/except statement and properly handle cases where objects are not found
+        # TODO: Remove the try/except statement and properly handle cases where objects are not found
         try:
             objects = getattr(self.connection, obj_type + 's')()
         except:
@@ -62,7 +64,7 @@ class _BaseObject(object):
         elif len(matched_objects) == 1:
             return matched_objects[0]
         else:
-            print ("More than 1 match found. Defaulting to the first match: %s" % (matched_objects[0]))
+            print("More than 1 match found. Defaulting to the first match: %s" % (matched_objects[0]))
             return matched_objects[0]
 
 
@@ -92,6 +94,7 @@ class Project(_BaseObject):
         Transcriptic Connection object associated with this specific object
 
     """
+
     def __init__(self, project_id, attributes=None, connection=None):
         """
         Initialize a Project by providing a project name/id. The attributes and connection parameters are generally
@@ -185,6 +188,7 @@ class Run(_BaseObject):
         Transcriptic Connection object associated with this specific object
 
     """
+
     def __init__(self, run_id, attributes=None, connection=None):
         """
         Initialize a Run by providing a run name/id. The attributes and connection parameters are generally
@@ -209,8 +213,8 @@ class Run(_BaseObject):
     def instructions(self):
         if self._instructions.empty:
             instruction_list = [Instruction(dict(x, **{'project_id': self.project_id, 'run_id': self.id}),
-                                              connection=self.connection)
-                                  for x in self.attributes["instructions"]]
+                                            connection=self.connection)
+                                for x in self.attributes["instructions"]]
             self._instructions = pd.DataFrame(instruction_list)
             self._instructions.columns = ["Instructions"]
             self._instructions.insert(0, "Name", [inst.name for inst in self._instructions.Instructions])
@@ -254,28 +258,6 @@ class Run(_BaseObject):
             self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
         return self._data
 
-    def monitoring(self, instruction_id, data_type='pressure'):
-        """
-        View monitoring data of a given instruction
-
-        Parameters
-        ----------
-        instruction_id: str
-            Instruction id in string form
-        data_type: str
-            Monitoring data type, defaults to 'pressure'
-
-        Returns
-        -------
-        DataFrame
-            Returns a pandas dataframe of the monitoring data
-        """
-        response = self.connection.monitoring_data(
-            instruction_id=instruction_id,
-            data_type=data_type
-        )
-        return pd.DataFrame(response['results'])
-
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
         style="height:450px" seamless></iframe>""" % \
@@ -306,6 +288,7 @@ class Dataset(_BaseObject):
         Transcriptic Connection object associated with this specific object
 
     """
+
     def __init__(self, data_id, attributes=None, connection=None):
         """
         Initialize a Dataset by providing a data name/id. The attributes and connection parameters are generally
@@ -424,11 +407,31 @@ class Instruction(object):
             self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
         return self._warps
 
+    def monitoring(self, data_type='pressure'):
+        """
+        View monitoring data of a given instruction
+
+        Parameters
+        ----------
+        data_type: str
+            Monitoring data type, defaults to 'pressure'
+
+        Returns
+        -------
+        DataFrame
+            Returns a pandas dataframe of the monitoring data
+        """
+        response = self.connection.monitoring_data(
+            instruction_id=self.id,
+            data_type=data_type
+        )
+        return pd.DataFrame(response['results'])
+
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
             style="height:1000px" seamless></iframe>""" % \
-               self.connection.get_route('view_instruction', run_id= self.attributes["run_id"],
-                                         project_id= self.attributes["project_id"], instruction_id=self.id)
+               self.connection.get_route('view_instruction', run_id=self.attributes["run_id"],
+                                         project_id=self.attributes["project_id"], instruction_id=self.id)
 
 
 class Container(_BaseObject):
@@ -522,12 +525,11 @@ class Container(_BaseObject):
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
             self._aliquots = pd.DataFrame([dict({'Name': x['name'], 'Id': x['id'],
-                                            'Volume': x['volume_ul']}, **x['properties'])
+                                                 'Volume': x['volume_ul']}, **x['properties'])
                                            for x in aliquot_list])
         return self._aliquots
 
-
-def __repr__(self):
+    def __repr__(self):
         """
         Return a string representation of a Container using the specified name.
         (ex. Container('my_plate'))
