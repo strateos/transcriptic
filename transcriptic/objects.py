@@ -407,14 +407,16 @@ class Instruction(object):
             self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
         return self._warps
 
-    def monitoring(self, data_type='pressure'):
+    def monitoring(self, data_type='pressure', grouping=None):
         """
         View monitoring data of a given instruction
 
         Parameters
         ----------
-        data_type: str
+        data_type: Optional[str]
             Monitoring data type, defaults to 'pressure'
+        grouping: Optional[str]
+            Determines whether the values will be grouped, defaults to None. E.g. "5:ms"
 
         Returns
         -------
@@ -423,7 +425,8 @@ class Instruction(object):
         """
         response = self.connection.monitoring_data(
             instruction_id=self.id,
-            data_type=data_type
+            data_type=data_type,
+            grouping=grouping
         )
         return pd.DataFrame(response['results'])
 
