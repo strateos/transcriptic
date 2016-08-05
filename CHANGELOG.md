@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.4.3
+Fixed
+- Made local commands robust to lack of internet access
+
 ## v3.4.2
 Fixed
 - Broaden exception clause for general Python compatibility

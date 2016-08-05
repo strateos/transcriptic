@@ -62,11 +62,11 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
     """A command line tool for working with Transcriptic."""
-    if ctx.invoked_subcommand in ['login']:
-        # Initialize empty connection
+    if ctx.invoked_subcommand in ['login', 'compile', 'preview', 'summarize', 'init']:
+        # For login/local commands, initialize empty connection
         ctx.obj = ContextObject()
         ctx.obj.api = Connection(use_environ=False)
-    elif ctx.invoked_subcommand not in ['compile', 'preview', 'summarize', 'init']:
+    else:
         try:
             ctx.obj = ContextObject()
             ctx.obj.api = Connection.from_file(config)
@@ -81,7 +81,10 @@ def cli(ctx, apiroot, config, organization):
             ctx.obj.api = Connection(use_environ=False)  # Initialize empty connection
             ctx.invoke(login, analytics=analytics)
     if ctx.obj.api.analytics:
-        ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand, event_category="cli")
+        try:
+            ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand, event_category="cli")
+        except:
+            pass
 
 
 @cli.command()
