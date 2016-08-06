@@ -132,5 +132,12 @@ def get_data_zip(api_root, data_id):
     return "{api_root}/-/{data_id}.zip".format(**locals())
 
 
-def monitoring_data(api_root, org_id, project_id, run_id, instruction_id, data_type):
-    return "{api_root}/{org_id}/{project_id}/runs/{run_id}/{instruction_id}/monitoring/{data_type}".format(**locals())
+def monitoring_data(api_root, data_type, instruction_id, grouping=None, start_time=None, end_time=None):
+    base_route = "{api_root}/sensor_data/{data_type}?instruction_id={instruction_id}".format(**locals())
+    if grouping:
+        base_route += "&grouping={grouping}".format(**locals())
+    if start_time:
+        base_route += "&start_time={start_time}".format(**locals())
+    if end_time:
+        base_route += "&end_time={end_time}".format(**locals())
+    return base_route

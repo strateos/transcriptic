@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Updated
+- `.monitoring` method is now shifted to the Instruction object from the Run object
+- Optional parameters can now be handled by `get_route`
+Fixed
+- Existing route for monitoring data
 
 ## v3.4.3
 Fixed

@@ -9,6 +9,7 @@ from autoprotocol import Protocol
 import requests
 from .version import __version__
 import platform
+import inspect
 
 
 class Connection(object):
@@ -259,10 +260,10 @@ class Connection(object):
         route = self.get_route('query_kits', query=query)
         return self.get(route)
 
-    def monitoring_data(self, data_type, project_id=None, run_id=None, instruction_id=None):
+    def monitoring_data(self, data_type, instruction_id=None, grouping=None, start_time=None, end_time=None):
         """Get monitoring_data"""
-        route = self.get_route('monitoring_data', project_id=project_id, run_id=run_id,
-                               instruction_id=instruction_id, data_type=data_type)
+        route = self.get_route('monitoring_data', data_type=data_type, instruction_id=instruction_id,
+                               grouping=grouping, start_time=start_time, end_time=end_time)
         return self.get(route)
 
     def raw_image_data(self, data_id=None):
@@ -378,7 +379,9 @@ class Connection(object):
     def get_route(self, method, **kwargs):
         """Helper function to automatically match and supply required arguments"""
         route_method = getattr(routes, method)
-        route_method_args = route_method.__code__.co_varnames
+        route_method_args, _, _, route_defaults = inspect.getargspec(route_method)
+        if route_defaults:
+            route_method_args = route_method_args[:-len(route_defaults)]
         # Update loaded argument dictionary with additional arguments which are not None
         arg_dict = dict(self.env_args, **{k: v for k, v in list(kwargs.items()) if v is not None})
         input_args = []
