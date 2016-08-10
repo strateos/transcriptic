@@ -189,7 +189,7 @@ class Run(_BaseObject):
 
     """
 
-    def __init__(self, run_id, attributes=None, connection=None):
+    def __init__(self, run_id, attributes=None, connection=None, timeout=30.0):
         """
         Initialize a Run by providing a run name/id. The attributes and connection parameters are generally
         not specified unless one wants to manually initialize the object.
@@ -202,12 +202,34 @@ class Run(_BaseObject):
             Attributes of the run
         connection: Optional[transcriptic.config.Connection]
             Connection context. The default context object will be used unless explicitly provided
+        timeout: Optional[float]
+            Timeout in seconds (defaults to 30.0). This will be used when making API calls to fetch data associated with the run.
         """
         super(Run, self).__init__('run', run_id, attributes, connection)
         self.project_id = self.attributes['project']['id']
+        self.timeout = timeout
+        self._data_ids = pd.DataFrame()
         self._instructions = pd.DataFrame()
         self._containers = pd.DataFrame()
         self._data = pd.DataFrame()
+
+    @property
+    def data_ids(self):
+        """
+        Find and generate a list of datarefs and data_ids associated with this run.
+
+        Returns
+        -------
+        DataFrame
+            Returns a DataFrame of data ids, with datarefs and data_ids as columns
+
+        """
+        if self._data_ids.empty:
+            data_dict = {instruction.attributes['operation']['dataref']: instruction.attributes['dataset']['id'] for instruction in self.instructions['Instructions'] if 'dataset' in instruction.attributes}
+            if len(data_dict) > 0:
+                self._data_ids = pd.DataFrame(sorted(data_dict.items()))
+                self._data_ids.columns = ["dataref", "data_id"]
+        return self._data_ids
 
     @property
     def instructions(self):
@@ -249,13 +271,22 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            datasets = self.connection.datasets(project_id=self.project_id, run_id=self.id)
-            data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
-                                    connection=self.connection)
-                         for k in list(datasets.keys()) if datasets[k]}
-            self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
-            self._data.columns = ["Name", "Datasets"]
-            self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
+            num_datasets = len(self.data_ids)
+            if num_datasets == 0:
+                print("No datasets were found.")
+            else:
+                print("Attempting to fetch %d datasets..." % num_datasets)
+                try:
+                    datasets = self.connection.datasets(project_id=self.project_id, run_id=self.id, timeout=self.timeout)
+                    data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
+                                            connection=self.connection)
+                                 for k in list(datasets.keys()) if datasets[k]}
+                    self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
+                    self._data.columns = ["Name", "Datasets"]
+                    self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
+                except Exception:
+                    print('Operation timed out after %d seconds. Returning data_ids instead of Datasets.\nTo try again, increase value of self.timeout and resubmit request.' % self.timeout)
+                    return self.data_ids
         return self._data
 
     def _repr_html_(self):

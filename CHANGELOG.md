@@ -1,7 +1,12 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- timeout property for Run objects
+- data_ids property for Run objects
+
 Updated
+- data property for Run objects gives more informative errors when failing due to timeout
 - `.monitoring` method is now shifted to the Instruction object from the Run object
 - Optional parameters can now be handled by `get_route`
 Fixed

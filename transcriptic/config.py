@@ -324,12 +324,12 @@ class Connection(object):
         route = self.get_route('dataset', data_id=data_id, key=key)
         return self.get(route)
 
-    def datasets(self, project_id=None, run_id=None):
+    def datasets(self, project_id=None, run_id=None, timeout=30.0):
         """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
         return self.get(route, status_response={
             '404': lambda resp: Exception("[404] No run found for ID " + id)
-        })
+        }, timeout=timeout)
 
     def get_zip(self, data_id, file_path=None):
         """
