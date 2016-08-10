@@ -1,11 +1,6 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
-Added
-
-Updated
-
-Fixed
 
 ## v3.5.0
 Added
