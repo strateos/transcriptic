@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from operator import itemgetter
 from builtins import str
 import pandas as pd
 from builtins import object
@@ -492,7 +493,8 @@ class Container(_BaseObject):
     well_map: dict
         Well mapping with well indices for keys and well names as values
     aliquots: DataFrame
-        DataFrame of aliquots present in the container
+        DataFrame of aliquots present in the container. DataFrame index
+        now corresponds to the Well Index.
     container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
@@ -556,11 +558,19 @@ class Container(_BaseObject):
 
     @property
     def aliquots(self):
+        """
+        Return a DataFrame of aliquots in the container, along with aliquot
+        name, volume, and properties. Row index for the DataFrame corresponds
+        to the well index of the aliquot.
+
+        """
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
-            self._aliquots = pd.DataFrame([dict({'Name': x['name'], 'Id': x['id'],
+            self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': x['volume_ul']}, **x['properties'])
-                                           for x in aliquot_list])
+                                           for x in aliquot_list], key=itemgetter('Well Index')))
+            indices = self._aliquots.pop('Well Index')
+            self._aliquots.set_index(indices, inplace=True)
         return self._aliquots
 
     def __repr__(self):
