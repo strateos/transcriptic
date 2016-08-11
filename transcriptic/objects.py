@@ -558,7 +558,7 @@ class Container(_BaseObject):
     def aliquots(self):
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
-            self._aliquots = pd.DataFrame([dict({'Name': x['name'], 'Id': x['id'],
+            self._aliquots = pd.DataFrame([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': x['volume_ul']}, **x['properties'])
                                            for x in aliquot_list])
         return self._aliquots
