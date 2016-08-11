@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Well Index to the dataframe stored in the Container.aliquots property
 
 ## v3.5.0
 Added
