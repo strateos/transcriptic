@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from operator import itemgetter
 from builtins import str
 import pandas as pd
 from builtins import object
@@ -558,9 +559,9 @@ class Container(_BaseObject):
     def aliquots(self):
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
-            self._aliquots = pd.DataFrame([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
+            self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': x['volume_ul']}, **x['properties'])
-                                           for x in aliquot_list])
+                                           for x in aliquot_list], key=itemgetter('Well Index')))
         return self._aliquots
 
     def __repr__(self):
