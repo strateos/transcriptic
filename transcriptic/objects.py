@@ -558,6 +558,12 @@ class Container(_BaseObject):
 
     @property
     def aliquots(self):
+        """
+        Return a DataFrame of aliquots in the container, along with aliquot
+        name, volume, and properties. Row index for the DataFrame corresponds
+        to the well index of the aliquot.
+
+        """
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
             self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
