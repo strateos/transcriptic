@@ -493,7 +493,8 @@ class Container(_BaseObject):
     well_map: dict
         Well mapping with well indices for keys and well names as values
     aliquots: DataFrame
-        DataFrame of aliquots present in the container
+        DataFrame of aliquots present in the container. DataFrame index
+        now corresponds to the Well Index.
     container_type: autoprotocol.container_type.ContainerType
         Autoprotocol ContainerType object with many useful container type
         information and functions.
