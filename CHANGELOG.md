@@ -2,7 +2,7 @@
 
 ## Unreleased
 Added
-- Well Index to the dataframe stored in the Container.aliquots property
+- Well index now corresponds to the row index of the Container.aliquots DataFrame
 
 ## v3.5.0
 Added
