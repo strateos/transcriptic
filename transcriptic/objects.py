@@ -561,7 +561,9 @@ class Container(_BaseObject):
             aliquot_list = self.attributes["aliquots"]
             self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': x['volume_ul']}, **x['properties'])
-                                           for x in aliquot_list], key=itemgetter('Well Index'))).drop('Well Index', 1)
+                                           for x in aliquot_list], key=itemgetter('Well Index')))
+            indices = self._aliquots.pop('Well Index')
+            self._aliquots.set_index(indices, inplace=True)
         return self._aliquots
 
     def __repr__(self):
