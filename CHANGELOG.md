@@ -2,7 +2,7 @@
 
 ## Unreleased
 Added
-- Well index now corresponds to the row index of the Container.aliquots DataFrame
+- Row index of the Container.aliquots DataFrame object now corresponds to the well index
 
 ## v3.5.0
 Added
