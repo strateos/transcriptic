@@ -5,6 +5,7 @@ from builtins import str
 import pandas as pd
 from builtins import object
 import warnings
+from autoprotocol import Unit
 
 
 def _check_api(obj_type):
@@ -567,7 +568,7 @@ class Container(_BaseObject):
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
             self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
-                                                 'Volume': x['volume_ul']}, **x['properties'])
+                                                 'Volume': Unit(float(x['volume_ul']), 'microliter')}, **x['properties'])
                                            for x in aliquot_list], key=itemgetter('Well Index')))
             indices = self._aliquots.pop('Well Index')
             self._aliquots.set_index(indices, inplace=True)
