@@ -4,6 +4,9 @@
 Added
 - Row index of the Container.aliquots DataFrame object now corresponds to the well index
 
+Fixed
+- Stored volume in the Container.aliquots DataFrame as a Unit object instead of unicode
+
 ## v3.5.0
 Added
 - timeout property for Run objects
