@@ -254,6 +254,10 @@ class Connection(object):
         route = self.get_route('create_quick_launch', project_id=project_id)
         return self.post(route, data=data)
 
+    def launch_protocol(self, protocol_name=None, package_name=None):
+        # Bring up quick
+        return None
+
     def resources(self, query):
         """Get resources"""
         route = self.get_route('query_resources', query=query)

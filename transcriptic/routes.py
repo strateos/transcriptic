@@ -44,6 +44,14 @@ def get_packages(api_root, org_id):
     return "{api_root}/{org_id}/packages/".format(**locals())
 
 
+def get_protocols(api_root, org_id):
+    return "{api_root}/{org_id}/protocols".format(**locals())
+
+
+def launch_protocol(api_root, org_id, protocol_id):
+    return "{api_root}/{org_id}/protocols/{protocol_id}/launch".format(**locals())
+
+
 def post_release(api_root, org_id, package_id):
     return "{api_root}/{org_id}/packages/{package_id}/releases/".format(**locals())
 
