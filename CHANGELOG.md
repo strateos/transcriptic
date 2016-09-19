@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Object helpers to allow more natural property access. E.g. `myRun.instructions.Instructions` = `myRun.Instructions`
+
+Updated
+- Misc formatting changes for HTML representation
 
 ## v3.5.1
 Added
