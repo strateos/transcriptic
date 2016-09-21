@@ -6,6 +6,7 @@ import pandas as pd
 from builtins import object
 import warnings
 from autoprotocol import Unit
+from requests.exceptions import ReadTimeout
 
 
 def _check_api(obj_type):
@@ -171,6 +172,8 @@ class Run(_BaseObject):
             myRun = Run('r12345')
             myRun.data
             myRun.instructions
+            myRun.containers
+            myRun.Instructions[0]
 
     Attributes
     ----------
@@ -179,9 +182,11 @@ class Run(_BaseObject):
     name: str
         Run name
     data: DataFrame
-        DataFrame of all datasets which belong to this run
+        DataFrame summary of all datasets which belong to this run
     instructions: DataFrame
-        DataFrame of all Instruction objects which belong to this run
+        DataFrame summary of all Instruction objects which belong to this run
+    containers: DataFrame
+        DataFrame summary of all Container objects which belong to this run
     project_id : str
         Project id which run belongs to
     attributes: dict
@@ -247,6 +252,19 @@ class Run(_BaseObject):
         return self._instructions
 
     @property
+    def Instructions(self):
+        """
+        Helper for allowing direct access of `Instruction` objects
+
+        Returns
+        -------
+        Series
+            Returns a Series of `Instruction` objects
+
+        """
+        return self.instructions.Instructions
+
+    @property
     def containers(self):
         if self._containers.empty:
             container_list = []
@@ -255,11 +273,23 @@ class Run(_BaseObject):
             self._containers = pd.DataFrame(container_list)
             self._containers.columns = ["Containers"]
             self._containers.insert(0, "Name", [container.name for container in self._containers.Containers])
-            self._containers.insert(1, "container_id", [container.id for container in self._containers.Containers])
+            self._containers.insert(1, "ContainerId", [container.id for container in self._containers.Containers])
             self._containers.insert(2, "Type", [container.container_type.shortname for container in self._containers.Containers])
             self._containers.insert(3, "Status", [container.attributes["status"] for container in self._containers.Containers])
             self._containers.insert(4, "Storage Condition", [container.storage for container in self._containers.Containers])
         return self._containers
+
+    @property
+    def Containers(self):
+        """
+        Helper for allowing direct access of `Container` objects
+
+        Returns
+        -------
+        Series
+            Returns a Series of `Container` objects
+        """
+        return self.containers.Containers
 
     @property
     def data(self):
@@ -286,10 +316,26 @@ class Run(_BaseObject):
                     self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
                     self._data.columns = ["Name", "Datasets"]
                     self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
-                except Exception:
+                except ReadTimeout:
                     print('Operation timed out after %d seconds. Returning data_ids instead of Datasets.\nTo try again, increase value of self.timeout and resubmit request.' % self.timeout)
                     return self.data_ids
         return self._data
+
+    @property
+    def Datasets(self):
+        """
+        Helper for allowing direct access of `Dataset` objects
+
+        Returns
+        -------
+        Series
+            Returns a Series of `Dataset` objects
+        """
+        try:
+            return self.data.Datasets
+        except Exception:
+            print('Unable to load Datasets successfully. Returning empty series.')
+            return pd.Series()
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
@@ -359,7 +405,7 @@ class Dataset(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:500px" seamless></iframe>""" % \
+            style="height:400px; width:450px" seamless></iframe>""" % \
                self.connection.get_route('view_data', data_id=self.id)
 
 
@@ -380,8 +426,8 @@ class Instruction(object):
             myRun.instructions
 
             # Access instruction object
-            myRun.instructions.Instructions[1]
-            myRun.instructions.Instructions[1].warps
+            myRun.Instructions[1]
+            myRun.Instructions[1].warps
 
 
     Attributes
@@ -434,10 +480,19 @@ class Instruction(object):
     def warps(self):
         if self._warps.empty:
             warp_list = self.attributes["warps"]
-            self._warps = pd.DataFrame(x['command'] for x in warp_list)
-            self._warps.columns = [x.title() for x in self._warps.columns.tolist()]
-            self._warps.insert(1, "Started", [x["reported_started_at"] for x in warp_list])
-            self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
+            if len(warp_list) != 0:
+                self._warps = pd.DataFrame(x['command'] for x in warp_list)
+                self._warps.columns = [x.title() for x in self._warps.columns.tolist()]
+                # Rearrange columns to start with `Name`
+                if "Name" in self._warps.columns:
+                    col_names = ["Name"] + [col for col in self._warps.columns if col != "Name"]
+                    self._warps = self._warps[col_names]
+                self._warps.insert(1, "WarpId", [x["id"] for x in warp_list])
+                self._warps.insert(2, "Completed", [x["reported_completed_at"] for x in warp_list])
+                self._warps.insert(3, "Started", [x["reported_started_at"] for x in warp_list])
+            else:
+                warnings.warn("There are no warps associated with this instruction. Please contact "
+                              "Transcriptic for assistance.")
         return self._warps
 
     def monitoring(self, data_type='pressure', grouping=None):
@@ -465,7 +520,7 @@ class Instruction(object):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:1000px" seamless></iframe>""" % \
+            style="width:450px" seamless></iframe>""" % \
                self.connection.get_route('view_instruction', run_id=self.attributes["run_id"],
                                          project_id=self.attributes["project_id"], instruction_id=self.id)
 
@@ -550,7 +605,7 @@ class Container(_BaseObject):
         container_type = self.attributes["container_type"]
 
         # Return the corresponding AP-Py container object for now. In the future, consider merging
-        # the current and future dictionary when instantianting container_type
+        # the current and future dictionary when instantiating container_type
         try:
             return _CONTAINER_TYPES[container_type["shortname"]]
         except KeyError:
