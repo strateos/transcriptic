@@ -328,7 +328,8 @@ class Connection(object):
         """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
         return self.get(route, status_response={
-            '404': lambda resp: Exception("[404] No run found for ID " + id)
+            '404': lambda resp: Exception("[404] No run found for ID {}. Please ensure you have the "
+                                          "right permissions.".format(run_id))
         }, timeout=timeout)
 
     def get_zip(self, data_id, file_path=None):
@@ -444,7 +445,8 @@ class Connection(object):
         else:
             kwargs.pop('merge_status')
             status_response = dict(**kwargs)
-        return_val = status_response.get(str(response.status_code), default_status_response['default'])
+
+        return_val = status_response.get(str(response.status_code), status_response['default'])
 
         if isinstance(return_val(response), Exception):
             raise return_val(response)

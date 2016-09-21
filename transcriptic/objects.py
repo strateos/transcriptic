@@ -6,6 +6,7 @@ import pandas as pd
 from builtins import object
 import warnings
 from autoprotocol import Unit
+from requests.exceptions import ReadTimeout
 
 
 def _check_api(obj_type):
@@ -315,7 +316,7 @@ class Run(_BaseObject):
                     self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
                     self._data.columns = ["Name", "Datasets"]
                     self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
-                except Exception:
+                except ReadTimeout:
                     print('Operation timed out after %d seconds. Returning data_ids instead of Datasets.\nTo try again, increase value of self.timeout and resubmit request.' % self.timeout)
                     return self.data_ids
         return self._data
@@ -330,7 +331,11 @@ class Run(_BaseObject):
         Series
             Returns a Series of `Dataset` objects
         """
-        return self.data.Datasets
+        try:
+            return self.data.Datasets
+        except Exception:
+            print('Unable to load Datasets successfully. Returning empty series.')
+            return pd.Series()
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \

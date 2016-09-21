@@ -7,6 +7,9 @@ Added
 Updated
 - Misc formatting changes for HTML representation
 
+Fixed
+- Updated underyling `handle_response` code to be more robust
+
 ## v3.5.1
 Added
 - Row index of the Container.aliquots DataFrame object now corresponds to the well index
