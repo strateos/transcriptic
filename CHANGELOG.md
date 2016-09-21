@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.6.0
 Added
 - Object helpers to allow more natural property access. E.g. `myRun.instructions.Instructions` = `myRun.Instructions`
 
@@ -8,7 +9,7 @@ Updated
 - Misc formatting changes for HTML representation
 
 Fixed
-- Updated underyling `handle_response` code to be more robust
+- Underyling `handle_response` code to be more robust
 
 ## v3.5.1
 Added
