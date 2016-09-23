@@ -236,22 +236,33 @@ def upload_release(ctx, archive, package):
 
 
 @cli.command()
-def protocols():
-    """List protocols within your manifest."""
-
-    manifest = load_manifest()
-    if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
-        click.echo("Your manifest.json file doesn't contain any protocols or"
-                   " is improperly formatted.")
-        return
+@click.pass_context
+@click.option(
+    '--remote',
+    is_flag=True,
+    required=False,
+    default=False,
+    help='Shows available protocols to be launched remotely'
+)
+def protocols(ctx, remote):
+    """List protocols within your manifest or organization."""
+    if remote:
+        protocol_objs = ctx.obj.api.get_protocols()
     else:
-        click.echo('\n{:^60}'.format("Protocols within this manifest:"))
-        click.echo('{:-^60}'.format(''))
-        [click.echo("%s%s\n%s" % (p['name'],
-                                  (" (" + p.get('display_name') + ")")
-                                  if p.get('display_name') else "",
-                                  ('{:-^60}'.format(""))))
-         for p in manifest["protocols"]]
+        manifest = load_manifest()
+        if 'protocols' not in list(manifest.keys()) or not manifest['protocols']:
+            click.echo("Your manifest.json file doesn't contain any protocols or"
+                       " is improperly formatted.")
+            return
+        protocol_objs = manifest['protocols']
+
+    click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if remote else "manifest")))
+    click.echo('{:-^60}'.format(''))
+    [click.echo("%s%s\n%s" % (p['name'],
+                              (" (" + p.get('display_name') + ")")
+                              if p.get('display_name') else "",
+                              ('{:-^60}'.format(""))))
+     for p in protocol_objs]
 
 
 @cli.command()
@@ -781,10 +792,16 @@ def compile(protocol_name, args):
 
 @cli.command()
 @click.argument('protocol')
+@click.argument(
+    'params',
+    metavar='PARAMETERS_FILE',
+    type=click.File('r'),
+    required=False
+)
 @click.option(
     '--project', '-p',
     metavar='PROJECT_ID',
-    required=True,
+    required=False,
     help='Project id or name context for configuring the protocol. Use \
          `transcriptic projects` command to list existing projects.'
 )
@@ -792,70 +809,148 @@ def compile(protocol_name, args):
     '--save_input',
     metavar='FILE',
     required=False,
-    help='Save the protocol input JSON in a file. This is useful for debugging \
-         a protocol.'
+    help='Save the protocol or parameters input JSON in a file. This is \ '
+         'useful for debugging a protocol.'
+)
+@click.option(
+    '--remote',
+    is_flag=True,
+    required=False,
+    help='Determines if protocol will be launched with remote version. \
+         If a file is specified, it will be used as the parameters to the function.'
 )
 @click.pass_context
-def launch(ctx, protocol, project, save_input):
-    """Configure and execute your protocol using your web browser to select
-     your inputs"""
-    project = get_project_id(project)
-    if not project:
-        return
+def launch(ctx, protocol, project, save_input, remote, params):
+    """Configure and launch a protocol either using the local manifest file or remotely.
+    If no parameters are specified, uses the webapp to configure the inputs."""
 
-    manifest, protocol = load_manifest_and_protocol(protocol)
+    # Load protocol from local file if not remote and load from listed protocols otherwise
+    if not remote:
+        manifest, protocol_obj = load_manifest_and_protocol(protocol)
+    else:
+        print_stderr("Searching for {}...".format(protocol))
+        protocol_list = ctx.obj.api.get_protocols()
+        matched_protocols = [protocol_obj for protocol_obj in protocol_list if protocol_obj['name'] == protocol]
+        if len(matched_protocols) == 0:
+            print_stderr("Protocol {} was not found.".format(protocol))
+            return
+        elif len(matched_protocols) > 1:
+            print_stderr("More than one match found. Using the first match.")
+        else:
+            print_stderr("Protocol found.")
+        protocol_obj = matched_protocols[0]
 
-    quick_launch = ctx.obj.api.create_quick_launch(
-        data=json.dumps({"manifest": protocol}), project_id=project)
-    quick_launch_mtime = quick_launch["updated_at"]
+    # If parameters are not specified, use quick launch to get inputs
+    if not params:
+        # Project is required for quick launch
+        if not project:
+            click.echo("Project field is required if parameters file is not specified.")
+            return
+        project = get_project_id(project)
+        if not project:
+            return
+        quick_launch = ctx.obj.api.create_quick_launch(
+            data=json.dumps({"manifest": protocol_obj}),
+            project_id=project
+        )
+        quick_launch_mtime = quick_launch["updated_at"]
 
-    format_str = "\nOpening %s"
-    url = ctx.obj.api.get_route(
-        'get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
-    print_stderr(format_str % url)
+        format_str = "\nOpening %s"
+        url = ctx.obj.api.get_route(
+            'get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
+        print_stderr(format_str % url)
 
-    """
-    Open the URL in the webbrowser. We have to temporarily suppress stdout/
-    stderr because the webbrowser module dumps some garbage which gets into
-    out stdout and corrupts the generated autoprotocol
-    """
-    import webbrowser
+        """
+        Open the URL in the webbrowser. We have to temporarily suppress stdout/
+        stderr because the webbrowser module dumps some garbage which gets into
+        out stdout and corrupts the generated autoprotocol
+        """
+        import webbrowser
 
-    with stdchannel_redirected(sys.stderr, os.devnull):
-        with stdchannel_redirected(sys.stdout, os.devnull):
-            webbrowser.open_new_tab(url)
+        with stdchannel_redirected(sys.stderr, os.devnull):
+            with stdchannel_redirected(sys.stdout, os.devnull):
+                webbrowser.open_new_tab(url)
 
-    def on_json_received(protocol_inputs, error):
-        if protocol_inputs is not None:
-            print("Protocol inputs (%s)" % (protocol_inputs))
-        elif error is not None:
-            click.echo('Invalid json: %s' % e)
-            return None
+        def on_json_received(protocol_inputs, error):
+            if protocol_inputs is not None:
+                print("Protocol inputs (%s)" % (protocol_inputs))
+            elif error is not None:
+                click.echo('Invalid json: %s' % e)
+                return None
 
-    # Wait until the quick launch inputs are updated (max 15 minutes)
-    count = 1
-    while (count <= 180 and quick_launch["inputs"] is None or
-           quick_launch_mtime >= quick_launch["updated_at"]):
-        sys.stderr.write(
-            "\rWaiting for inputs to be configured%s" % ('.' * count))
-        sys.stderr.flush()
-        time.sleep(5)
+        # Wait until the quick launch inputs are updated (max 15 minutes)
+        count = 1
+        while (count <= 180 and quick_launch["inputs"] is None or
+               quick_launch_mtime >= quick_launch["updated_at"]):
+            sys.stderr.write(
+                "\rWaiting for inputs to be configured%s" % ('.' * count))
+            sys.stderr.flush()
+            time.sleep(5)
 
-        quick_launch = ctx.obj.api.get_quick_launch(project_id=project,
-                                                    quick_launch_id=quick_launch["id"])
-        count += 1
+            quick_launch = ctx.obj.api.get_quick_launch(project_id=project,
+                                                        quick_launch_id=quick_launch["id"])
+            count += 1
 
-    # Save the protocol input locally if the user specified the save_input
-    # option
-    if save_input:
-        try:
-            with click.open_file(save_input, 'w') as f:
-                f.write(json.dumps(quick_launch["inputs"], indent=2))
-        except Exception as e:
-            print_stderr("\nUnable to save inputs: %s" % str(e))
+        # Save the protocol input locally if the user specified the save_input
+        # option
+        if save_input:
+            try:
+                with click.open_file(save_input, 'w') as f:
+                    f.write(json.dumps(quick_launch["inputs"], indent=2))
+            except Exception as e:
+                print_stderr("\nUnable to save inputs: %s" % str(e))
 
     print_stderr("\nGenerating Autoprotocol....\n")
-    run_protocol(manifest, protocol, quick_launch["inputs"])
+    if not remote:
+        if not params:
+            run_protocol(manifest, protocol, quick_launch["inputs"])
+        else:
+            run_protocol(manifest, protocol, params)
+    else:
+        # For remote execution, use input params file if specified, else use quick_launch inputs
+        if not params:
+            params = dict(parameters=quick_launch["raw_inputs"])
+            # Save parameters to file if specified
+            if save_input:
+                try:
+                    with click.open_file(save_input, 'w') as f:
+                        f.write(json.dumps(params, indent=2))
+                except Exception as e:
+                    print_stderr("\nUnable to save inputs: %s" % str(e))
+        else:
+            try:
+                params = json.loads(params.read())
+            except ValueError:
+                print_stderr("Unable to load parameters given. "
+                             "File is probably incorrectly formatted.")
+                return
+        launch_request = _create_launch_request(params)
+        launch_protocol = ctx.obj.api.launch_protocol(launch_request,
+                                                      protocol_id=protocol_obj["id"])
+        launch_request_id = launch_protocol["id"]
+
+        # Wait until launch request is updated (max 5 minutes)
+        count = 1
+        while count <= 150 and launch_protocol['autoprotocol'] is None:
+            sys.stderr.write(
+                "\rWaiting for launch request to be configured%s" % ('.' * count))
+            sys.stderr.flush()
+            time.sleep(2)
+            launch_protocol = ctx.obj.api.get_launch_request(protocol_id=protocol_obj["id"],
+                                                             launch_request_id=launch_request_id)
+            count += 1
+
+        sys.stderr.write("\n")
+        click.echo(json.dumps(launch_protocol["autoprotocol"]))
+
+
+def _create_launch_request(params, bsl=1, test_mode=False):
+    """Creates launch_request from input params"""
+    params_dict = dict()
+    params_dict["launch_request"] = params
+    params_dict["launch_request"]["bsl"] = bsl
+    params_dict["launch_request"]["test_mode"] = test_mode
+    return json.dumps(params_dict)
 
 
 @cli.command()

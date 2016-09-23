@@ -2,7 +2,9 @@
 
 ## Unreleased
 Added
-- inventory route
+- Ability to browse your inventory using the `transcriptic inventory` command E.g. `transcriptic inventory water`
+- Ability to launch protocols remotely using the `--remote` flag. E.g. `transcriptic launch Pipetting --remote`
+- Ability to view available remote protocols for launching using `transcriptic protocols --remote`
 
 Fixed
 - resources route has been updated to match web return
