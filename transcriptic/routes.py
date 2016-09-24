@@ -53,7 +53,7 @@ def get_release_status(api_root, org_id, package_id, release_id, timestamp):
 
 
 def query_kits(api_root, query):
-    return "{api_root}/_commercial/kits?q={query}&per_page=1000".format(**locals())
+    return "{api_root}/_commercial/kits?q={query}&per_page=1000&full_json=true".format(**locals())
 
 
 def query_resources(api_root, query):

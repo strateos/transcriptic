@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Fixed
+- resources route has been updated to match web return
+
 ## v3.6.0
 Added
 - Object helpers to allow more natural property access. E.g. `myRun.instructions.Instructions` = `myRun.Instructions`
