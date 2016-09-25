@@ -259,6 +259,11 @@ class Connection(object):
         route = self.get_route('query_resources', query=query)
         return self.get(route)
 
+    def inventory(self, query):
+        """Get inventory"""
+        route = self.get_route('query_inventory', query=query)
+        return self.get(route)
+
     def kits(self, query):
         """Get kits"""
         route = self.get_route('query_kits', query=query)

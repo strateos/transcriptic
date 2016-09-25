@@ -515,6 +515,46 @@ def resources(ctx, query):
 
 
 @cli.command()
+@click.argument('query', default='*')
+@click.pass_context
+def inventory(ctx, query):
+    """Search organization for inventory"""
+    inventory_req = ctx.obj.api.inventory(query)
+    import pdb
+    pdb.set_trace()
+    if inventory_req["results"]:
+        kit_req = ctx.obj.api.kits(query)
+        flat_items = list(flatmap(lambda x: [{"name": y["resource"]["name"],
+                                              "id": y["resource"]["id"],
+                                              "vendor": x["vendor"]["name"] if "vendor" in list(x.keys()) else ''}
+                                             for y in x["kit_items"] if
+                                             (y["provisionable"] and not y["reservable"])],
+                                  kit_req["results"]))
+        rs_id_list = [rs["id"] for rs in resource_req["results"]]
+
+        matched_resources = []
+        for item in flat_items:
+            if item["id"] in rs_id_list and item not in matched_resources:
+                matched_resources.append(item)
+
+        if matched_resources:
+            click.echo("Results for '%s':" % query)
+            click.echo('{:^40}'.format("Resource Name") + '|' +
+                       '{:^40}'.format("Vendor") + '|' +
+                       '{:^40}'.format("Resource ID"))
+            click.echo('{:-^120}'.format(''))
+            for resource in matched_resources:
+                click.echo('{:^40}'.format(ascii_encode(resource["name"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["vendor"])) + '|' +
+                           '{:^40}'.format(ascii_encode(resource["id"])))
+            click.echo('{:-^120}'.format(''))
+        else:
+            click.echo("No usable resource for '{}'.".format(query))
+    else:
+        click.echo("No results for '{}'.".format(query))
+
+
+@cli.command()
 @click.argument('path', default='.')
 def init(path):
     """Initialize a directory with a manifest.json file."""
