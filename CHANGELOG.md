@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- inventory route
+
 Fixed
 - resources route has been updated to match web return
 - Ap2En for dispense and provision
