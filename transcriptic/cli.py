@@ -99,7 +99,7 @@ def cli(ctx, apiroot, config, organization):
 @click.option('--title', '-t', help='Optional title of your run')
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
-def submit(ctx, file, project, title, test):
+def submit(ctx, file, project, title=None, test=None):
     """Submit your run to the project specified."""
     project = get_project_id(project)
     if not project:
@@ -258,11 +258,12 @@ def protocols(ctx, remote):
 
     click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if remote else "manifest")))
     click.echo('{:-^60}'.format(''))
-    [click.echo("%s%s\n%s" % (p['name'],
-                              (" (" + p.get('display_name') + ")")
-                              if p.get('display_name') else "",
-                              ('{:-^60}'.format(""))))
-     for p in protocol_objs]
+    for p in protocol_objs:
+        if p.get('display_name'):
+            display_str = "{} ({})".format(p['name'], p.get('display_name'))
+        else:
+            display_str = p['name']
+        click.echo("{}\n{}".format(display_str, '{:-^60}'.format("")))
 
 
 @cli.command()
@@ -809,20 +810,20 @@ def compile(protocol_name, args):
     '--save_input',
     metavar='FILE',
     required=False,
-    help='Save the protocol or parameters input JSON in a file. This is \ '
-         'useful for debugging a protocol.'
+    help='Save the protocol or parameters input JSON in a file. This is \
+          useful for debugging a protocol.'
 )
 @click.option(
     '--remote',
     is_flag=True,
     required=False,
-    help='Determines if protocol will be launched with remote version. \
-         If a file is specified, it will be used as the parameters to the function.'
+    help='If specified, the protocol will execute remotely and submit a run. This is useful \
+          if you do not have the protocol locally, or are unable to execute it for any reason.'
 )
 @click.pass_context
 def launch(ctx, protocol, project, save_input, remote, params):
     """Configure and launch a protocol either using the local manifest file or remotely.
-    If no parameters are specified, uses the webapp to configure the inputs."""
+    If no parameters are specified, uses the webapp to select the inputs."""
 
     # Load protocol from local file if not remote and load from listed protocols otherwise
     if not remote:
@@ -941,7 +942,19 @@ def launch(ctx, protocol, project, save_input, remote, params):
             count += 1
 
         sys.stderr.write("\n")
-        click.echo(json.dumps(launch_protocol["autoprotocol"]))
+
+        autoprotocol = launch_protocol["autoprotocol"]
+
+        from time import strftime, gmtime
+        default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
+        try:
+            req_json = ctx.obj.api.submit_run(
+                autoprotocol, project_id=project, title=default_title, test_mode=None)
+            run_id = req_json['id']
+            click.echo("Run created: %s" %
+                       ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
+        except Exception as e:
+            click.echo(str(e))
 
 
 def _create_launch_request(params, bsl=1, test_mode=False):
