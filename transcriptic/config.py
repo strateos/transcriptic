@@ -151,7 +151,11 @@ class Connection(object):
     def get_organization(self, org_id=None):
         """Get particular organization"""
         route = self.get_route('get_organization', org_id=org_id)
-        resp = self.get(route, status_response={'200': lambda resp: resp, 'default': lambda resp: resp})
+        resp = self.get(route, status_response={
+            '200': lambda resp: resp,
+            '404': lambda resp: RuntimeError('There was an error fetching the organization {}'.format(org_id)),
+            'default': lambda resp: resp
+        })
         return resp
 
     def projects(self):
