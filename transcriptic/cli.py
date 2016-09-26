@@ -689,9 +689,9 @@ def price(response):
 @cli.command()
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.option('--view', is_flag=True)
-@click.option('--dyetest', is_flag=True)
+@click.option('--dye_test', is_flag=True)
 @click.pass_context
-def preview(ctx, protocol_name, view, dyetest):
+def preview(ctx, protocol_name, view, dye_test):
     """Preview the Autoprotocol output of protocol in the current package."""
     manifest, protocol = load_manifest_and_protocol(protocol_name)
 
@@ -702,7 +702,7 @@ def preview(ctx, protocol_name, view, dyetest):
                    "contain a \"preview\" section")
         return
 
-    run_protocol(manifest, protocol, inputs, view, dyetest)
+    run_protocol(manifest, protocol, inputs, view, dye_test)
 
 
 @cli.command()
@@ -1182,7 +1182,7 @@ def load_manifest_and_protocol(ctx, protocol_name):
 
 
 @click.pass_context
-def run_protocol(ctx, manifest, protocol, inputs, view=False, dyetest=False):
+def run_protocol(ctx, manifest, protocol, inputs, view=False, dye_test=False):
     try:
         command = protocol['command_string']
     except KeyError:
@@ -1197,8 +1197,8 @@ def run_protocol(ctx, manifest, protocol, inputs, view=False, dyetest=False):
         fp.write(bytes(json.dumps(inputs), 'UTF-8'))
         fp.flush()
         try:
-            if dyetest:
-                protocol = check_output(["bash", "-c", command + " " + fp.name + " --dyetest"])
+            if dye_test:
+                protocol = check_output(["bash", "-c", command + " " + fp.name + " --dye_test"])
             else:
                 protocol = check_output(["bash", "-c", command + " " + fp.name])
             click.echo(protocol)
