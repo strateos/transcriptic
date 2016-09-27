@@ -481,6 +481,9 @@ def resources(ctx, query):
     resource_req = ctx.obj.api.resources(query)
     if resource_req["results"]:
         kit_req = ctx.obj.api.kits(query)
+        if not kit_req["results"]:
+            common_name = resource_req["results"][0]["name"]
+            kit_req = ctx.obj.api.kits(common_name)
         flat_items = list(flatmap(lambda x: [{"name": y["resource"]["name"],
                                               "id": y["resource"]["id"],
                                               "vendor": x["vendor"]["name"] if "vendor" in list(x.keys()) else ''}
@@ -613,14 +616,16 @@ def preview(ctx, protocol_name, view):
 @click.pass_context
 @click.option('--tree', '-t', is_flag=True,
               help='Prints a job tree with instructions as leaf nodes')
+@click.option('--lookup', '-l', is_flag=True,
+              help='Queries Transcriptic to convert resourceID to string')
 # time allowance is on order of seconds
-@click.option('--runtime', "-r", type=click.INT, default=5)
-def summarize(ctx, file, tree, runtime):
+@click.option('--runtime', type=click.INT, default=5)
+def summarize(ctx, file, tree, lookup, runtime):
     """Summarize Autoprotocol as a list of plain English steps, as well as a
     visualized Job Tree contingent upon desired runtime allowance (in seconds).
     A Job Tree refers to a structure of protocol based on container dependency,
     where each node, and its corresponding number, represents an instruction of
-    the protocol. More specifically, the tree structure contians process branches,
+    the protocol. More specifically, the tree structure contains process branches,
     in which the x-axis refers to the dependency depth in a given branch, while 
     the y-axis refers to the traversal of branches themselves. 
 
@@ -637,7 +642,19 @@ def summarize(ctx, file, tree, runtime):
             click.echo(
                 "The autoprotocol you're trying to summarize is invalid.")
             return
-    parser = AutoprotocolParser(protocol)
+
+    if lookup:
+        try:
+            config = '~/.transcriptic'
+            ctx.obj = ContextObject()
+            ctx.obj.api = Connection.from_file(config)
+            parser = AutoprotocolParser(protocol, ctx=ctx)
+        except:
+            click.echo("Connection with Transcriptic failed. "
+                       "Summarizing without lookup.", err=True)
+            parser = AutoprotocolParser(protocol)
+    else:
+        parser = AutoprotocolParser(protocol)
 
     if tree:
         import multiprocessing

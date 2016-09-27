@@ -18,7 +18,9 @@ TEMP_DICT = {"cold_20": "-20 degrees celsius",
 
 class AutoprotocolParser(object):
 
-    def __init__(self, protocol_obj, parsed_output=None):
+    def __init__(self, protocol_obj, ctx=None, parsed_output=None):
+        self.ctx = ctx
+        self.resource = dict()
         self.parse(protocol_obj)
 
     def parse(self, obj):
@@ -419,13 +421,30 @@ class AutoprotocolParser(object):
             vol = self.unit(col["volume"])
             if vol not in unique_vol:
                 unique_vol.append(vol)
+        if "reagent" in opts:
+            reagent = opts["reagent"]
+        elif "resource_id" in opts:
+            resource_id = opts["resource_id"]
+            if resource_id in self.resource:
+                reagent = self.resource[resource_id]
+            elif self.ctx:
+                resource = self.ctx.obj.api.resources(resource_id)
+                if resource["results"]:
+                    reagent = resource["results"][0]["name"].lower()
+                    self.resource[resource_id] = reagent
+                else:
+                    reagent = "resource with resource ID %s" % resource_id
+            else:
+                reagent = "resource with resource ID %s" % resource_id
+        else:
+            reagent = "unknown"
 
         if len(opts['columns']) == 12 and len(unique_vol) == 1:
             return "Dispense %s of %s to the full plate of %s" % (
-                unique_vol[0], opts['reagent'], opts['object'])
+                unique_vol[0], reagent, opts['object'])
         else:
             return "Dispense corresponding amounts of %s to %d column(s) of %s" % (
-                opts['reagent'], len(opts['columns']), opts['object'])
+                reagent, len(opts['columns']), opts['object'])
 
     def flash_freeze(self, opts):
         self.object_list.append([opts['object']])
@@ -490,10 +509,22 @@ class AutoprotocolParser(object):
     def provision(self, opts):
         self.object_list.append([self.platename(t['well'])
                                  for t in opts['to']])
+        resource_id = opts["resource_id"]
+        if resource_id in self.resource:
+            reagent = self.resource[resource_id]
+        elif self.ctx:
+            resource = self.ctx.obj.api.resources(resource_id)
+            if resource["results"]:
+                reagent = resource["results"][0]["name"].lower()
+                self.resource[resource_id] = reagent
+            else:
+                reagent = "resource with resource ID %s" % resource_id
+        else:
+            reagent = "resource with resource ID %s" % resource_id
         provisions = []
         for t in opts['to']:
-            provisions.append("Provision %s of resource with ID %s to well %s of container %s" %
-                              (self.unit(t['volume']), opts['resource_id'],
+            provisions.append("Provision %s of %s to well %s of container %s" %
+                              (self.unit(t['volume']), reagent,
                                self.well(t['well']), self.platename(t['well'])
                                ))
         return provisions

@@ -497,6 +497,7 @@ class AP2EnTestCase(unittest.TestCase):
         Desired Output:
         1. Dispense 100 microliters of water to the full plate of sample_plate5
         2. Dispense corresponding amounts of water to 12 column(s) of sample_plate5
+        3. Dispense 50 microliters of reagent with resource ID rs17gmh5wafm5p to the full plate of sample_plate5
         """
 
         p = Protocol()
@@ -519,19 +520,20 @@ class AP2EnTestCase(unittest.TestCase):
                     {"column": 10, "volume": "110:microliter"},
                     {"column": 11, "volume": "120:microliter"}
                     ])
+        p.dispense_full_plate(sample_plate5, "rs17gmh5wafm5p", "50:microliter", is_resource_id=True)
         pjsonString = json.dumps(p.as_dict(), indent=2)
         pjson = json.loads(pjsonString)
         parser_instance = english.AutoprotocolParser(pjson)
         parser_instance.job_tree()
 
         parsed_output = parser_instance.parsed_output
-        steps = parser_instance.object_list
         forest = parser_instance.forest_list
 
         self.assertEqual(
             parsed_output, ["Dispense 100 microliters of water to the full plate of sample_plate5",
-                            "Dispense corresponding amounts of water to 12 column(s) of sample_plate5"])
-        self.assertEqual(forest, [[1, [2]]])
+                            "Dispense corresponding amounts of water to 12 column(s) of sample_plate5",
+                            "Dispense 50 microliters of resource with resource ID rs17gmh5wafm5p to the full plate of sample_plate5"])
+        self.assertEqual(forest, [[1, [2, [3]]]])
 
     def test_illumina(self):
         """

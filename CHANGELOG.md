@@ -3,6 +3,8 @@
 ## Unreleased
 Fixed
 - resources route has been updated to match web return
+- Ap2En for dispense and provision
+- resources route now accepts resource IDs
 
 ## v3.6.0
 Added
