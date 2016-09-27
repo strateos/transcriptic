@@ -516,41 +516,42 @@ def resources(ctx, query):
 
 @cli.command()
 @click.argument('query', default='*')
+@click.option('--aliquots', help='include aliquots in search', is_flag=True)
+@click.option('--show_all', help='include destroyed containers', is_flag=True)
 @click.pass_context
-def inventory(ctx, query):
+def inventory(ctx, aliquots, show_all, query):
     """Search organization for inventory"""
     inventory_req = ctx.obj.api.inventory(query)
-    if inventory_req["results"]:
+    results = inventory_req["results"]
+    if aliquots:
+        results = [c if "label" in c else c["container"] for c in results]
+    else:
+        results = [c for c in results if "label" in c]
+    if not show_all:
+        results = [c for c in results if c["status"] == "available"]
+    results = [i for n, i in enumerate(results) if i not in results[n + 1:]]
+    barcode_present = any(c["barcode"] != "" for c in results)
+    keys = ["label", "id", "container_type_id", "storage_condition", "created_at"]
+    if barcode_present:
+        keys.insert(2, "barcode")
+    if show_all:
+        keys.append("status")
+    friendly_keys = {k: k.split("_")[0] for k in keys}
+    spacing = {k: max(len(friendly_keys[k]),
+                      max([len(str(c[k])) for c in results])) for k in keys}
+    spacing = {k: (v // 2 + 1) * 2 + 1 for k, v in spacing.items()}
+    sum_spacing = sum(spacing.values()) + (len(keys) - 1) * 3 + 1
+    spacing = {k: "{:^%s}" % v for k, v in spacing.items()}
+    sum_spacing = "{:-^%s}" % sum_spacing
+    if results:
         click.echo("Results for '%s':" % query)
-        click.echo('{:^30}'.format("Name") + '|' +
-                   '{:^30}'.format("ID") + '|' +
-                   '{:^30}'.format("Barcode") + '|' +
-                   '{:^30}'.format("Type") + '|' +
-                   '{:^30}'.format("Storage") + '|' +
-                   '{:^30}'.format("Status")
-                   )
-        click.echo('{:-^180}'.format(''))
-        for container in inventory_req["results"]:
-            if container.get("label", None):
-                click.echo('{:^30}'.format(ascii_encode(container["label"])) + '|' +
-                           '{:^30}'.format(ascii_encode(container["id"])) + '|' +
-                           '{:^30}'.format(ascii_encode(container["barcode"])) + '|' +
-                           '{:^30}'.format(ascii_encode(container["container_type_id"])) + '|' +
-                           '{:^30}'.format(ascii_encode(container["storage_condition"])) + '|' +
-                           '{:^30}'.format(ascii_encode(container["status"]))
-                           )
-            # elif container.get("container", None):
-            #     click.echo(
-            #         '{:^30}'.format(ascii_encode(container["container"]["label"])) + '|' +
-            #         '{:^30}'.format(ascii_encode(container["container"]["id"])) + '|' +
-            #         '{:^30}'.format(ascii_encode(container["container"]["barcode"])) + '|' +
-            #         '{:^30}'.format(
-            #             ascii_encode(container["container"]["container_type_id"])) + '|' +
-            #         '{:^30}'.format(
-            #             ascii_encode(container["container"]["storage_condition"])) + '|' +
-            #                '{:^30}'.format(ascii_encode(container["container"]["status"]))
-            #         )
-        click.echo('{:-^180}'.format(''))
+        click.echo(' | '.join([spacing[k].
+                              format(friendly_keys[k]) for k in keys]))
+        click.echo(sum_spacing.format(''))
+        for c in results:
+            click.echo(' | '.join([spacing[k].
+                                  format(ascii_encode(c[k])) for k in keys]))
+            click.echo(sum_spacing.format(''))
     else:
         click.echo("No results for '{}'.".format(query))
 
