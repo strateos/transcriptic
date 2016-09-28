@@ -516,11 +516,11 @@ def resources(ctx, query):
 
 @cli.command()
 @click.argument('query', default='*')
-@click.option('--show_aliquots', help='show aliquots in search', is_flag=True)
-@click.option('--show_destroyed', help='show destroyed containers', is_flag=True)
+@click.option('--include_aliquots', help='include containers with matching aliquots', is_flag=True)
+@click.option('--show_status', help='show container status', is_flag=True)
 @click.option('--retrieve_all', help='retrieve all samples, this may take a while', is_flag=True)
 @click.pass_context
-def inventory(ctx, show_aliquots, show_destroyed, retrieve_all, query):
+def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
     """Search organization for inventory"""
     click.echo("Searching inventory for '%s'..." % query)
     inventory_req = ctx.obj.api.inventory(query)
@@ -541,12 +541,10 @@ def inventory(ctx, show_aliquots, show_destroyed, retrieve_all, query):
             results.extend(inventory_req["results"])
         click.echo()
 
-    if show_aliquots:
+    if include_aliquots:
         results = [c if "label" in c else c["container"] for c in results]
     else:
         results = [c for c in results if "label" in c]
-    if not show_destroyed:
-        results = [c for c in results if c["status"] == "available"]
     results = [i for n, i in enumerate(results) if i not in results[n + 1:]]
 
     if results:
@@ -560,7 +558,7 @@ def inventory(ctx, show_aliquots, show_destroyed, retrieve_all, query):
         keys = ["label", "id", "container_type_id", "storage_condition", "created_at"]
         if barcode_present:
             keys.insert(2, "barcode")
-        if show_destroyed:
+        if show_status:
             keys.append("status")
         friendly_keys = {k: k.split("_")[0] for k in keys}
         spacing = {k: max(len(friendly_keys[k]),
