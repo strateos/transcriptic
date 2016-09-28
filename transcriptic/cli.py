@@ -850,50 +850,11 @@ def launch(ctx, protocol, project, save_input, remote, params):
         project = get_project_id(project)
         if not project:
             return
-        quick_launch = ctx.obj.api.create_quick_launch(
-            data=json.dumps({"manifest": protocol_obj}),
-            project_id=project
-        )
-        quick_launch_mtime = quick_launch["updated_at"]
 
-        format_str = "\nOpening %s"
-        url = ctx.obj.api.get_route(
-            'get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
-        print_stderr(format_str % url)
+        # Creates web browser and generates inputs for quick_launch
+        quick_launch = _get_quick_launch(ctx, protocol_obj, project)
 
-        """
-        Open the URL in the webbrowser. We have to temporarily suppress stdout/
-        stderr because the webbrowser module dumps some garbage which gets into
-        out stdout and corrupts the generated autoprotocol
-        """
-        import webbrowser
-
-        with stdchannel_redirected(sys.stderr, os.devnull):
-            with stdchannel_redirected(sys.stdout, os.devnull):
-                webbrowser.open_new_tab(url)
-
-        def on_json_received(protocol_inputs, error):
-            if protocol_inputs is not None:
-                print("Protocol inputs (%s)" % (protocol_inputs))
-            elif error is not None:
-                click.echo('Invalid json: %s' % e)
-                return None
-
-        # Wait until the quick launch inputs are updated (max 15 minutes)
-        count = 1
-        while (count <= 180 and quick_launch["inputs"] is None or
-               quick_launch_mtime >= quick_launch["updated_at"]):
-            sys.stderr.write(
-                "\rWaiting for inputs to be configured%s" % ('.' * count))
-            sys.stderr.flush()
-            time.sleep(5)
-
-            quick_launch = ctx.obj.api.get_quick_launch(project_id=project,
-                                                        quick_launch_id=quick_launch["id"])
-            count += 1
-
-        # Save the protocol input locally if the user specified the save_input
-        # option
+        # Save the protocol input locally if the user specified the save_input option
         if save_input:
             try:
                 with click.open_file(save_input, 'w') as f:
@@ -901,13 +862,7 @@ def launch(ctx, protocol, project, save_input, remote, params):
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
 
-    print_stderr("\nGenerating Autoprotocol....\n")
-    if not remote:
-        if not params:
-            run_protocol(manifest, protocol, quick_launch["inputs"])
-        else:
-            run_protocol(manifest, protocol, params)
-    else:
+    if remote:
         # For remote execution, use input params file if specified, else use quick_launch inputs
         if not params:
             params = dict(parameters=quick_launch["raw_inputs"])
@@ -925,36 +880,24 @@ def launch(ctx, protocol, project, save_input, remote, params):
                 print_stderr("Unable to load parameters given. "
                              "File is probably incorrectly formatted.")
                 return
-        launch_request = _create_launch_request(params)
-        launch_protocol = ctx.obj.api.launch_protocol(launch_request,
-                                                      protocol_id=protocol_obj["id"])
-        launch_request_id = launch_protocol["id"]
 
-        # Wait until launch request is updated (max 5 minutes)
-        count = 1
-        while count <= 150 and launch_protocol['autoprotocol'] is None:
-            sys.stderr.write(
-                "\rWaiting for launch request to be configured%s" % ('.' * count))
-            sys.stderr.flush()
-            time.sleep(2)
-            launch_protocol = ctx.obj.api.get_launch_request(protocol_id=protocol_obj["id"],
-                                                             launch_request_id=launch_request_id)
-            count += 1
-
-        sys.stderr.write("\n")
-
-        autoprotocol = launch_protocol["autoprotocol"]
-
+        launch_protocol = _get_launch_request(ctx, params, protocol_obj)
         from time import strftime, gmtime
         default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
         try:
             req_json = ctx.obj.api.submit_run(
-                autoprotocol, project_id=project, title=default_title, test_mode=None)
+                launch_protocol["autoprotocol"], project_id=project, title=default_title, test_mode=None)
             run_id = req_json['id']
-            click.echo("Run created: %s" %
+            click.echo("\nRun created: %s" %
                        ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
         except Exception as e:
             click.echo(str(e))
+    else:
+        print_stderr("\nGenerating Autoprotocol....\n")
+        if not params:
+            run_protocol(manifest, protocol, quick_launch["inputs"])
+        else:
+            run_protocol(manifest, protocol, params)
 
 
 def _create_launch_request(params, bsl=1, test_mode=False):
@@ -965,6 +908,65 @@ def _create_launch_request(params, bsl=1, test_mode=False):
     params_dict["launch_request"]["test_mode"] = test_mode
     return json.dumps(params_dict)
 
+
+def _get_launch_request(ctx, params, protocol):
+    """Launches protocol from parameters"""
+    launch_request = _create_launch_request(params)
+    launch_protocol = ctx.obj.api.launch_protocol(launch_request,
+                                                  protocol_id=protocol["id"])
+    launch_request_id = launch_protocol["id"]
+
+    # Wait until launch request is updated (max 5 minutes)
+    count = 1
+    while count <= 150 and launch_protocol['autoprotocol'] is None:
+        sys.stderr.write(
+            "\rWaiting for launch request to be configured%s" % ('.' * count))
+        sys.stderr.flush()
+        time.sleep(2)
+        launch_protocol = ctx.obj.api.get_launch_request(protocol_id=protocol["id"],
+                                                         launch_request_id=launch_request_id)
+        count += 1
+
+    return launch_protocol
+
+
+def _get_quick_launch(ctx, protocol, project):
+    """Creates quick launch object and opens it in a new tab"""
+    quick_launch = ctx.obj.api.create_quick_launch(
+        data=json.dumps({"manifest": protocol}),
+        project_id=project
+    )
+    quick_launch_mtime = quick_launch["updated_at"]
+
+    format_str = "\nOpening %s"
+    url = ctx.obj.api.get_route(
+        'get_quick_launch', project_id=project, quick_launch_id=quick_launch["id"])
+    print_stderr(format_str % url)
+
+    """
+    Open the URL in the webbrowser. We have to temporarily suppress stdout/
+    stderr because the webbrowser module dumps some garbage which gets into
+    out stdout and corrupts the generated autoprotocol
+    """
+    import webbrowser
+
+    with stdchannel_redirected(sys.stderr, os.devnull):
+        with stdchannel_redirected(sys.stdout, os.devnull):
+            webbrowser.open_new_tab(url)
+
+    # Wait until the quick launch inputs are updated (max 15 minutes)
+    count = 1
+    while (count <= 180 and quick_launch["inputs"] is None or
+                   quick_launch_mtime >= quick_launch["updated_at"]):
+        sys.stderr.write(
+            "\rWaiting for inputs to be configured%s" % ('.' * count))
+        sys.stderr.flush()
+        time.sleep(5)
+
+        quick_launch = ctx.obj.api.get_quick_launch(project_id=project,
+                                                    quick_launch_id=quick_launch["id"])
+        count += 1
+    return quick_launch
 
 @cli.command()
 @click.pass_context
