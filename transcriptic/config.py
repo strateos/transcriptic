@@ -254,6 +254,21 @@ class Connection(object):
         route = self.get_route('create_quick_launch', project_id=project_id)
         return self.post(route, data=data)
 
+    def launch_protocol(self, params, protocol_id=None):
+        """Launch protocol-id with params"""
+        route = self.get_route('launch_protocol', protocol_id=protocol_id)
+        return self.post(route, data=params)
+
+    def get_launch_request(self, protocol_id=None, launch_request_id=None):
+        """Get launch request id"""
+        route = self.get_route('get_launch_request', protocol_id=protocol_id, launch_request_id=launch_request_id)
+        return self.get(route)
+
+    def get_protocols(self):
+        """Get list of available protocols"""
+        route = self.get_route('get_protocols')
+        return self.get(route)
+
     def resources(self, query):
         """Get resources"""
         route = self.get_route('query_resources', query=query)
