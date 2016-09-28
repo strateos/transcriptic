@@ -533,9 +533,9 @@ def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
     if retrieve_all:
         for i in range(1, num_pages):
             click.echo("Retrieved {} records"
-                       " out of {} total\r".
+                       " out of {} total for '{}'...\r".
                        format(i * per_page,
-                              max_results_bound), nl=False)
+                              max_results_bound, query), nl=False)
             inventory_req = ctx.obj.api.inventory(query, page=i)
             results.extend(inventory_req["results"])
         click.echo()
