@@ -522,7 +522,6 @@ def resources(ctx, query):
 @click.pass_context
 def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
     """Search organization for inventory"""
-    click.echo("Searching inventory for '%s'..." % query)
     inventory_req = ctx.obj.api.inventory(query)
     num_pages = inventory_req["num_pages"]
     per_page = inventory_req["per_page"]
