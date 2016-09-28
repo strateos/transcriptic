@@ -60,6 +60,10 @@ def query_resources(api_root, query):
     return "{api_root}/_commercial/resources?q={query}&per_page=1000".format(**locals())
 
 
+def query_inventory(api_root, org_id, query, page=0):
+    return "{api_root}/{org_id}/inventory/samples?q={query}&per_page=75&page={page}".format(**locals())
+
+
 def get_quick_launch(api_root, org_id, project_id, quick_launch_id):
     return "{api_root}/{org_id}/{project_id}/runs/quick_launch/{quick_launch_id}".format(**locals())
 

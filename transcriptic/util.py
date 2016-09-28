@@ -18,7 +18,10 @@ def flatmap(func, items):
 
 def ascii_encode(non_compatible_string):
     """Primarily used for ensuring terminal display compatibility"""
-    return non_compatible_string.encode('ascii', errors='ignore').decode("ascii")
+    if non_compatible_string:
+        return non_compatible_string.encode('ascii', errors='ignore').decode("ascii")
+    else:
+        return ""
 
 
 def pull(nested_dict):

@@ -515,6 +515,87 @@ def resources(ctx, query):
 
 
 @cli.command()
+@click.argument('query', default='*')
+@click.option('--include_aliquots', help='include containers with matching aliquots', is_flag=True)
+@click.option('--show_status', help='show container status', is_flag=True)
+@click.option('--retrieve_all', help='retrieve all samples, this may take a while', is_flag=True)
+@click.pass_context
+def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
+    """Search organization for inventory"""
+    inventory_req = ctx.obj.api.inventory(query)
+    num_pages = inventory_req["num_pages"]
+    per_page = inventory_req["per_page"]
+    results = inventory_req["results"]
+    max_results_bound = num_pages * per_page
+
+    num_prefiltered = len(results)
+
+    if retrieve_all:
+        for i in range(1, num_pages):
+            click.echo("Retrieved {} records"
+                       " out of {} total for '{}'...\r".
+                       format(i * per_page,
+                              max_results_bound, query), nl=False)
+            inventory_req = ctx.obj.api.inventory(query, page=i)
+            results.extend(inventory_req["results"])
+        click.echo()
+
+    if include_aliquots:
+        results = [c if "label" in c else c["container"] for c in results]
+    else:
+        results = [c for c in results if "label" in c]
+    results = [i for n, i in enumerate(results) if i not in results[n + 1:]]
+
+    if results:
+        def truncate_time(d, k):
+            old_time = d[k]
+            d[k] = old_time.split("T")[0]
+            return d
+
+        results = [truncate_time(c, "created_at") for c in results]
+        barcode_present = any(c["barcode"] for c in results)
+        keys = ["label", "id", "container_type_id", "storage_condition", "created_at"]
+        if barcode_present:
+            keys.insert(2, "barcode")
+        if show_status:
+            keys.append("status")
+        friendly_keys = {k: k.split("_")[0] for k in keys}
+        spacing = {k: max(len(friendly_keys[k]),
+                          max([len(str(c[k])) for c in results])) for k in keys}
+        spacing = {k: (v // 2 + 1) * 2 + 1 for k, v in spacing.items()}
+        sum_spacing = sum(spacing.values()) + (len(keys) - 1) * 3 + 1
+        spacing = {k: "{:^%s}" % v for k, v in spacing.items()}
+        sum_spacing = "{:-^%s}" % sum_spacing
+        click.echo("Results for '%s':" % query)
+        click.echo(' | '.join([spacing[k].
+                              format(friendly_keys[k]) for k in keys]))
+        click.echo(sum_spacing.format(''))
+        for c in results:
+            click.echo(' | '.join([spacing[k].
+                                  format(ascii_encode(c[k])) for k in keys]))
+            click.echo(sum_spacing.format(''))
+        if not retrieve_all:
+            if num_pages > 1:
+                click.echo("Retrieved {} records out of "
+                           "{} total (use the --retrieve_all flag "
+                           "to request all records).".
+                           format(num_prefiltered, max_results_bound))
+    else:
+        if retrieve_all:
+            click.echo("No results for '{}'.".format(query))
+        else:
+            if num_pages > 1:
+                click.echo("Retrieved {} records out of "
+                           "{} total but all were filtered out. "
+                           "Use the --retrieve_all flag "
+                           "to request all records.".
+                           format(num_prefiltered, max_results_bound))
+            else:
+                click.echo("All records were filtered out. "
+                           "Use flags to modify your search")
+
+
+@cli.command()
 @click.argument('path', default='.')
 def init(path):
     """Initialize a directory with a manifest.json file."""
