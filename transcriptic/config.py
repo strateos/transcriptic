@@ -259,9 +259,9 @@ class Connection(object):
         route = self.get_route('query_resources', query=query)
         return self.get(route)
 
-    def inventory(self, query, timeout=30.0):
+    def inventory(self, query, timeout=30.0, page=0):
         """Get inventory"""
-        route = self.get_route('query_inventory', query=query)
+        route = self.get_route('query_inventory', query=query, page=page)
         return self.get(route, timeout=timeout)
 
     def kits(self, query):
