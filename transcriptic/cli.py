@@ -895,9 +895,9 @@ def launch(ctx, protocol, project, save_input, remote, params):
     else:
         print_stderr("\nGenerating Autoprotocol....\n")
         if not params:
-            run_protocol(manifest, protocol, quick_launch["inputs"])
+            run_protocol(manifest, protocol_obj, quick_launch["inputs"])
         else:
-            run_protocol(manifest, protocol, params)
+            run_protocol(manifest, protocol_obj, params)
 
 
 def _create_launch_request(params, bsl=1, test_mode=False):
