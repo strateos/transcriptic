@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.7.1
+Fixed
+- Fixed minor bug in launching local protocols with `transcriptic launch`
+
 ## v3.7.0
 Added
 - Ability to browse your inventory using the `transcriptic inventory` command E.g. `transcriptic inventory water`
