@@ -719,10 +719,10 @@ def summarize(ctx, file, tree, lookup, runtime):
     A Job Tree refers to a structure of protocol based on container dependency,
     where each node, and its corresponding number, represents an instruction of
     the protocol. More specifically, the tree structure contains process branches,
-    in which the x-axis refers to the dependency depth in a given branch, while 
-    the y-axis refers to the traversal of branches themselves. 
+    in which the x-axis refers to the dependency depth in a given branch, while
+    the y-axis refers to the traversal of branches themselves.
 
-    Example usage is as follows: 
+    Example usage is as follows:
 
     python my_script.py | transcriptic summarize --tree
 
