@@ -689,8 +689,9 @@ def price(response):
 @cli.command()
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.option('--view', is_flag=True)
+@click.option('--dye_test', is_flag=True)
 @click.pass_context
-def preview(ctx, protocol_name, view):
+def preview(ctx, protocol_name, view, dye_test):
     """Preview the Autoprotocol output of protocol in the current package."""
     manifest, protocol = load_manifest_and_protocol(protocol_name)
 
@@ -701,7 +702,7 @@ def preview(ctx, protocol_name, view):
                    "contain a \"preview\" section")
         return
 
-    run_protocol(manifest, protocol, inputs, view)
+    run_protocol(manifest, protocol, inputs, view, dye_test)
 
 
 @cli.command()
@@ -719,10 +720,10 @@ def summarize(ctx, file, tree, lookup, runtime):
     A Job Tree refers to a structure of protocol based on container dependency,
     where each node, and its corresponding number, represents an instruction of
     the protocol. More specifically, the tree structure contains process branches,
-    in which the x-axis refers to the dependency depth in a given branch, while 
-    the y-axis refers to the traversal of branches themselves. 
+    in which the x-axis refers to the dependency depth in a given branch, while
+    the y-axis refers to the traversal of branches themselves.
 
-    Example usage is as follows: 
+    Example usage is as follows:
 
     python my_script.py | transcriptic summarize --tree
 
@@ -1181,7 +1182,7 @@ def load_manifest_and_protocol(ctx, protocol_name):
 
 
 @click.pass_context
-def run_protocol(ctx, manifest, protocol, inputs, view=False):
+def run_protocol(ctx, manifest, protocol, inputs, view=False, dye_test=False):
     try:
         command = protocol['command_string']
     except KeyError:
@@ -1196,7 +1197,10 @@ def run_protocol(ctx, manifest, protocol, inputs, view=False):
         fp.write(bytes(json.dumps(inputs), 'UTF-8'))
         fp.flush()
         try:
-            protocol = check_output(["bash", "-c", command + " " + fp.name])
+            if dye_test:
+                protocol = check_output(["bash", "-c", command + " " + fp.name + " --dye_test"])
+            else:
+                protocol = check_output(["bash", "-c", command + " " + fp.name])
             click.echo(protocol)
             if view:
                 click.echo("View your protocol's raw JSON above or see the "
