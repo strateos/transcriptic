@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Ability to add `--dye_test` flag to `transcriptic preview` to convert a run into a water/dye test
+
 ## v3.7.1
 Fixed
 - Fixed minor bug in launching local protocols with `transcriptic launch`
