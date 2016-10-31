@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.8.0
 Added
 - Ability to add `--dye_test` flag to `transcriptic preview` to convert a run into a water/dye test
 
