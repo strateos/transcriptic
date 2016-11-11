@@ -410,7 +410,7 @@ class Dataset(_BaseObject):
         indices_without_data = []
         # Print a warning if new column will overwrite existing column
         if "Aliquot Data" in aliquot_data.columns.values.tolist():
-            print("Warning: Column 'Aliquot Data' will be overwritten with data pulled from Dataset.")
+            warnings.warn("Column 'Aliquot Data' will be overwritten with data pulled from Dataset.")
         # Look up data for every well index
         for index in aliquot_data.index:
             # Get humanized index
@@ -426,7 +426,7 @@ class Dataset(_BaseObject):
             data_column.append(data_point)
         # Print a list of well indices that do not have corresponding data keys
         if len(indices_without_data) > 0:
-            print("The following indices were not found as data keys: %s" ", ".join(indices_without_data))
+            warnings.warn("The following indices were not found as data keys: %s" ", ".join(indices_without_data))
         # Add these data as a column to the DataFrame
         aliquot_data["Aliquot Data"] = data_column
 
