@@ -389,7 +389,6 @@ class Dataset(_BaseObject):
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
         self._data = pd.DataFrame()
-        self._aliquot_data = pd.DataFrame()
         self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
                                    connection=connection)
 
@@ -404,36 +403,34 @@ class Dataset(_BaseObject):
         else:
             return self._data[key]
 
-    @property
-    def aliquot_data(self):
-        if self._aliquot_data.empty:
-            # Use the container.aliquots DataFrame as the base
-            self._aliquot_data = self.container.aliquots
-            data_column = []
-            indices_without_data = []
-            # Print a warning if new column will overwrite existing column
-            if "Aliquot Data" in self._aliquot_data.columns.values.tolist(): 
-                print("Warning: Column 'Aliquot Data' will be overwritten with data pulled from Dataset.")
-            # Look up data for every well index
-            for index in self._aliquot_data.index:
-                # Get humanized index
-                humanized_index = self.container.container_type.humanize(index)
-                if humanized_index in self.data:
-                    # Use humanized index to get data for that well
-                    data_point = self.data.loc[0, humanized_index]
-                else:
-                    # If no data for that well, use None instead
-                    data_point = None
-                    indices_without_data.append(humanized_index)
-                # Append data point to list
-                data_column.append(data_point)
-            # Print a list of well indices that do not have corresponding data keys
-            if len(indices_without_data) > 0:
-                print("The following indices were not found as data keys: %s" ", ".join(indices_without_data))
-            # Add these data as a column to the DataFrame
-            self._aliquot_data["Aliquot Data"] = data_column
+    def cross_ref_aliquots(self):
+        # Use the container.aliquots DataFrame as the base
+        aliquot_data = self.container.aliquots
+        data_column = []
+        indices_without_data = []
+        # Print a warning if new column will overwrite existing column
+        if "Aliquot Data" in aliquot_data.columns.values.tolist(): 
+            print("Warning: Column 'Aliquot Data' will be overwritten with data pulled from Dataset.")
+        # Look up data for every well index
+        for index in aliquot_data.index:
+            # Get humanized index
+            humanized_index = self.container.container_type.humanize(index)
+            if humanized_index in self.data:
+                # Use humanized index to get data for that well
+                data_point = self.data.loc[0, humanized_index]
+            else:
+                # If no data for that well, use None instead
+                data_point = None
+                indices_without_data.append(humanized_index)
+            # Append data point to list
+            data_column.append(data_point)
+        # Print a list of well indices that do not have corresponding data keys
+        if len(indices_without_data) > 0:
+            print("The following indices were not found as data keys: %s" ", ".join(indices_without_data))
+        # Add these data as a column to the DataFrame
+        aliquot_data["Aliquot Data"] = data_column
 
-        return self._aliquot_data
+        return aliquot_data
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
