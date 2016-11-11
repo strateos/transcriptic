@@ -414,7 +414,7 @@ class Dataset(_BaseObject):
         # Look up data for every well index
         for index in aliquot_data.index:
             # Get humanized index
-            humanized_index = self.container.container_type.humanize(index)
+            humanized_index = self.container.container_type.humanize(int(index))
             if humanized_index in self.data:
                 # Use humanized index to get data for that well
                 data_point = self.data.loc[0, humanized_index]
