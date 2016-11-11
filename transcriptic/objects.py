@@ -409,7 +409,7 @@ class Dataset(_BaseObject):
         data_column = []
         indices_without_data = []
         # Print a warning if new column will overwrite existing column
-        if "Aliquot Data" in aliquot_data.columns.values.tolist(): 
+        if "Aliquot Data" in aliquot_data.columns.values.tolist():
             print("Warning: Column 'Aliquot Data' will be overwritten with data pulled from Dataset.")
         # Look up data for every well index
         for index in aliquot_data.index:
