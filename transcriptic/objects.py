@@ -405,7 +405,7 @@ class Dataset(_BaseObject):
 
     def cross_ref_aliquots(self):
         # Use the container.aliquots DataFrame as the base
-        aliquot_data = self.container.aliquots.copy
+        aliquot_data = pd.DataFrame(self.container.aliquots)
         data_column = []
         indices_without_data = []
         # Print a warning if new column will overwrite existing column
