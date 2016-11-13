@@ -426,7 +426,7 @@ class Dataset(_BaseObject):
             data_column.append(data_point)
         # Print a list of well indices that do not have corresponding data keys
         if len(indices_without_data) > 0:
-            warnings.warn("The following indices were not found as data keys: %s" ", ".join(indices_without_data))
+            warnings.warn("The following indices were not found as data keys: %s" % ", ".join(indices_without_data))
         # Add these data as a column to the DataFrame
         aliquot_data["Aliquot Data"] = data_column
 
