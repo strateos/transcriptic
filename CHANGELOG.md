@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+- Add ability to cross reference aliquots with their data using the `Dataset` object
 
 ## v3.8.0
 Added
