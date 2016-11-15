@@ -395,7 +395,7 @@ class Dataset(_BaseObject):
 
     @property
     def raw_data(self):
-        if self._raw_data is None:
+        if not self._raw_data:
             # Get all raw data
             self._raw_data = self.connection.dataset(data_id=self.id, key="*")
         return self._raw_data
