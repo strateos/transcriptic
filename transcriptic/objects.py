@@ -404,7 +404,10 @@ class Dataset(_BaseObject):
     def data(self, key="*"):
         if self._data.empty:
             # Get all data initially (think about lazy loading in the future)
-            self._data = pd.DataFrame(self.raw_data)
+            try:
+                self._data = pd.DataFrame(self.raw_data)
+            except:
+                raise RuntimeError("Failed to cast data as DataFrame. Try using raw_data property instead.")
             self._data.columns = [x.upper() for x in self._data.columns]
         if key == "*":
             return self._data
