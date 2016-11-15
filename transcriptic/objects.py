@@ -388,9 +388,17 @@ class Dataset(_BaseObject):
         self.id = data_id
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
+        self._raw_data = None
         self._data = pd.DataFrame()
         self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
                                    connection=connection)
+
+    @property
+    def raw_data(self):
+        if self._raw_data is None:
+            # Get all raw data
+            self._raw_data = self.connection.dataset(data_id=self.id, key="*")
+        return self._raw_data
 
     @property
     def data(self, key="*"):
