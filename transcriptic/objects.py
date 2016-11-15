@@ -388,15 +388,26 @@ class Dataset(_BaseObject):
         self.id = data_id
         self.operation = self.attributes["instruction"]["operation"]["op"]
         self.data_type = self.attributes["data_type"]
+        self._raw_data = None
         self._data = pd.DataFrame()
         self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
                                    connection=connection)
 
     @property
+    def raw_data(self):
+        if not self._raw_data:
+            # Get all raw data
+            self._raw_data = self.connection.dataset(data_id=self.id, key="*")
+        return self._raw_data
+
+    @property
     def data(self, key="*"):
         if self._data.empty:
             # Get all data initially (think about lazy loading in the future)
-            self._data = pd.DataFrame(self.connection.dataset(data_id=self.id, key="*"))
+            try:
+                self._data = pd.DataFrame(self.raw_data)
+            except:
+                raise RuntimeError("Failed to cast data as DataFrame. Try using raw_data property instead.")
             self._data.columns = [x.upper() for x in self._data.columns]
         if key == "*":
             return self._data
