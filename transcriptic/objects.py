@@ -7,6 +7,7 @@ from builtins import object
 import warnings
 from autoprotocol import Unit
 from requests.exceptions import ReadTimeout
+from copy import deepcopy
 
 
 def _check_api(obj_type):
@@ -416,7 +417,7 @@ class Dataset(_BaseObject):
 
     def cross_ref_aliquots(self):
         # Use the container.aliquots DataFrame as the base
-        aliquot_data = pd.DataFrame(self.container.aliquots)
+        aliquot_data = deepcopy(self.container.aliquots)
         data_column = []
         indices_without_data = []
         # Print a warning if new column will overwrite existing column
