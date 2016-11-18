@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v3.9.0
 - Fix bug where `Dataset.cross_ref_aliquots()` was modifying `container.aliquots` in place
 - Add raw_data property to the `Dataset` object
 - Add ability to cross reference aliquots with their data using the `Dataset` object
