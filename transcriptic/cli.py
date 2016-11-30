@@ -260,10 +260,10 @@ def protocols(ctx, remote):
     click.echo('{:-^60}'.format(''))
     for p in protocol_objs:
         if p.get('display_name'):
-            display_str = "{} ({})".format(p['name'], p.get('display_name'))
+            display_str = u"{} ({})".format(p[u'name'], p.get(u'display_name'))
         else:
-            display_str = p['name']
-        click.echo("{}\n{}".format(display_str, '{:-^60}'.format("")))
+            display_str = p[u'name']
+        click.echo(u"{}\n{}".format(display_str, u'{:-^60}'.format("")))
 
 
 @cli.command()
@@ -421,11 +421,11 @@ def runs(ctx, project_name):
                    '{:^30}'.format('RUN STATUS'))
         click.echo('{:-^120}'.format(''))
         for run in run_list:
-            click.echo('{:^30}'.format(run[0]) + "|" +
-                       '{:^30}'.format(run[1]) + "|" +
-                       '{:^30}'.format(run[2]) + "|" +
-                       '{:^30}'.format(run[3]))
-            click.echo('{:-^120}'.format(''))
+            click.echo(u'{:^30}'.format(run[0]) + "|" +
+                       u'{:^30}'.format(run[1]) + "|" +
+                       u'{:^30}'.format(run[2]) + "|" +
+                       u'{:^30}'.format(run[3]))
+            click.echo(u'{:-^120}'.format(''))
 
 
 @cli.command("create-project")
