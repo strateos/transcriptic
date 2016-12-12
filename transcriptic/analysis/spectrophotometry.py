@@ -29,9 +29,6 @@ class _PlateRead(object):
         self.dataset = dataset
         self.control_reading = control_reading
         self.op_type = op_type
-        if ("data_keys" not in self.dataset.attributes or
-                len(self.dataset.attributes["data_keys"]) == 0):
-            raise RuntimeError("No data found in given dataset.")
         if self.op_type not in ["absorbance", "fluorescence", "luminescence"]:
             raise RuntimeError(
                 "Data given is not from a spectrophotometry operation.")

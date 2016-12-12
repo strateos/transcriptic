@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v3.9.1
+- Bugfix to remove `data_keys` from Absorbance function, which is no longer returned from webapp
+
 ## v3.9.0
 - Add raw_data property to the `Dataset` object
 - Add ability to cross reference aliquots with their data using the `Dataset` object
