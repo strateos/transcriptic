@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v3.9.2
+- Bugfix to resolve error caused by attempting to print unicode characters on the CLI.
+
 ## v3.9.1
 - Bugfix to remove `data_keys` from Absorbance function, which is no longer returned from webapp
 
