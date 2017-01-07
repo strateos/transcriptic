@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.9.3
+- Adds `--json` flag to cli commands: `projects`, `runs`, `protocols`. Provides
+raw JSON response.
+
 ## v3.9.2
 - Bugfix to resolve error caused by attempting to print unicode characters on the CLI.
 
