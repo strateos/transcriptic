@@ -244,7 +244,8 @@ def upload_release(ctx, archive, package):
     default=False,
     help='Shows available protocols to be launched remotely'
 )
-def protocols(ctx, remote):
+@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+def protocols(ctx, remote, json_flag):
     """List protocols within your manifest or organization."""
     if remote:
         protocol_objs = ctx.obj.api.get_protocols()
@@ -255,15 +256,17 @@ def protocols(ctx, remote):
                        " is improperly formatted.")
             return
         protocol_objs = manifest['protocols']
-
-    click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if remote else "manifest")))
-    click.echo('{:-^60}'.format(''))
-    for p in protocol_objs:
-        if p.get('display_name'):
-            display_str = u"{} ({})".format(p[u'name'], p.get(u'display_name'))
-        else:
-            display_str = p[u'name']
-        click.echo(u"{}\n{}".format(display_str, u'{:-^60}'.format("")))
+    if json_flag:
+        click.echo(json.dumps(protocol_objs))
+    else:
+        click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if remote else "manifest")))
+        click.echo('{:-^60}'.format(''))
+        for p in protocol_objs:
+            if p.get('display_name'):
+                display_str = u"{} ({})".format(p[u'name'], p.get(u'display_name'))
+            else:
+                display_str = p[u'name']
+            click.echo(u"{}\n{}".format(display_str, u'{:-^60}'.format("")))
 
 
 @cli.command()
@@ -366,7 +369,8 @@ def delete_package(ctx, name, force):
 @cli.command()
 @click.pass_context
 @click.option("-i")
-def projects(ctx, i):
+@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+def projects(ctx, i, json_flag):
     """List the projects in your organization"""
     try:
         projects = ctx.obj.api.projects()
@@ -378,6 +382,8 @@ def projects(ctx, i):
             all_proj[proj["name"] + status] = proj["id"]
         if i:
             return proj_names
+        elif json_flag:
+            return click.echo(json.dumps(projects))
         else:
             click.echo('\n{:^80}'.format("PROJECTS:\n"))
             click.echo('{:^40}'.format("PROJECT NAME") + "|" +
@@ -395,7 +401,8 @@ def projects(ctx, i):
 @cli.command()
 @click.pass_context
 @click.argument('project_name')
-def runs(ctx, project_name):
+@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+def runs(ctx, project_name, json_flag):
     """List the runs that exist in a project"""
     project_id = get_project_id(project_name)
     run_list = []
@@ -410,22 +417,32 @@ def runs(ctx, project_name):
                              r['completed_at'].split("T")[0] if r['completed_at']
                              else r['created_at'].split("T")[0],
                              r['status'].replace("_", " ")])
-
-        click.echo(
-            '\n{:^120}'.format("Runs in Project '%s':\n" %
-                               get_project_name(project_name))
-        )
-        click.echo('{:^30}'.format("RUN TITLE") + "|" +
-                   '{:^30}'.format("RUN ID") + "|" +
-                   '{:^30}'.format("RUN DATE") + "|" +
-                   '{:^30}'.format('RUN STATUS'))
-        click.echo('{:-^120}'.format(''))
-        for run in run_list:
-            click.echo(u'{:^30}'.format(run[0]) + "|" +
-                       u'{:^30}'.format(run[1]) + "|" +
-                       u'{:^30}'.format(run[2]) + "|" +
-                       u'{:^30}'.format(run[3]))
-            click.echo(u'{:-^120}'.format(''))
+        if json_flag:
+            run_list = []
+            for r in req:
+                run_list.append({'title': r['title'] or "(Untitled)",
+                                 'id': r['id'],
+                                 'completed_at': r['completed_at'].split("T")[0]
+                                   if r['completed_at'] else None,
+                                 'created_at': r['created_at'].split("T")[0],
+                                 'status': r['status'].replace("_", " ")})
+            return click.echo(json.dumps(run_list))
+        else:
+            click.echo(
+                '\n{:^120}'.format("Runs in Project '%s':\n" %
+                                   get_project_name(project_name))
+            )
+            click.echo('{:^30}'.format("RUN TITLE") + "|" +
+                       '{:^30}'.format("RUN ID") + "|" +
+                       '{:^30}'.format("RUN DATE") + "|" +
+                       '{:^30}'.format('RUN STATUS'))
+            click.echo('{:-^120}'.format(''))
+            for run in run_list:
+                click.echo(u'{:^30}'.format(run[0]) + "|" +
+                           u'{:^30}'.format(run[1]) + "|" +
+                           u'{:^30}'.format(run[2]) + "|" +
+                           u'{:^30}'.format(run[3]))
+                click.echo(u'{:-^120}'.format(''))
 
 
 @cli.command("create-project")
