@@ -244,7 +244,7 @@ def upload_release(ctx, archive, package):
     default=False,
     help='Shows available protocols to be launched remotely'
 )
-@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+@click.option("--json", "json_flag", help="print JSON response", is_flag=True)
 def protocols(ctx, remote, json_flag):
     """List protocols within your manifest or organization."""
     if remote:
@@ -369,7 +369,7 @@ def delete_package(ctx, name, force):
 @cli.command()
 @click.pass_context
 @click.option("-i")
-@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+@click.option("--json", "json_flag", help="print JSON response", is_flag=True)
 def projects(ctx, i, json_flag):
     """List the projects in your organization"""
     try:
@@ -401,7 +401,7 @@ def projects(ctx, i, json_flag):
 @cli.command()
 @click.pass_context
 @click.argument('project_name')
-@click.option("--json", "json_flag", help="print JSON repsponse", is_flag=True)
+@click.option("--json", "json_flag", help="print JSON response", is_flag=True)
 def runs(ctx, project_name, json_flag):
     """List the runs that exist in a project"""
     project_id = get_project_id(project_name)
@@ -422,10 +422,10 @@ def runs(ctx, project_name, json_flag):
             for r in req:
                 run_list.append({'title': r['title'] or "(Untitled)",
                                  'id': r['id'],
-                                 'completed_at': r['completed_at'].split("T")[0]
+                                 'completed_at': r['completed_at']
                                    if r['completed_at'] else None,
-                                 'created_at': r['created_at'].split("T")[0],
-                                 'status': r['status'].replace("_", " ")})
+                                 'created_at': r['created_at'],
+                                 'status': r['status']})
             return click.echo(json.dumps(run_list))
         else:
             click.echo(
