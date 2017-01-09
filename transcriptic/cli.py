@@ -418,15 +418,13 @@ def runs(ctx, project_name, json_flag):
                              else r['created_at'].split("T")[0],
                              r['status'].replace("_", " ")])
         if json_flag:
-            run_list = []
-            for r in req:
-                run_list.append({'title': r['title'] or "(Untitled)",
-                                 'id': r['id'],
-                                 'completed_at': r['completed_at']
-                                   if r['completed_at'] else None,
-                                 'created_at': r['created_at'],
-                                 'status': r['status']})
-            return click.echo(json.dumps(run_list))
+            return click.echo(json.dumps(map(lambda x: {
+                                 'title': x['title'] or "(Untitled)",
+                                 'id': x['id'],
+                                 'completed_at': x['completed_at']
+                                 if x['completed_at'] else None,
+                                 'created_at': x['created_at'],
+                                 'status': x['status']}, req)))
         else:
             click.echo(
                 '\n{:^120}'.format("Runs in Project '%s':\n" %
