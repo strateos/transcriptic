@@ -479,8 +479,9 @@ class Connection(object):
             client_id = self.user_id
         packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
         requests.post(route, packet)
-
-    def _parse_protocol(self, protocol):
+    
+    @staticmethod
+    def _parse_protocol(protocol):
         if isinstance(protocol, dict):
             return protocol
         try:
