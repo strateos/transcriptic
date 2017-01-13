@@ -24,7 +24,6 @@ setup(
     install_requires=[
         'Click>=5.1',
         'requests>=2.0',
-        'autoprotocol>=3.10',
         'pandas>=0.18',
         'matplotlib>=1.4',
         'scipy>=0.16',

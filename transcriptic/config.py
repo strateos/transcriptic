@@ -5,12 +5,10 @@ import transcriptic
 import os
 from os.path import expanduser
 from . import routes
-from autoprotocol import Protocol
 import requests
 from .version import __version__
 import platform
 import inspect
-
 
 class Connection(object):
     """
@@ -132,10 +130,10 @@ class Connection(object):
     def preview_protocol(self, protocol):
         """Post protocol preview"""
         route = self.get_route('preview_protocol')
+        protocol = _parse_protocol(protocol)
         return self.post(route,
                          json={
-                             "protocol": json.dumps(protocol.as_dict()) if
-                             isinstance(protocol, Protocol) else protocol
+                             "protocol": json.dumps(protocol)
                          },
                          allow_redirects=False,
                          status_response={
@@ -304,8 +302,7 @@ class Connection(object):
 
     def analyze_run(self, protocol, test_mode=False):
         """Analyze given protocol"""
-        if isinstance(protocol, Protocol):
-            protocol = protocol.as_dict()
+        protocol = _parse_protocol(protocol)
         if "errors" in protocol:
             raise AnalysisException(("Error%s in protocol:\n%s" %
                                      (("s" if len(protocol["errors"]) > 1 else ""),
@@ -327,8 +324,7 @@ class Connection(object):
 
     def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
         """Submit given protocol"""
-        if isinstance(protocol, Protocol):
-            protocol = protocol.as_dict()
+        protocol = _parse_protocol(protocol)
         return self.post(self.get_route('submit_run', project_id=project_id),
                          data=json.dumps({
                              "title": title,
@@ -484,6 +480,15 @@ class Connection(object):
         packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
         requests.post(route, packet)
 
+    def _parse_protocol(self, protocol):
+        if isinstance(protocol, dict):
+            return protocol
+        try:
+            from autoprotocol import Protocol
+        except ImportError as IE:
+            raise RuntimeError("Please install `autoprotocol-python` in order to work with Protocol objects")
+        if isinstance(protocol, Protocol):
+            return protocol.as_dict()
 
 class AnalysisException(Exception):
     def __init__(self, message):
