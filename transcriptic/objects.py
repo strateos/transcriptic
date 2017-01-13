@@ -5,7 +5,6 @@ from builtins import str
 import pandas as pd
 from builtins import object
 import warnings
-from autoprotocol import Unit
 from requests.exceptions import ReadTimeout
 from copy import deepcopy
 
@@ -663,8 +662,15 @@ class Container(_BaseObject):
         """
         if self._aliquots.empty:
             aliquot_list = self.attributes["aliquots"]
-            self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
+            try:
+                from autoprotocol import Unit
+                self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': Unit(float(x['volume_ul']), 'microliter')}, **x['properties'])
+                                           for x in aliquot_list], key=itemgetter('Well Index')))
+            except ImportError as IE:
+                warnings.warn("Volume is not cast into Unit-type. Please install `autoprotocol-python` in order to have automatic Unit casting")
+                self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
+                                                 'Volume': float(x['volume_ul'])}, **x['properties'])
                                            for x in aliquot_list], key=itemgetter('Well Index')))
             indices = self._aliquots.pop('Well Index')
             self._aliquots.set_index(indices, inplace=True)

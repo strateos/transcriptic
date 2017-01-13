@@ -2,13 +2,20 @@
 
 ## Unreleased
 
+## v3.10.0
+Updated
+- Removed setup.py requirement for `autoprotocol-python`
+
 ## v3.9.2
+Fixed
 - Bugfix to resolve error caused by attempting to print unicode characters on the CLI.
 
 ## v3.9.1
+Fixed
 - Bugfix to remove `data_keys` from Absorbance function, which is no longer returned from webapp
 
 ## v3.9.0
+Added
 - Add raw_data property to the `Dataset` object
 - Add ability to cross reference aliquots with their data using the `Dataset` object
 
