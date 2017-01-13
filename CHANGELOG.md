@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.10.1
+Fixed
+- Minor bugfix for `_parse_protocol`
+
 ## v3.10.0
 Updated
 - Removed setup.py requirement for `autoprotocol-python`

@@ -480,16 +480,15 @@ class Connection(object):
         packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
         requests.post(route, packet)
     
-    @staticmethod
-    def _parse_protocol(protocol):
-        if isinstance(protocol, dict):
-            return protocol
-        try:
-            from autoprotocol import Protocol
-        except ImportError as IE:
-            raise RuntimeError("Please install `autoprotocol-python` in order to work with Protocol objects")
-        if isinstance(protocol, Protocol):
-            return protocol.as_dict()
+def _parse_protocol(protocol):
+    if isinstance(protocol, dict):
+        return protocol
+    try:
+        from autoprotocol import Protocol
+    except ImportError as IE:
+        raise RuntimeError("Please install `autoprotocol-python` in order to work with Protocol objects")
+    if isinstance(protocol, Protocol):
+        return protocol.as_dict()
 
 class AnalysisException(Exception):
     def __init__(self, message):
