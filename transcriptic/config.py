@@ -479,7 +479,16 @@ class Connection(object):
             client_id = self.user_id
         packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
         requests.post(route, packet)
-    
+
+
+class AnalysisException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
 def _parse_protocol(protocol):
     if isinstance(protocol, dict):
         return protocol
@@ -490,9 +499,3 @@ def _parse_protocol(protocol):
     if isinstance(protocol, Protocol):
         return protocol.as_dict()
 
-class AnalysisException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return self.message
