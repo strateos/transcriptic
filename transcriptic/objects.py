@@ -641,13 +641,17 @@ class Container(_BaseObject):
 
     def _parse_container_type(self):
         """Helper function for parsing container string into container object"""
-        from autoprotocol.container_type import _CONTAINER_TYPES
+
         container_type = self.attributes["container_type"]
 
         # Return the corresponding AP-Py container object for now. In the future, consider merging
         # the current and future dictionary when instantiating container_type
         try:
+            from autoprotocol.container_type import _CONTAINER_TYPES
             return _CONTAINER_TYPES[container_type["shortname"]]
+        except ImportError:
+            raise warnings.warn("Please install `autoprotocol-python` in order to get container types")
+            return None
         except KeyError:
             warnings.warn("ContainerType given is not supported yet in AP-Py")
             return None
@@ -667,7 +671,7 @@ class Container(_BaseObject):
                 self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': Unit(float(x['volume_ul']), 'microliter')}, **x['properties'])
                                            for x in aliquot_list], key=itemgetter('Well Index')))
-            except ImportError as IE:
+            except ImportError:
                 warnings.warn("Volume is not cast into Unit-type. Please install `autoprotocol-python` in order to have automatic Unit casting")
                 self._aliquots = pd.DataFrame(sorted([dict({'Well Index': x['well_idx'], 'Name': x['name'], 'Id': x['id'],
                                                  'Volume': float(x['volume_ul'])}, **x['properties'])

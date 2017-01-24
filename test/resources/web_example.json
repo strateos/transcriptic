@@ -1,0 +1,166 @@
+{
+  "refs": {
+    "bacteria": {
+      "new": "micro-1.5",
+      "discard": true
+    },
+    "test_plate": {
+      "new": "96-flat",
+      "store": {
+        "where": "cold_4"
+      }
+    }
+  },
+  "instructions": [
+    {
+      "reagent": "lb-broth-noAB",
+      "object": "test_plate",
+      "columns": [
+        {
+          "column": 0,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 1,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 2,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 3,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 4,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 5,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 6,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 7,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 8,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 9,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 10,
+          "volume": "50:microliter"
+        },
+        {
+          "column": 11,
+          "volume": "50:microliter"
+        }
+      ],
+      "op": "dispense"
+    },
+    {
+      "groups": [
+        {
+          "transfer": [
+            {
+              "volume": "1.0:microliter",
+              "to": "test_plate/0",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "3.0:microliter",
+              "to": "test_plate/1",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "5.0:microliter",
+              "to": "test_plate/2",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "7.0:microliter",
+              "to": "test_plate/3",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "9.0:microliter",
+              "to": "test_plate/4",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "11.0:microliter",
+              "to": "test_plate/5",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "13.0:microliter",
+              "to": "test_plate/6",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "15.0:microliter",
+              "to": "test_plate/7",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "17.0:microliter",
+              "to": "test_plate/8",
+              "from": "bacteria/0"
+            }
+          ]
+        },
+        {
+          "transfer": [
+            {
+              "volume": "19.0:microliter",
+              "to": "test_plate/9",
+              "from": "bacteria/0"
+            }
+          ]
+        }
+      ],
+      "op": "pipette"
+    }
+  ]
+}

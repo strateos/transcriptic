@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.10.2
+Fixed
+- AP2EN_test failures still requiring protocol
+- object.py requirement for `autoprotocol.container_types`
+
 ## v3.10.1
 Fixed
 - Minor bugfix for `_parse_protocol`
