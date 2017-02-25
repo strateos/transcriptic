@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.10.3
+Fixed
+- Bug with launch_request
+
 ## v3.10.2
 Fixed
 - AP2EN_test failures still requiring protocol
