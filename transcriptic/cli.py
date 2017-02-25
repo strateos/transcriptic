@@ -885,6 +885,7 @@ def launch(ctx, protocol, project, save_input, remote, params):
         launch_protocol = _get_launch_request(ctx, params, protocol_obj)
         from time import strftime, gmtime
         default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
+
         try:
             req_json = ctx.obj.api.submit_run(
                 launch_protocol["autoprotocol"], project_id=project, title=default_title, test_mode=None)
@@ -919,7 +920,7 @@ def _get_launch_request(ctx, params, protocol):
 
     # Wait until launch request is updated (max 5 minutes)
     count = 1
-    while count <= 150 and launch_protocol['autoprotocol'] is None:
+    while count <= 150 and not launch_protocol['autoprotocol']:
         sys.stderr.write(
             "\rWaiting for launch request to be configured%s" % ('.' * count))
         sys.stderr.flush()
