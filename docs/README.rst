@@ -43,6 +43,12 @@ alongside that interface. Use `transcriptic.object` and `transcriptic.analysis` 
 analyze data respectively.
 API calls are located in the `transcriptic.config` module for more advanced connection needs.
 
+Permissions
+-----------
+
+Note that direct analysis and submission of Autoprotocol is currently restricted. Please contact us through the appropriate support channels if you would like to do so.
+
+
 Further Documentation
 ---------------------
 

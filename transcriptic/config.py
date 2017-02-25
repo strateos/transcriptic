@@ -455,8 +455,11 @@ class Connection(object):
                                          **status_response)
 
     def _handle_response(self, response, **kwargs):
+        unauthorized_resp = "You are not authorized to execute this command. For more information on access " \
+                            "permissions see the package documentation."
         default_status_response = {'200': lambda resp: resp.json(),
                                    '201': lambda resp: resp.json(),
+                                   '403': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
                                    'default': lambda resp: Exception("[%d] %s" % (resp.status_code, resp.text))
                                    }
         if kwargs['merge_status']:

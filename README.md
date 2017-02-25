@@ -1,4 +1,4 @@
-# ![](https://www.transcriptic.com/images/logo-transcriptic-blobs-880e2f7b.svg) Transcriptic Python Library
+# ![](https://static-public.transcriptic.com/logos/blobs.svg) Transcriptic Python Library
 
 The Transcriptic Python Library (TxPy) provides a Python interface for managing Transcriptic organizations, projects, runs, datasets and more.
 One can either interface with our library through the bundled command line interface (CLI) or through a Jupyter notebook.
@@ -44,6 +44,10 @@ To enable this for every single session automatically, add `. path/to/transcript
 See the [Transcriptic Developer Documentation](https://developers.transcriptic.com/docs/getting-started-with-the-cli) for detailed information about how to use this package, including learning about how to package protocols and build releases.
 
 View [Developer Specific Documentation](http://transcriptic.readthedocs.io/en/latest/)
+
+## Permissions
+
+Note that direct analysis and submission of Autoprotocol is currently restricted. Please contact us through the appropriate support channels if you would like to do so.
 
 ## Contributing
 

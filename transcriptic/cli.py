@@ -177,6 +177,7 @@ def upload_release(ctx, archive, package):
     except AttributeError:
         click.echo("Error: Invalid package id or name.")
         return
+
     with click.progressbar(None, 100, "Upload Progress",
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
@@ -200,13 +201,17 @@ def upload_release(ctx, archive, package):
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
         try:
-            up = ctx.obj.api.post_release(
-                data=json.dumps({"release":
-                                 {"binary_attachment_url": loc["Key"]}}
-                                ),
-                package_id=package_id
-            )
-            re = up['id']
+            try:
+                up = ctx.obj.api.post_release(
+                    data=json.dumps({"release":
+                                     {"binary_attachment_url": loc["Key"]}}
+                                    ),
+                    package_id=package_id
+                )
+                re = up['id']
+            except PermissionError as e:
+                click.echo("\n" + str(e))
+                return
         except ValueError:
             click.echo("\nError: There was a problem uploading your release."
                        "\nVerify that your manifest.json file is properly  "
@@ -328,16 +333,19 @@ def create_package(ctx, description, name):
                        "\"%s\". Please choose a different package name." %
                        name)
             return
-    new_pack = ctx.obj.api.create_package(name, description)
-    if new_pack:
-        click.echo("New package '%s' created with id %s \n"
-                   "View it at %s" % (name, new_pack['id'],
-                                      ctx.obj.api.url('packages/%s' %
-                                                      new_pack['id'])
-                                      )
-                   )
-    else:
-        click.echo("There was an error creating this package.")
+    try:
+        new_pack = ctx.obj.api.create_package(name, description)
+        if new_pack:
+            click.echo("New package '%s' created with id %s \n"
+                       "View it at %s" % (name, new_pack['id'],
+                                          ctx.obj.api.url('packages/%s' %
+                                                          new_pack['id'])
+                                          )
+                       )
+        else:
+            click.echo("There was an error creating this package.")
+    except Exception as e:
+        click.echo(str(e))
 
 
 @cli.command("delete-package")
@@ -349,18 +357,21 @@ def delete_package(ctx, name, force):
     """Delete an existing protocol package"""
     package_id = get_package_id(name)
     if package_id:
-        if not force:
-            click.confirm(
-                "Are you sure you want to permanently delete the package "
-                "'%s'?  All releases within will be lost." %
-                get_package_name(package_id), default=False, abort=True
-            )
-            click.confirm("Are you really really sure?", default=True)
-        del_pack = ctx.obj.api.delete_package(package_id=package_id)
-        if del_pack:
-            click.echo("Package deleted.")
-        else:
-            click.echo("There was a problem deleting this package.")
+        try:
+            if not force:
+                click.confirm(
+                    "Are you sure you want to permanently delete the package "
+                    "'%s'?  All releases within will be lost." %
+                    get_package_name(package_id), default=False, abort=True
+                )
+                click.confirm("Are you really really sure?", default=True)
+            del_pack = ctx.obj.api.delete_package(package_id=package_id)
+            if del_pack:
+                click.echo("Package deleted.")
+            else:
+                click.echo("There was a problem deleting this package.")
+        except Exception as e:
+            click.echo(str(e))
 
 
 @cli.command()
