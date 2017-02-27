@@ -339,6 +339,28 @@ class Connection(object):
                              '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
                          })
 
+    def submit_launch_request(self, launch_request_id, project_id=None,
+                              protocol_id=None, title=None, test_mode=False):
+        """Submit specified launch request"""
+        return self.post(
+            self.get_route('submit_launch_request', project_id=project_id),
+            data=json.dumps({
+                "title": title,
+                "launch_request_id": launch_request_id,
+                "protocol_id": protocol_id,
+                "test_mode": test_mode
+            }),
+            status_response={
+                '404': lambda resp: AnalysisException(
+                    "Error: Couldn't create run (404). \n"
+                    "Are you sure the project %s "
+                    "exists, and that you have access to it?" %
+                    self.url(project_id)),
+                '422': lambda resp: AnalysisException(
+                     "Error creating run: %s" % resp.text)
+            }
+        )
+
     def dataset(self, data_id, key="*"):
         """Get dataset with given data_id"""
         route = self.get_route('dataset', data_id=data_id, key=key)

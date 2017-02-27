@@ -118,7 +118,7 @@ def submit(ctx, file, project, title=None, test=None):
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-    except PermissionError as err:
+    except Exception as err:
         click.echo("\n" + str(err))
 
 
@@ -345,7 +345,7 @@ def create_package(ctx, description, name):
             )
         else:
             click.echo("There was an error creating this package.")
-    except PermissionError as err:
+    except Exception as err:
         click.echo("\n" + str(err))
 
 
@@ -371,7 +371,7 @@ def delete_package(ctx, name, force):
                 click.echo("Package deleted.")
             else:
                 click.echo("There was a problem deleting this package.")
-        except PermissionError as err:
+        except Exception as err:
             click.echo("\n" + str(err))
 
 
@@ -673,7 +673,7 @@ def analyze(ctx, file, test):
         analysis = ctx.obj.api.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
         price(analysis)
-    except PermissionError as err:
+    except Exception as err:
         click.echo("\n" + str(err))
 
 
@@ -894,17 +894,28 @@ def launch(ctx, protocol, project, save_input, remote, params):
                              "File is probably incorrectly formatted.")
                 return
 
-        launch_protocol = _get_launch_request(ctx, params, protocol_obj)
+        req_id, launch_protocol = _get_launch_request(ctx, params, protocol_obj)
+
+        # Check for generation errors
+        generation_errs = launch_protocol["generation_errors"]
+        if len(generation_errs) > 0:
+            for errors in generation_errs:
+                click.echo("\n\n" + errors["message"])
+            click.echo("\nPlease fix the above errors and try again.")
+            return
+
         from time import strftime, gmtime
         default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
 
         try:
-            req_json = ctx.obj.api.submit_run(
-                launch_protocol["autoprotocol"], project_id=project, title=default_title, test_mode=None)
+            req_json = ctx.obj.api.submit_launch_request(
+                req_id, protocol_id=protocol_obj["id"],
+                project_id=project, title=default_title, test_mode=None
+            )
             run_id = req_json['id']
             click.echo("\nRun created: %s" %
                        ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-        except PermissionError as err:
+        except Exception as err:
             click.echo("\n" + str(err))
     else:
         print_stderr("\nGenerating Autoprotocol....\n")
@@ -932,7 +943,7 @@ def _get_launch_request(ctx, params, protocol):
 
     # Wait until launch request is updated (max 5 minutes)
     count = 1
-    while count <= 150 and not launch_protocol['autoprotocol']:
+    while count <= 150 and launch_protocol['progress'] != 100:
         sys.stderr.write(
             "\rWaiting for launch request to be configured%s" % ('.' * count))
         sys.stderr.flush()
@@ -941,7 +952,7 @@ def _get_launch_request(ctx, params, protocol):
                                                          launch_request_id=launch_request_id)
         count += 1
 
-    return launch_protocol
+    return launch_request_id, launch_protocol
 
 
 def _get_quick_launch(ctx, protocol, project):
