@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v3.11.0
 Updated
 - Handling of 403 routes
 - Documentation to reflect permissions changes
