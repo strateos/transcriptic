@@ -118,8 +118,8 @@ def submit(ctx, file, project, title=None, test=None):
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-    except Exception as e:
-        click.echo(str(e))
+    except PermissionError as err:
+        click.echo("\n" + str(err))
 
 
 @cli.command('build-release')
@@ -201,25 +201,25 @@ def upload_release(ctx, archive, package):
         response_tree = ET.fromstring(response.content)
         loc = dict((i.tag, i.text) for i in response_tree)
         try:
-            try:
-                up = ctx.obj.api.post_release(
-                    data=json.dumps({"release":
-                                     {"binary_attachment_url": loc["Key"]}}
-                                    ),
-                    package_id=package_id
-                )
-                re = up['id']
-            except PermissionError as e:
-                click.echo("\n" + str(e))
-                return
-        except ValueError:
-            click.echo("\nError: There was a problem uploading your release."
-                       "\nVerify that your manifest.json file is properly  "
-                       "formatted and that all previews in your manifest "
-                       "produce valid Autoprotocol by using the "
-                       "`transcriptic preview` and/or `transcriptic analyze` "
-                       "commands.")
+            up = ctx.obj.api.post_release(
+                data=json.dumps({"release":
+                                 {"binary_attachment_url": loc["Key"]}}
+                                ),
+                package_id=package_id
+            )
+            re = up['id']
+        except (ValueError, PermissionError) as err:
+            if type(err) == ValueError:
+                click.echo("\nError: There was a problem uploading your release."
+                           "\nVerify that your manifest.json file is properly  "
+                           "formatted and that all previews in your manifest "
+                           "produce valid Autoprotocol by using the "
+                           "`transcriptic preview` and/or `transcriptic analyze` "
+                           "commands.")
+            elif type(err) == PermissionError:
+                click.echo("\n" + str(err))
             return
+
         bar.update(20)
         time.sleep(10)
         status = ctx.obj.api.get_release_status(package_id=package_id, release_id=re,
@@ -336,16 +336,17 @@ def create_package(ctx, description, name):
     try:
         new_pack = ctx.obj.api.create_package(name, description)
         if new_pack:
-            click.echo("New package '%s' created with id %s \n"
-                       "View it at %s" % (name, new_pack['id'],
-                                          ctx.obj.api.url('packages/%s' %
-                                                          new_pack['id'])
-                                          )
-                       )
+            click.echo(
+                "New package '%s' created with id %s \n"
+                "View it at %s" % (
+                    name, new_pack['id'],
+                    ctx.obj.api.url('packages/%s' % new_pack['id'])
+                )
+            )
         else:
             click.echo("There was an error creating this package.")
-    except Exception as e:
-        click.echo(str(e))
+    except PermissionError as err:
+        click.echo("\n" + str(err))
 
 
 @cli.command("delete-package")
@@ -370,8 +371,8 @@ def delete_package(ctx, name, force):
                 click.echo("Package deleted.")
             else:
                 click.echo("There was a problem deleting this package.")
-        except Exception as e:
-            click.echo(str(e))
+        except PermissionError as err:
+            click.echo("\n" + str(err))
 
 
 @cli.command()
@@ -672,8 +673,8 @@ def analyze(ctx, file, test):
         analysis = ctx.obj.api.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
         price(analysis)
-    except Exception as e:
-        click.echo(str(e))
+    except PermissionError as err:
+        click.echo("\n" + str(err))
 
 
 def price(response):
@@ -903,8 +904,8 @@ def launch(ctx, protocol, project, save_input, remote, params):
             run_id = req_json['id']
             click.echo("\nRun created: %s" %
                        ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-        except Exception as e:
-            click.echo(str(e))
+        except PermissionError as err:
+            click.echo("\n" + str(err))
     else:
         print_stderr("\nGenerating Autoprotocol....\n")
         if not params:
