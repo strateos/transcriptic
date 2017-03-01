@@ -118,8 +118,8 @@ def submit(ctx, file, project, title=None, test=None):
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as err:
+        click.echo("\n" + str(err))
 
 
 @cli.command('build-release')
@@ -177,6 +177,7 @@ def upload_release(ctx, archive, package):
     except AttributeError:
         click.echo("Error: Invalid package id or name.")
         return
+
     with click.progressbar(None, 100, "Upload Progress",
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
@@ -207,14 +208,18 @@ def upload_release(ctx, archive, package):
                 package_id=package_id
             )
             re = up['id']
-        except ValueError:
-            click.echo("\nError: There was a problem uploading your release."
-                       "\nVerify that your manifest.json file is properly  "
-                       "formatted and that all previews in your manifest "
-                       "produce valid Autoprotocol by using the "
-                       "`transcriptic preview` and/or `transcriptic analyze` "
-                       "commands.")
+        except (ValueError, PermissionError) as err:
+            if type(err) == ValueError:
+                click.echo("\nError: There was a problem uploading your release."
+                           "\nVerify that your manifest.json file is properly  "
+                           "formatted and that all previews in your manifest "
+                           "produce valid Autoprotocol by using the "
+                           "`transcriptic preview` and/or `transcriptic analyze` "
+                           "commands.")
+            elif type(err) == PermissionError:
+                click.echo("\n" + str(err))
             return
+
         bar.update(20)
         time.sleep(10)
         status = ctx.obj.api.get_release_status(package_id=package_id, release_id=re,
@@ -328,16 +333,20 @@ def create_package(ctx, description, name):
                        "\"%s\". Please choose a different package name." %
                        name)
             return
-    new_pack = ctx.obj.api.create_package(name, description)
-    if new_pack:
-        click.echo("New package '%s' created with id %s \n"
-                   "View it at %s" % (name, new_pack['id'],
-                                      ctx.obj.api.url('packages/%s' %
-                                                      new_pack['id'])
-                                      )
-                   )
-    else:
-        click.echo("There was an error creating this package.")
+    try:
+        new_pack = ctx.obj.api.create_package(name, description)
+        if new_pack:
+            click.echo(
+                "New package '%s' created with id %s \n"
+                "View it at %s" % (
+                    name, new_pack['id'],
+                    ctx.obj.api.url('packages/%s' % new_pack['id'])
+                )
+            )
+        else:
+            click.echo("There was an error creating this package.")
+    except Exception as err:
+        click.echo("\n" + str(err))
 
 
 @cli.command("delete-package")
@@ -349,18 +358,21 @@ def delete_package(ctx, name, force):
     """Delete an existing protocol package"""
     package_id = get_package_id(name)
     if package_id:
-        if not force:
-            click.confirm(
-                "Are you sure you want to permanently delete the package "
-                "'%s'?  All releases within will be lost." %
-                get_package_name(package_id), default=False, abort=True
-            )
-            click.confirm("Are you really really sure?", default=True)
-        del_pack = ctx.obj.api.delete_package(package_id=package_id)
-        if del_pack:
-            click.echo("Package deleted.")
-        else:
-            click.echo("There was a problem deleting this package.")
+        try:
+            if not force:
+                click.confirm(
+                    "Are you sure you want to permanently delete the package "
+                    "'%s'?  All releases within will be lost." %
+                    get_package_name(package_id), default=False, abort=True
+                )
+                click.confirm("Are you really really sure?", default=True)
+            del_pack = ctx.obj.api.delete_package(package_id=package_id)
+            if del_pack:
+                click.echo("Package deleted.")
+            else:
+                click.echo("There was a problem deleting this package.")
+        except Exception as err:
+            click.echo("\n" + str(err))
 
 
 @cli.command()
@@ -661,8 +673,8 @@ def analyze(ctx, file, test):
         analysis = ctx.obj.api.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
         price(analysis)
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as err:
+        click.echo("\n" + str(err))
 
 
 def price(response):
@@ -882,18 +894,29 @@ def launch(ctx, protocol, project, save_input, remote, params):
                              "File is probably incorrectly formatted.")
                 return
 
-        launch_protocol = _get_launch_request(ctx, params, protocol_obj)
+        req_id, launch_protocol = _get_launch_request(ctx, params, protocol_obj)
+
+        # Check for generation errors
+        generation_errs = launch_protocol["generation_errors"]
+        if len(generation_errs) > 0:
+            for errors in generation_errs:
+                click.echo("\n\n" + errors["message"])
+            click.echo("\nPlease fix the above errors and try again.")
+            return
+
         from time import strftime, gmtime
         default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
 
         try:
-            req_json = ctx.obj.api.submit_run(
-                launch_protocol["autoprotocol"], project_id=project, title=default_title, test_mode=None)
+            req_json = ctx.obj.api.submit_launch_request(
+                req_id, protocol_id=protocol_obj["id"],
+                project_id=project, title=default_title, test_mode=None
+            )
             run_id = req_json['id']
             click.echo("\nRun created: %s" %
                        ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
-        except Exception as e:
-            click.echo(str(e))
+        except Exception as err:
+            click.echo("\n" + str(err))
     else:
         print_stderr("\nGenerating Autoprotocol....\n")
         if not params:
@@ -920,7 +943,7 @@ def _get_launch_request(ctx, params, protocol):
 
     # Wait until launch request is updated (max 5 minutes)
     count = 1
-    while count <= 150 and not launch_protocol['autoprotocol']:
+    while count <= 150 and launch_protocol['progress'] != 100:
         sys.stderr.write(
             "\rWaiting for launch request to be configured%s" % ('.' * count))
         sys.stderr.flush()
@@ -929,7 +952,7 @@ def _get_launch_request(ctx, params, protocol):
                                                          launch_request_id=launch_request_id)
         count += 1
 
-    return launch_protocol
+    return launch_request_id, launch_protocol
 
 
 def _get_quick_launch(ctx, protocol, project):
