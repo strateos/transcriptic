@@ -1,4 +1,4 @@
-# ![](https://static-public.transcriptic.com/logos/blobs.svg) Transcriptic Python Library
+# <img src= "https://static-public.transcriptic.com/logos/blobs.svg" width="40" height="40"> Transcriptic Python Library
 
 The Transcriptic Python Library (TxPy) provides a Python interface for managing Transcriptic organizations, projects, runs, datasets and more.
 One can either interface with our library through the bundled command line interface (CLI) or through a Jupyter notebook.
