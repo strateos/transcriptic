@@ -49,7 +49,7 @@ class _PlateRead(object):
                 "excitation: %s emission: %s" %
                 (dataset_op["excitation"].split(":")[0] + "nm",
                  dataset_op["emission"].split(":")[0] + "nm")
-                )
+            )
         if self.op_type == "luminescence":
             measure_params_dict["wavelength"] = ""
 
@@ -66,7 +66,7 @@ class _PlateRead(object):
 
         # Get dataset and parse into DataFrame
         data_dict = get_dataset(self.dataset.attributes["id"])
-        df_dict = {}
+        self.df = pandas.DataFrame()
         well_count = self.dataset.attributes[
             "container"]["container_type"]["well_count"]
         col_count = self.dataset.attributes[
@@ -74,16 +74,19 @@ class _PlateRead(object):
         # If no group well list specified, default to including all well data
         # values in one group
         if not group_wells:
-            df_dict[group_labels[0]] = [x[0] for x in list(data_dict.values())]
+            self.df = pandas.DataFrame([x[0]
+                                        for x in list(data_dict.values())],
+                                       columns=[group_labels[0]])
         # If given list of all int, assume one group with all wells in list
         elif all(isinstance(i, int) for i in group_wells):
             if len(group_wells) > len(data_dict):
                 raise ValueError(
                     "Sum of group lengths exceeds total no. of wells.")
             try:
-                df_dict[group_labels[0]] = [
-                    data_dict[humanize(well, well_count, col_count).lower()][0]
-                    for well in group_wells]
+                self.df = pandas.DataFrame(
+                    [data_dict[humanize(well, well_count,
+                                        col_count).lower()][0]
+                     for well in group_wells], columns=[group_labels[0]])
             except:
                 raise ValueError("Well %s is not in the dataset" % well)
         elif all(isinstance(i, list) for i in group_wells):
@@ -93,9 +96,13 @@ class _PlateRead(object):
                     "Sum of group lengths exceeds total no. of wells.")
             for (idx, well_list) in enumerate(group_wells):
                 try:
-                    df_dict[group_labels[idx]] = [
-                        data_dict[humanize(well, well_count, col_count).lower()
-                                  ][0] for well in well_list]
+                    col = pandas.DataFrame(
+                        [data_dict[humanize(well, well_count,
+                                            col_count).lower()][0]
+                         for well in well_list], columns=[group_labels[idx]])
+                    # if group_well members are of different lengths,
+                    # concat automatically pads resultant DataFrame with NaN
+                    self.df = pandas.concat([self.df, col], axis=1)
                 except:
                     raise ValueError("Well %s is not in the dataset" % well)
         else:
@@ -103,24 +110,12 @@ class _PlateRead(object):
                 "Format Error: Group Well List should be a list of list of \
                  wells in robot format")
 
-        # To ensure pandas dataframe compatiblity: Check that group len
-        # elements are of the same length, pad with NaN otherwise
-        if group_wells and all(isinstance(i, list) for i in group_wells):
-            group_len_list = [len(x) for x in group_wells]
-            if group_len_list.count(group_len_list[0]) != len(group_len_list):
-                max_len = max(group_len_list)
-                for (idx, group_len) in enumerate(group_len_list):
-                    while len(df_dict[group_labels[idx]]) < max_len:
-                        df_dict[group_labels[idx]].append(float("NaN"))
-
-        self.df = pandas.DataFrame(df_dict, columns=group_labels)
-
         # If control absorbance object specified, create df_abj variable by
         # subtracting control df from original
         if control_reading:
             self.df_adj = self.df - control_reading.df
 
-        self.cv = self.df.std()/self.df.mean()*100
+        self.cv = self.df.std() / (self.df.mean() * 100)
 
     def plot(self, mpl=True, plot_type="box", **plt_kwargs):
         """
