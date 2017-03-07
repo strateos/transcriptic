@@ -5,6 +5,10 @@ Fixed
 - Fixed bug in _PlateRead that caused data overwrites if multiple instances of the same
 group_label were present
 
+## v3.12.0
+Added
+- New --json flag for runs, projects and protocols for fetching JSON
+
 ## v3.11.0
 Updated
 - Handling of 403 routes
