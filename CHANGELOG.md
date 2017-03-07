@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-
 ## v3.12.0
 Added
 - New --json flag for runs, projects and protocols for fetching JSON
@@ -31,6 +30,10 @@ Fixed
 ## v3.10.0
 Updated
 - Removed setup.py requirement for `autoprotocol-python`
+
+## v3.9.3
+- Adds `--json` flag to cli commands: `projects`, `runs`, `protocols`. Provides
+raw JSON response.
 
 ## v3.9.2
 Fixed
