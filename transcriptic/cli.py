@@ -34,24 +34,25 @@ except NameError:
 
 class FeatureGroup(click.Group):
     """Custom group to handle hiding of commands based on the `feature` tag
-    TODO: Use `hidden` parameter in commands once Click 7 lands
+    TODO: Deprecate once Click 7 lands and use `hidden` parameter in commands
     """
     def __init__(self, **attrs):
         click.Group.__init__(self, **attrs)
 
     def format_commands(self, ctx, formatter):
         """Custom formatter to control whether a command is displayed
+        Note: This is only called when formatting the help message.
         """
         ctx.obj = ContextObject()
         try:
             ctx.obj.api = Connection.from_file('~/.transcriptic')
         except (FileNotFoundError, OSError):
+            # This defaults to feature_groups = []
             ctx.obj.api = Connection(use_environ=False)
 
         rows = []
         for subcommand in self.list_commands(ctx):
             cmd = self.get_command(ctx, subcommand)
-            # What is this, the tool lied about a command.  Ignore it
             if cmd is None:
                 continue
             try:
@@ -80,8 +81,10 @@ class FeatureCommand(click.Command):
 
 
 class ContextObject(object):
-    """Object passed along Click context"""
-
+    """Object passed along Click context
+    Note: `ctx` is passed along whenever the @click.pass_context decorator is
+    present. This object is referenced using `ctx.obj`
+    """
     def __init__(self):
         self._api = None
 
@@ -109,7 +112,10 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.version_option(prog_name="Transcriptic Python Library (TxPy)")
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
-    """A command line tool for working with Transcriptic."""
+    """A command line tool for working with Transcriptic.
+    Note: This is the main entry point of the CLI. ALl commands go through
+    this `group` before calling a sub-`command`
+    """
     if ctx.invoked_subcommand in ['login', 'compile', 'preview', 'summarize', 'init']:
         # For login/local commands, initialize empty connection
         ctx.obj = ContextObject()
@@ -882,15 +888,15 @@ def compile(protocol_name, args):
     '--project', '-p',
     metavar='PROJECT_ID',
     required=False,
-    help='Project id or name context for configuring the protocol. Use \
-         `transcriptic projects` command to list existing projects.'
+    help='Project id or name context for configuring the protocol. Use '
+         '`transcriptic projects` command to list existing projects.'
 )
 @click.option(
     '--save_input',
     metavar='FILE',
     required=False,
-    help='Save the protocol or parameters input JSON in a file. This is \
-          useful for debugging a protocol.'
+    help='Save the protocol or parameters input JSON in a file. This is '
+          'useful for debugging a protocol.'
 )
 @click.option(
     '--local',
