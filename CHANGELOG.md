@@ -1,7 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
-Fixed
+
+## v3.12.0
+Added
+- New --json flag for runs, projects and protocols for fetching JSON
 - Fixed bug in _PlateRead that caused data overwrites if multiple instances of the same
 group_label were present
 
@@ -27,6 +30,10 @@ Fixed
 ## v3.10.0
 Updated
 - Removed setup.py requirement for `autoprotocol-python`
+
+## v3.9.3
+- Adds `--json` flag to cli commands: `projects`, `runs`, `protocols`. Provides
+raw JSON response.
 
 ## v3.9.2
 Fixed
