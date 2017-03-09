@@ -78,8 +78,7 @@ class Connection(object):
         self.analytics = analytics
         self.user_id = user_id
         RELEVANT_GROUPS = set(['can_submit_autoprotocol', 'can_upload_packages'])
-        groups = list(RELEVANT_GROUPS.intersection(feature_groups))
-        self.feature_groups = groups
+        self.feature_groups = list(RELEVANT_GROUPS.intersection(feature_groups))
         self.headers = {
             "X-User-Email": email,
             "X-User-Token": token,

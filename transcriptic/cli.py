@@ -55,12 +55,12 @@ class FeatureGroup(click.Group):
             if cmd is None:
                 continue
             try:
-                if cmd.feature is not None:
-                    if cmd.feature in ctx.obj.api.feature_groups:
-                        help = cmd.short_help or ''
-                        rows.append((subcommand, help))
-                    else:
-                        continue
+                if cmd.feature is not None and \
+                        cmd.feature in ctx.obj.api.feature_groups:
+                    help = cmd.short_help or ''
+                    rows.append((subcommand, help))
+                else:
+                    continue
             except AttributeError:
                 help = cmd.short_help or ''
                 rows.append((subcommand, help))
