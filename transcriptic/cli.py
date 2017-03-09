@@ -32,9 +32,59 @@ except NameError:
     pass
 
 
-class ContextObject(object):
-    """Object passed along Click context"""
+class FeatureGroup(click.Group):
+    """Custom group to handle hiding of commands based on the `feature` tag
+    TODO: Deprecate once Click 7 lands and use `hidden` parameter in commands
+    """
+    def __init__(self, **attrs):
+        click.Group.__init__(self, **attrs)
 
+    def format_commands(self, ctx, formatter):
+        """Custom formatter to control whether a command is displayed
+        Note: This is only called when formatting the help message.
+        """
+        ctx.obj = ContextObject()
+        try:
+            ctx.obj.api = Connection.from_file('~/.transcriptic')
+        except (FileNotFoundError, OSError):
+            # This defaults to feature_groups = []
+            ctx.obj.api = Connection(use_environ=False)
+
+        rows = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is None:
+                continue
+            try:
+                if cmd.feature is not None and \
+                        cmd.feature in ctx.obj.api.feature_groups:
+                    help = cmd.short_help or ''
+                    rows.append((subcommand, help))
+                else:
+                    continue
+            except AttributeError:
+                help = cmd.short_help or ''
+                rows.append((subcommand, help))
+
+        if rows:
+            with formatter.section('Commands'):
+                formatter.write_dl(rows)
+
+
+class FeatureCommand(click.Command):
+    """Extend off Command to add `feature` attribute
+    TODO: Deprecate once Click 7 lands and use `hidden` parameter in commands
+    """
+    def __init__(self, feature=None, **attrs):
+        click.Command.__init__(self, **attrs)
+        self.feature = feature
+
+
+class ContextObject(object):
+    """Object passed along Click context
+    Note: `ctx` is passed along whenever the @click.pass_context decorator is
+    present. This object is referenced using `ctx.obj`
+    """
     def __init__(self):
         self._api = None
 
@@ -46,10 +96,11 @@ class ContextObject(object):
     def api(self, value):
         self._api = value
 
+
 _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.group(context_settings=_CONTEXT_SETTINGS)
+@click.group(context_settings=_CONTEXT_SETTINGS, cls=FeatureGroup)
 @click.option('--apiroot', default=None)
 @click.option(
     '--config',
@@ -61,7 +112,10 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.version_option(prog_name="Transcriptic Python Library (TxPy)")
 @click.pass_context
 def cli(ctx, apiroot, config, organization):
-    """A command line tool for working with Transcriptic."""
+    """A command line tool for working with Transcriptic.
+    Note: This is the main entry point of the CLI. ALl commands go through
+    this `group` before calling a sub-`command`
+    """
     if ctx.invoked_subcommand in ['login', 'compile', 'preview', 'summarize', 'init']:
         # For login/local commands, initialize empty connection
         ctx.obj = ContextObject()
@@ -87,7 +141,7 @@ def cli(ctx, apiroot, config, organization):
             pass
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_submit_autoprotocol')
 @click.argument('file', default='-')
 @click.option(
     '--project', '-p',
@@ -122,7 +176,7 @@ def submit(ctx, file, project, title=None, test=None):
         click.echo("\n" + str(err))
 
 
-@cli.command('build-release')
+@cli.command('build-release', cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('package', required=False, metavar="PACKAGE")
 @click.option('--name', '-n', help="Optional name for your zip file")
 @click.pass_context
@@ -158,7 +212,8 @@ def release(ctx, name=None, package=None):
             upload_release, archive=(filename + ".zip"), package=package_id)
 
 
-@cli.command("upload-release")
+@cli.command('upload-release', cls=FeatureCommand,
+             feature='can_upload_packages')
 @click.argument('archive', required=True, type=click.Path(exists=True),
                 metavar="ARCHIVE")
 @click.argument('package', required=True, metavar="PACKAGE")
@@ -243,16 +298,16 @@ def upload_release(ctx, archive, package):
 @cli.command()
 @click.pass_context
 @click.option(
-    '--remote',
+    '--local',
     is_flag=True,
     required=False,
     default=False,
-    help='Shows available protocols to be launched remotely'
+    help='Shows available local protocols instead of remote protocols'
 )
 @click.option("--json", "json_flag", help="print JSON response", is_flag=True)
-def protocols(ctx, remote, json_flag):
+def protocols(ctx, local, json_flag):
     """List protocols within your manifest or organization."""
-    if remote:
+    if not local:
         protocol_objs = ctx.obj.api.get_protocols()
     else:
         manifest = load_manifest()
@@ -323,7 +378,8 @@ def packages(ctx, i):
                 click.echo('{:-^90}'.format(''))
 
 
-@cli.command("create-package")
+@cli.command('create-package', cls=FeatureCommand,
+             feature='can_upload_packages')
 @click.argument('name')
 @click.argument('description')
 @click.pass_context
@@ -352,7 +408,8 @@ def create_package(ctx, description, name):
         click.echo("\n" + str(err))
 
 
-@cli.command("delete-package")
+@cli.command('delete-package', cls=FeatureCommand,
+             feature='can_upload_packages')
 @click.argument('name')
 @click.option('--force', '-f', help="force delete a package without being \
               prompted if you're sure", is_flag=True)
@@ -634,7 +691,7 @@ def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
                            "Use flags to modify your search")
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('path', default='.')
 def init(path):
     """Initialize a directory with a manifest.json file."""
@@ -666,7 +723,7 @@ def init(path):
         click.echo("manifest.json created")
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_submit_autoprotocol')
 @click.argument('file', default='-')
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
@@ -713,7 +770,7 @@ def price(response):
         click.echo("WARNING (%s): %s" % (context, message))
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.option('--view', is_flag=True)
 @click.option('--dye_test', is_flag=True)
@@ -800,7 +857,7 @@ def summarize(ctx, file, tree, lookup, runtime):
             print("\nYour Job Tree is complete!\n")
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('protocol_name', metavar="PROTOCOL_NAME")
 @click.argument('args', nargs=-1)
 def compile(protocol_name, args):
@@ -831,30 +888,29 @@ def compile(protocol_name, args):
     '--project', '-p',
     metavar='PROJECT_ID',
     required=False,
-    help='Project id or name context for configuring the protocol. Use \
-         `transcriptic projects` command to list existing projects.'
+    help='Project id or name context for configuring the protocol. Use '
+         '`transcriptic projects` command to list existing projects.'
 )
 @click.option(
     '--save_input',
     metavar='FILE',
     required=False,
-    help='Save the protocol or parameters input JSON in a file. This is \
-          useful for debugging a protocol.'
+    help='Save the protocol or parameters input JSON in a file. This is '
+          'useful for debugging a protocol.'
 )
 @click.option(
-    '--remote',
+    '--local',
     is_flag=True,
     required=False,
-    help='If specified, the protocol will execute remotely and submit a run. This is useful \
-          if you do not have the protocol locally, or are unable to execute it for any reason.'
+    help='If specified, the protocol will launch a local protocol and submit a run.'
 )
 @click.pass_context
-def launch(ctx, protocol, project, save_input, remote, params):
+def launch(ctx, protocol, project, save_input, local, params):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
 
     # Load protocol from local file if not remote and load from listed protocols otherwise
-    if not remote:
+    if local:
         manifest, protocol_obj = load_manifest_and_protocol(protocol)
     else:
         print_stderr("Searching for {}...".format(protocol))
@@ -890,7 +946,7 @@ def launch(ctx, protocol, project, save_input, remote, params):
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
 
-    if remote:
+    if not local:
         # For remote execution, use input params file if specified, else use quick_launch inputs
         if not params:
             params = dict(parameters=quick_launch["raw_inputs"])
@@ -1077,6 +1133,7 @@ def login(ctx, api_root, analytics=True):
     token = (user.get('authentication_token') or
              user['test_mode_authentication_token'])
     user_id = user.get("id")
+    feature_groups = user.get('feature_groups')
     if len(user['organizations']) < 1:
         click.echo("Error: You don't appear to belong to any organizations. \n"
                    "Visit %s and create an organization." % api_root)
@@ -1118,7 +1175,8 @@ def login(ctx, api_root, analytics=True):
         sys.exit(1)
     ctx.obj.api = Connection(email=email, token=token,
                              organization_id=organization, api_root=api_root,
-                             user_id=user_id, analytics=analytics)
+                             user_id=user_id, analytics=analytics,
+                             feature_groups=feature_groups)
     ctx.obj.api.save(ctx.parent.params['config'])
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
@@ -1250,7 +1308,7 @@ def run_protocol(ctx, manifest, protocol, inputs, view=False, dye_test=False):
             return
 
 
-@cli.command()
+@cli.command(cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('manifest', default='manifest.json')
 def format(manifest):
     """Check Autoprotocol format of manifest.json."""
