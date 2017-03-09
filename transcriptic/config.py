@@ -64,7 +64,8 @@ class Connection(object):
     """
     def __init__(self, email=None, token=None, organization_id=False,
                  api_root="https://secure.transcriptic.com", organization=False,
-                 cookie=False, verbose=False, use_environ=True, analytics=True, user_id="default"):
+                 cookie=False, verbose=False, use_environ=True, analytics=True,
+                 user_id="default", feature_groups=[]):
         if email is None and use_environ:
             email = os.environ['USER_EMAIL']
             token = os.environ['USER_TOKEN']
@@ -76,6 +77,9 @@ class Connection(object):
         self.verbose = verbose
         self.analytics = analytics
         self.user_id = user_id
+        RELEVANT_GROUPS = set(['can_submit_autoprotocol', 'can_upload_packages'])
+        groups = list(RELEVANT_GROUPS.intersection(feature_groups))
+        self.feature_groups = groups
         self.headers = {
             "X-User-Email": email,
             "X-User-Token": token,
@@ -105,7 +109,7 @@ class Connection(object):
             return Connection(**cfg)
 
     def save(self, path):
-        """Saves current connection into file"""
+        """Saves current connection into specified file, used for CLI"""
         with open(expanduser(path), 'w') as f:
             f.write(json.dumps({
                 'email': self.email,
@@ -113,7 +117,8 @@ class Connection(object):
                 'organization_id': self.organization_id,
                 'api_root': self.api_root,
                 'analytics': self.analytics,
-                'user_id': self.user_id
+                'user_id': self.user_id,
+                'feature_groups': self.feature_groups
             }, indent=2))
 
     def update_environment(self, **kwargs):
@@ -481,6 +486,7 @@ class Connection(object):
                             "permissions see the package documentation."
         default_status_response = {'200': lambda resp: resp.json(),
                                    '201': lambda resp: resp.json(),
+                                   '401': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
                                    '403': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
                                    'default': lambda resp: Exception("[%d] %s" % (resp.status_code, resp.text))
                                    }

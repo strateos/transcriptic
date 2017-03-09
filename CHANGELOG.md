@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v4.0.0
+Updated
+- Conditional display of views based on enabled feature_flags
+
 ## v3.12.0
 Added
 - New --json flag for runs, projects and protocols for fetching JSON
