@@ -292,16 +292,16 @@ def upload_release(ctx, archive, package):
 @cli.command()
 @click.pass_context
 @click.option(
-    '--remote',
+    '--local',
     is_flag=True,
     required=False,
     default=False,
-    help='Shows available protocols to be launched remotely'
+    help='Shows available local protocols instead of remote protocols'
 )
 @click.option("--json", "json_flag", help="print JSON response", is_flag=True)
-def protocols(ctx, remote, json_flag):
+def protocols(ctx, local, json_flag):
     """List protocols within your manifest or organization."""
-    if remote:
+    if not local:
         protocol_objs = ctx.obj.api.get_protocols()
     else:
         manifest = load_manifest()
@@ -893,19 +893,18 @@ def compile(protocol_name, args):
           useful for debugging a protocol.'
 )
 @click.option(
-    '--remote',
+    '--local',
     is_flag=True,
     required=False,
-    help='If specified, the protocol will execute remotely and submit a run. This is useful \
-          if you do not have the protocol locally, or are unable to execute it for any reason.'
+    help='If specified, the protocol will launch a local protocol and submit a run.'
 )
 @click.pass_context
-def launch(ctx, protocol, project, save_input, remote, params):
+def launch(ctx, protocol, project, save_input, local, params):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
 
     # Load protocol from local file if not remote and load from listed protocols otherwise
-    if not remote:
+    if local:
         manifest, protocol_obj = load_manifest_and_protocol(protocol)
     else:
         print_stderr("Searching for {}...".format(protocol))
@@ -941,7 +940,7 @@ def launch(ctx, protocol, project, save_input, remote, params):
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
 
-    if remote:
+    if not local:
         # For remote execution, use input params file if specified, else use quick_launch inputs
         if not params:
             params = dict(parameters=quick_launch["raw_inputs"])

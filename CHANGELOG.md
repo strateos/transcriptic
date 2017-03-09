@@ -3,8 +3,10 @@
 ## Unreleased
 
 ## v4.0.0
-Updated
+Added
 - Conditional display of views based on enabled feature_flags
+Updated
+- Default behavior of `protocols` and `launch` to remote instead
 
 ## v3.12.0
 Added
