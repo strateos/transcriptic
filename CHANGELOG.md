@@ -5,7 +5,8 @@
 ## v4.0.1
 Fixed
 - Remote behavior of `transcriptic protocols`
-- Missing `container` key in Dataset initialization now returns a warning isntead of an error
+- Missing `container` key in Dataset initialization now returns a warning
+instead of an error
 
 ## v4.0.0
 Added
