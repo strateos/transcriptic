@@ -390,8 +390,12 @@ class Dataset(_BaseObject):
         self.data_type = self.attributes["data_type"]
         self._raw_data = None
         self._data = pd.DataFrame()
-        self.container = Container(self.attributes["container"]["id"], attributes=self.attributes["container"],
-                                   connection=connection)
+        try:
+            self.container = Container(self.attributes["container"]["id"],
+                                       attributes=self.attributes["container"],
+                                       connection=connection)
+        except KeyError as e:
+            warnings.warn("Missing key {} when initializing dataset".format(e))
 
     @property
     def raw_data(self):

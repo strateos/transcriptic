@@ -319,7 +319,7 @@ def protocols(ctx, local, json_flag):
     if json_flag:
         click.echo(json.dumps(protocol_objs))
     else:
-        click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if remote else "manifest")))
+        click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if not local else "manifest")))
         click.echo('{:-^60}'.format(''))
         for p in protocol_objs:
             if p.get('display_name'):
