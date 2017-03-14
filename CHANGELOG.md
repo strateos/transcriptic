@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Added
+- `transcriptic payments` to view payment methods and their corresponding ids
+- `--payment` flag to `launch` and `submit` to allow specification of payment methods
+Updated
+- `transcriptic launch` now presents and the price and asks for a confirmation before proceeding. `--accept_quote` flag is added which will override the confirmation
+
 ## v4.0.1
 Fixed
 - Remote behavior of `transcriptic protocols`

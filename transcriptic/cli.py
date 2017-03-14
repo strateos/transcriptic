@@ -152,9 +152,20 @@ def cli(ctx, apiroot, config, organization):
 )
 @click.option('--title', '-t', help='Optional title of your run')
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
+@click.option('--payment',
+              metavar='PAYMENT_METHOD_ID',
+              required=False,
+              help='Payment id to be used for run submission. '
+                   'Use `transcriptic payments` command to list existing '
+                   'payment methods.')
 @click.pass_context
-def submit(ctx, file, project, title=None, test=None):
+def submit(ctx, file, project, title=None, test=None, payment=None):
     """Submit your run to the project specified."""
+    if payment is not None and not is_valid_payment_method(payment):
+        print_stderr("Payment method is invalid. Please specify a payment "
+                     "method from `transcriptic payments` or not specify the "
+                     "`--payment` flag to use the default payment method.")
+        return
     project = get_project_id(project)
     if not project:
         return
@@ -168,7 +179,9 @@ def submit(ctx, file, project, title=None, test=None):
 
     try:
         req_json = ctx.obj.api.submit_run(
-            protocol, project_id=project, title=title, test_mode=test)
+            protocol, project_id=project, title=title, test_mode=test,
+            payment_method_id=payment
+        )
         run_id = req_json['id']
         click.echo("Run created: %s" %
                    ctx.obj.api.url("%s/runs/%s" % (project, run_id)))
@@ -691,6 +704,44 @@ def inventory(ctx, include_aliquots, show_status, retrieve_all, query):
                            "Use flags to modify your search")
 
 
+@cli.command()
+@click.pass_context
+def payments(ctx):
+    """Lists available payment methods"""
+    methods = ctx.obj.api.payment_methods()
+    click.echo('{:^50}'.format("Method") + '|' +
+               '{:^20}'.format("Expiry") + '|' +
+               '{:^20}'.format("Id"))
+    click.echo('{:-^90}'.format(''))
+    if len(methods) == 0:
+        print_stderr("No payment methods found.")
+        return
+    for method in methods:
+        if method['is_valid']:
+            if method['type'] == "CreditCard":
+                description = "{} ending with {}".format(
+                    method["credit_card_type"], method["credit_card_last_4"]
+                )
+            elif method['type'] == "PurchaseOrder":
+                description = "Purchase Order \"{}\"".format(
+                    method["description"]
+                )
+            else:
+                description = method["description"]
+            if method['is_default?']:
+                description += " (Default)"
+            click.echo('{:^50}'.format(ascii_encode(description)) + '|' +
+                       '{:^20}'.format(ascii_encode(method['expiry'])) + '|' +
+                       '{:^20}'.format(ascii_encode(method['id'])))
+
+
+@click.pass_context
+def is_valid_payment_method(ctx, id):
+    """Determines if payment is valid"""
+    methods = ctx.obj.api.payment_methods()
+    return any([id == method['id'] and method['is_valid'] for method in methods])
+
+
 @cli.command(cls=FeatureCommand, feature='can_upload_packages')
 @click.argument('path', default='.')
 def init(path):
@@ -744,23 +795,18 @@ def analyze(ctx, file, test):
     try:
         analysis = ctx.obj.api.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
-        price(analysis)
+        analyze_response(analysis)
     except Exception as err:
         click.echo("\n" + str(err))
 
 
-def price(response):
+def analyze_response(response):
     def count(thing, things, num):
         click.echo("  %s %s" % (num, thing if num == 1 else things))
+
     count("instruction", "instructions", len(response['instructions']))
     count("container", "containers", len(response['refs']))
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-    click.echo("  Total Cost: %s" %
-               locale.currency(float(response['total_cost']), grouping=True))
-    for quote_item in response['quote']['items']:
-        click.echo("  %s: %s" % (
-            quote_item["title"],
-            locale.currency(float(quote_item["cost"]), grouping=True)))
+    price(response)
     for w in response['warnings']:
         message = w['message']
         if 'instruction' in w['context']:
@@ -768,6 +814,21 @@ def price(response):
         else:
             context = json.dumps(w['context'])
         click.echo("WARNING (%s): %s" % (context, message))
+
+
+def price(response):
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    separator_len = 24
+    for quote_item in response['quote']['items']:
+        quote_str = "  %s: %s" % (
+            quote_item["title"],
+            locale.currency(float(quote_item["cost"]), grouping=True))
+        click.echo(quote_str)
+        separator_len = max(separator_len, len(quote_str))
+    click.echo('-' * separator_len)
+    click.echo("  Total Cost: %s" %
+               locale.currency(float(response['total_cost']),
+                               grouping=True))
 
 
 @cli.command(cls=FeatureCommand, feature='can_upload_packages')
@@ -904,11 +965,29 @@ def compile(protocol_name, args):
     required=False,
     help='If specified, the protocol will launch a local protocol and submit a run.'
 )
+@click.option(
+    '--accept_quote',
+    is_flag=True,
+    required=False,
+    help='If specified, the quote will automatically be accepted, and a run '
+         'will be directly submitted.'
+)
+@click.option('--payment',
+              metavar='PAYMENT_METHOD_ID',
+              required=False,
+              help='Payment id to be used for run submission. '
+                   'Use `transcriptic payments` command to list existing '
+                   'payment methods.')
 @click.pass_context
-def launch(ctx, protocol, project, save_input, local, params):
+def launch(ctx, protocol, project, save_input, local, accept_quote, params, payment=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
-
+    # Validate payment method
+    if payment is not None and not is_valid_payment_method(payment):
+        print_stderr("Payment method is invalid. Please specify a payment "
+                     "method from `transcriptic payments` or not specify the "
+                     "`--payment` flag to use the default payment method.")
+        return
     # Load protocol from local file if not remote and load from listed protocols otherwise
     if local:
         manifest, protocol_obj = load_manifest_and_protocol(protocol)
@@ -975,13 +1054,34 @@ def launch(ctx, protocol, project, save_input, local, params):
             click.echo("\nPlease fix the above errors and try again.")
             return
 
+        # Confirm proceeding with purchase
+        if not accept_quote:
+            click.echo("\n\nCost Breakdown")
+            resp = ctx.obj.api.analyze_launch_request(req_id)
+            click.echo(price(resp))
+            confirmed = click.confirm(
+                'Would you like to continue with launching the protocol',
+                prompt_suffix='? ', default=False
+            )
+            if not confirmed:
+                return
+
+        # Project is required for run submission
+        if not project:
+            click.echo("\nProject field is required for run submission.")
+            return
+        project = get_project_id(project)
+        if not project:
+            return
+
         from time import strftime, gmtime
         default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
 
         try:
             req_json = ctx.obj.api.submit_launch_request(
                 req_id, protocol_id=protocol_obj["id"],
-                project_id=project, title=default_title, test_mode=None
+                project_id=project, title=default_title, test_mode=None,
+                payment_method_id=payment
             )
             run_id = req_json['id']
             click.echo("\nRun created: %s" %

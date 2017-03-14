@@ -286,6 +286,10 @@ class Connection(object):
         route = self.get_route('query_kits', query=query)
         return self.get(route)
 
+    def payment_methods(self):
+        route = self.get_route('get_payment_methods')
+        return self.get(route)
+
     def monitoring_data(self, data_type, instruction_id=None, grouping=None, start_time=None, end_time=None):
         """Get monitoring_data"""
         route = self.get_route('monitoring_data', data_type=data_type, instruction_id=instruction_id,
@@ -326,15 +330,19 @@ class Connection(object):
                          }),
                          status_response={'422': lambda response: error_string(response)})
 
-    def submit_run(self, protocol, project_id=None, title=None, test_mode=False):
+    def submit_run(self, protocol, project_id=None, title=None, test_mode=False,
+                   payment_method_id=None):
         """Submit given protocol"""
         protocol = _parse_protocol(protocol)
+        payload = {
+            "title": title,
+            "protocol": protocol,
+            "test_mode": test_mode,
+            "payment_method_id": payment_method_id
+        }
+        data = {k: v for k, v in payload.items() if v is not None}
         return self.post(self.get_route('submit_run', project_id=project_id),
-                         data=json.dumps({
-                             "title": title,
-                             "protocol": protocol,
-                             "test_mode": test_mode
-                         }),
+                         data=json.dumps(data),
                          status_response={
                              '404': lambda resp: AnalysisException("Error: Couldn't create run (404). \n"
                                                                    "Are you sure the project %s "
@@ -343,17 +351,30 @@ class Connection(object):
                              '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
                          })
 
+    def analyze_launch_request(self, launch_request_id, test_mode=False):
+        return self.post(
+            self.get_route('analyze_launch_request'),
+            data=json.dumps({
+                "launch_request_id": launch_request_id,
+                "test_mode": test_mode
+            })
+         )
+
     def submit_launch_request(self, launch_request_id, project_id=None,
-                              protocol_id=None, title=None, test_mode=False):
+                              protocol_id=None, title=None, test_mode=False,
+                              payment_method_id=None):
         """Submit specified launch request"""
+        payload = {
+            "title": title,
+            "launch_request_id": launch_request_id,
+            "protocol_id": protocol_id,
+            "test_mode": test_mode,
+            "payment_method_id": payment_method_id
+        }
+        data = {k: v for k, v in payload.items() if v is not None}
         return self.post(
             self.get_route('submit_launch_request', project_id=project_id),
-            data=json.dumps({
-                "title": title,
-                "launch_request_id": launch_request_id,
-                "protocol_id": protocol_id,
-                "test_mode": test_mode
-            }),
+            data=json.dumps(data),
             status_response={
                 '404': lambda resp: AnalysisException(
                     "Error: Couldn't create run (404). \n"
@@ -483,10 +504,12 @@ class Connection(object):
     def _handle_response(self, response, **kwargs):
         unauthorized_resp = "You are not authorized to execute this command. For more information on access " \
                             "permissions see the package documentation."
+        internal_error_resp = "An internal server error has occured. Please contact support for assistance."
         default_status_response = {'200': lambda resp: resp.json(),
                                    '201': lambda resp: resp.json(),
                                    '401': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
                                    '403': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
+                                   '500': lambda resp: Exception("[%d] %s" % (resp.status_code, internal_error_resp)),
                                    'default': lambda resp: Exception("[%d] %s" % (resp.status_code, resp.text))
                                    }
         if kwargs['merge_status']:
