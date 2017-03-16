@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+## v4.1.0
 Added
 - `transcriptic payments` to view payment methods and their corresponding ids
 - `--payment` flag to `launch` and `submit` to allow specification of payment methods
