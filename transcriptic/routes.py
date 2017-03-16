@@ -112,12 +112,17 @@ def analyze_run(api_root, org_id):
     return "{api_root}/{org_id}/analyze_run".format(**locals())
 
 
+def analyze_launch_request(api_root, org_id):
+    return "{api_root}/{org_id}/analyze_run".format(**locals())
+
+
 def submit_run(api_root, org_id, project_id):
     return "{api_root}/{org_id}/{project_id}/runs".format(**locals())
 
 
 def submit_launch_request(api_root, org_id, project_id):
     return "{api_root}/{org_id}/{project_id}/runs".format(**locals())
+
 
 def dataset(api_root, data_id, key):
     return "{api_root}/datasets/{data_id}.json?key={key}".format(**locals())
@@ -160,3 +165,7 @@ def monitoring_data(api_root, data_type, instruction_id, grouping=None, start_ti
     if end_time:
         base_route += "&end_time={end_time}".format(**locals())
     return base_route
+
+
+def get_payment_methods(api_root, org_id):
+    return "{api_root}/{org_id}/payment_methods".format(**locals())
