@@ -152,16 +152,16 @@ def cli(ctx, apiroot, config, organization):
 )
 @click.option('--title', '-t', help='Optional title of your run')
 @click.option('--test', help='Submit this run in test mode', is_flag=True)
-@click.option('--payment',
+@click.option('--pm',
               metavar='PAYMENT_METHOD_ID',
               required=False,
               help='Payment id to be used for run submission. '
                    'Use `transcriptic payments` command to list existing '
                    'payment methods.')
 @click.pass_context
-def submit(ctx, file, project, title=None, test=None, payment=None):
+def submit(ctx, file, project, title=None, test=None, pm=None):
     """Submit your run to the project specified."""
-    if payment is not None and not is_valid_payment_method(payment):
+    if pm is not None and not is_valid_payment_method(pm):
         print_stderr("Payment method is invalid. Please specify a payment "
                      "method from `transcriptic payments` or not specify the "
                      "`--payment` flag to use the default payment method.")
@@ -180,7 +180,7 @@ def submit(ctx, file, project, title=None, test=None, payment=None):
     try:
         req_json = ctx.obj.api.submit_run(
             protocol, project_id=project, title=title, test_mode=test,
-            payment_method_id=payment
+            payment_method_id=pm
         )
         run_id = req_json['id']
         click.echo("Run created: %s" %
@@ -717,20 +717,21 @@ def payments(ctx):
         print_stderr("No payment methods found.")
         return
     for method in methods:
-        if method['is_valid']:
-            if method['type'] == "CreditCard":
-                description = "{} ending with {}".format(
-                    method["credit_card_type"], method["credit_card_last_4"]
-                )
-            elif method['type'] == "PurchaseOrder":
-                description = "Purchase Order \"{}\"".format(
-                    method["description"]
-                )
-            else:
-                description = method["description"]
-            if method['is_default?']:
-                description += " (Default)"
-            click.echo('{:^50}'.format(ascii_encode(description)) + '|' +
+        if method['type'] == "CreditCard":
+            description = "{} ending with {}".format(
+                method["credit_card_type"], method["credit_card_last_4"]
+            )
+        elif method['type'] == "PurchaseOrder":
+            description = "Purchase Order \"{}\"".format(
+                method["description"]
+            )
+        else:
+            description = method["description"]
+        if method['is_default?']:
+            description += " (Default)"
+        if not method['is_valid']:
+            description += " (Invalid)"
+        click.echo('{:^50}'.format(ascii_encode(description)) + '|' +
                        '{:^20}'.format(ascii_encode(method['expiry'])) + '|' +
                        '{:^20}'.format(ascii_encode(method['id'])))
 
@@ -795,12 +796,12 @@ def analyze(ctx, file, test):
     try:
         analysis = ctx.obj.api.analyze_run(protocol, test_mode=test)
         click.echo(u"\u2713 Protocol analyzed")
-        analyze_response(analysis)
+        format_analysis(analysis)
     except Exception as err:
         click.echo("\n" + str(err))
 
 
-def analyze_response(response):
+def format_analysis(response):
     def count(thing, things, num):
         click.echo("  %s %s" % (num, thing if num == 1 else things))
 
@@ -817,6 +818,7 @@ def analyze_response(response):
 
 
 def price(response):
+    """Prints out price based on response"""
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     separator_len = 24
     for quote_item in response['quote']['items']:
@@ -972,18 +974,18 @@ def compile(protocol_name, args):
     help='If specified, the quote will automatically be accepted, and a run '
          'will be directly submitted.'
 )
-@click.option('--payment',
+@click.option('--pm',
               metavar='PAYMENT_METHOD_ID',
               required=False,
               help='Payment id to be used for run submission. '
                    'Use `transcriptic payments` command to list existing '
                    'payment methods.')
 @click.pass_context
-def launch(ctx, protocol, project, save_input, local, accept_quote, params, payment=None):
+def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
-    if payment is not None and not is_valid_payment_method(payment):
+    if pm is not None and not is_valid_payment_method(pm):
         print_stderr("Payment method is invalid. Please specify a payment "
                      "method from `transcriptic payments` or not specify the "
                      "`--payment` flag to use the default payment method.")
@@ -1081,7 +1083,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, paym
             req_json = ctx.obj.api.submit_launch_request(
                 req_id, protocol_id=protocol_obj["id"],
                 project_id=project, title=default_title, test_mode=None,
-                payment_method_id=payment
+                payment_method_id=pm
             )
             run_id = req_json['id']
             click.echo("\nRun created: %s" %
