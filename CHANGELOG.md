@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v4.1.1
+Fixed
+- Minor bug with default behavior with `select_org` prompt in `select_org` and `login`
 
 ## v4.1.0
 Added
