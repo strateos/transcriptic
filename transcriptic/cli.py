@@ -1171,6 +1171,20 @@ def _get_quick_launch(ctx, protocol, project):
 def select_org(ctx):
     """Allows you to switch organizations"""
     org_list = [{"name": org['name'], "subdomain": org['subdomain']} for org in ctx.obj.api.organizations()]
+    organization = org_prompt(org_list)
+
+    r = ctx.obj.api.get_organization(org_id=organization)
+    if r.status_code != 200:
+        click.echo("Error accessing organization: %s" % r.text)
+        sys.exit(1)
+
+    ctx.obj.api.organization_id = organization
+    ctx.obj.api.save(ctx.parent.params['config'])
+    click.echo('Logged in with organization: {}'.format(organization))
+
+
+def org_prompt(org_list):
+    """Organization prompt for helping with selecting organization"""
     if len(org_list) < 1:
         click.echo("Error: You don't appear to belong to any organizations. \n"
                    "Visit {} and create an organization.".format('https://secure.transcriptic.com'))
@@ -1186,10 +1200,13 @@ def select_org(ctx):
         def parse_valid_org(indx):
             from click.exceptions import BadParameter
             try:
-                return org_list[int(indx) - 1]['subdomain']
+                org_indx = int(indx) - 1
+                if org_indx < 0 or org_indx >= len(org_list):
+                    raise ValueError("Value out of range")
+                return org_list[org_indx]['subdomain']
             except:
                 raise BadParameter("Please enter an integer between 1 and %s" %
-                                   (len(org_list)), ctx=ctx)
+                                   (len(org_list)))
 
         organization = click.prompt(
             'Which organization would you like to log in as',
@@ -1197,15 +1214,10 @@ def select_org(ctx):
             prompt_suffix='? ', type=int,
             value_proc=lambda x: parse_valid_org(x)
         )
-
-    r = ctx.obj.api.get_organization(org_id=organization)
-    if r.status_code != 200:
-        click.echo("Error accessing organization: %s" % r.text)
-        sys.exit(1)
-
-    ctx.obj.api.organization_id = organization
-    ctx.obj.api.save(ctx.parent.params['config'])
-    click.echo('Logged in with organization: {}'.format(organization))
+        # Catch since `value_proc` doesn't properly parse default
+        if organization == 1:
+            organization = org_list[0]['subdomain']
+    return organization
 
 
 @cli.command()
@@ -1225,6 +1237,7 @@ def login(ctx, api_root, analytics=True):
         'Content-Type': 'application/json',
     }, status_response={
         '200': lambda resp: resp,
+        '401': lambda resp: resp,
         'default': lambda resp: resp
     },
         custom_request=False)
@@ -1236,32 +1249,7 @@ def login(ctx, api_root, analytics=True):
              user['test_mode_authentication_token'])
     user_id = user.get("id")
     feature_groups = user.get('feature_groups')
-    if len(user['organizations']) < 1:
-        click.echo("Error: You don't appear to belong to any organizations. \n"
-                   "Visit %s and create an organization." % api_root)
-        sys.exit(1)
-    if len(user['organizations']) == 1:
-        organization = user['organizations'][0]['subdomain']
-    else:
-        click.echo("You belong to %s organizations:" %
-                   len(user['organizations']))
-        for indx, o in enumerate(user['organizations']):
-            click.echo("%s.  %s (%s)" % (indx + 1, o['name'], o['subdomain']))
-
-        def parse_valid_org(indx):
-            from click.exceptions import BadParameter
-            try:
-                return user['organizations'][int(indx) - 1]['subdomain']
-            except:
-                raise BadParameter("Please enter an integer between 1 and %s" %
-                                   (len(user['organizations'])), ctx=ctx)
-
-        organization = click.prompt(
-            'Which organization would you like to log in as',
-            default=1,
-            prompt_suffix='? ', type=int,
-            value_proc=lambda x: parse_valid_org(x)
-        )
+    organization = org_prompt(user['organizations'])
 
     r = ctx.obj.api.get(routes.get_organization(api_root=api_root, org_id=organization), headers={
         'X-User-Email': email,
