@@ -1,6 +1,10 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v4.1.2
+Fixed
+- Quick bugfix to `run.data` route due to breaking web change
+
 ## v4.1.1
 Fixed
 - Minor bug with default behavior with `select_org` prompt in `select_org` and `login`
