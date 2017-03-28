@@ -10,6 +10,7 @@ from .version import __version__
 import platform
 import inspect
 
+
 class Connection(object):
     """
     A Connection object is the object used for communicating with Transcriptic.
@@ -358,7 +359,7 @@ class Connection(object):
                 "launch_request_id": launch_request_id,
                 "test_mode": test_mode
             })
-         )
+        )
 
     def submit_launch_request(self, launch_request_id, project_id=None,
                               protocol_id=None, title=None, test_mode=False,
@@ -382,7 +383,7 @@ class Connection(object):
                     "exists, and that you have access to it?" %
                     self.url(project_id)),
                 '422': lambda resp: AnalysisException(
-                     "Error creating run: %s" % resp.text)
+                    "Error creating run: %s" % resp.text)
             }
         )
 
@@ -398,6 +399,90 @@ class Connection(object):
             '404': lambda resp: Exception("[404] No run found for ID {}. Please ensure you have the "
                                           "right permissions.".format(run_id))
         }, timeout=timeout)
+
+    def upload_dataset(self, file, title, run_id, analysis_tool=None,
+                       analysis_tool_version=None):
+        """
+        Uploads a file as a dataset to the specified run.
+
+        .. code-block:: python
+            # Uploading a file
+            api.upload_dataset("my_file.txt", title="my cool dataset",
+                               run_id="r123",
+                               analysis_tool="cool script",
+                               analysis_tool_version="v1.0.0")
+            
+            
+            # Uploading a data_frame via file_handle
+            from io import StringIO
+            
+            temp_buffer = StringIO()
+            my_df.to_csv(temp_buffer)
+
+            api.upload_dataset(temp_buffer, title="my cool dataset",
+                               run_id="r123",
+                               analysis_tool="cool script",
+                               analysis_tool_version="v1.0.0")
+
+        Parameters
+        ----------
+        file: str or file_handle
+            File path or file handle to be uploaded
+        title: str
+            Name of dataset
+        run_id: str
+            Run-id
+        analysis_tool: str, optional
+            Name of tool used for analysis
+        analysis_tool_version: str, optional
+            Version of tool used
+        """
+        uri_route = self.get_route('upload_uri')
+        uri_resp = self.post(uri_route, data=json.dumps({"name": title}))
+        try:
+            key = uri_resp['key']
+            uri = uri_resp['uri']
+        except KeyError as e:
+            raise RuntimeError("Unexpected payload returned for upload_dataset")
+
+        # Obtain file handle with read access
+        from io import BytesIO
+        if hasattr(file, 'read'):
+            if not isinstance(BytesIO):
+                try:
+                    # Convert to bytes
+                    file_handle = BytesIO(bytes(file.getvalue(), "utf-8"))
+                except AttributeError as e:
+                    raise ValueError("Unable to convert read buffer to bytes")
+        else:
+            try:
+                os.path.expanduser(file)
+                file_handle = open(file, 'rb')
+            except (AttributeError, FileNotFoundError) as e:
+                raise ValueError("'file' has to be a valid filepath or buffer")
+
+        self.put(uri, data=file_handle, custom_request=True,
+                 status_response={'200': lambda resp: resp})
+
+        if not analysis_tool:
+            analysis_tool = "none"
+        if not analysis_tool_version:
+            analysis_tool_version = "none"
+        if isinstance(file, str):
+            name = file
+        else:
+            name = "default"
+        upload_datasets_route = self.get_route("upload_datasets")
+        upload_resp = self.post(upload_datasets_route, json={
+          "s3_key": key,
+          "file_name": name,
+          "title": title,
+          "run_id": run_id,
+          "analysis_tool": analysis_tool,
+          "analysis_tool_version": analysis_tool_version
+        })
+
+        return upload_resp
 
     def get_zip(self, data_id, file_path=None):
         """

@@ -132,6 +132,14 @@ def datasets(api_root, org_id, project_id, run_id):
     return "{api_root}/{org_id}/{project_id}/runs/{run_id}/data".format(**locals())
 
 
+def upload_uri(api_root):
+    return "{api_root}/upload/make_upload_uri".format(**locals())
+
+
+def upload_datasets(api_root):
+    return "{api_root}/api/datasets".format(**locals())
+
+
 def preview_protocol(api_root):
     return "{api_root}/runs/preview".format(**locals())
 
