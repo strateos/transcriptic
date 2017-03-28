@@ -303,7 +303,9 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            num_datasets = len(self.data_ids)
+            # TODO: Fix this
+            # num_datasets = len(self.data_ids)
+            num_datasets = len(self.attributes["dataset_ids"])
             if num_datasets == 0:
                 print("No datasets were found.")
             else:
