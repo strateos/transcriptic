@@ -14,6 +14,7 @@ try:
     from io import StringIO
 except ImportError:
     from StringIO import StringIO
+import magic
 
 
 class Connection(object):
@@ -405,8 +406,8 @@ class Connection(object):
                                           "right permissions.".format(run_id))
         }, timeout=timeout)
 
-    def upload_dataset_from_file(self, file_path, title, run_id,
-                                 analysis_tool, analysis_tool_version):
+    def upload_dataset_from_filepath(self, file_path, title, run_id,
+                                     analysis_tool, analysis_tool_version):
         """
         Helper for uploading a file as a dataset to the specified run.
         
@@ -414,7 +415,7 @@ class Connection(object):
         
         .. code-block:: python
         
-            api.upload_dataset(
+            api.upload_dataset_from_filepath(
                 "my_file.txt", 
                 title="my cool dataset",
                 run_id="r123",
@@ -447,11 +448,7 @@ class Connection(object):
         except (AttributeError, FileNotFoundError) as e:
             raise ValueError("'file' has to be a valid filepath")
 
-        try:
-            import magic
-            content_type = magic.from_file(file_path, mime=True)
-        except ImportError:
-            content_type = None
+        content_type = magic.from_file(file_path, mime=True)
 
         self.upload_dataset(file_handle, name, title, run_id, analysis_tool,
                             analysis_tool_version, content_type)

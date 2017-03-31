@@ -30,7 +30,8 @@ setup(
         'numpy>=1.10',
         'plotly==1.9.6',
         'pillow>=3.1.0',
-        'future>=0.15'
+        'future>=0.15',
+        'python-magic>=0.4.13'
     ],
     entry_points='''
         [console_scripts]
