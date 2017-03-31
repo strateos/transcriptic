@@ -308,9 +308,13 @@ class Connection(object):
         route = self.get_route('view_raw_image', data_id=data_id)
         return self.get(route, status_response={'200': lambda resp: resp}, stream=True)
 
-    def _get_object(self, obj_id):
-        """Helper function for deref objects"""
-        route = self.get_route('deref_route', obj_id=obj_id)
+    def _get_object(self, obj_id, obj_type=None):
+        """Helper function for loading objects"""
+        # TODO: Migrate away from deref routes for other object types
+        if obj_type == "dataset":
+            route = self.get_route('dataset_short', data_id=obj_id)
+        else:
+            route = self.get_route('deref_route', obj_id=obj_id)
         return self.get(route, status_response={
             '404': lambda resp: Exception("[404] No object found for ID " + obj_id)
         })
