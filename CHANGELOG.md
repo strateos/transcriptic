@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- `upload_dataset` to api object and surrounding infrastructure
+
 ## v4.1.2
 Fixed
 - Quick bugfix to `run.data` route due to breaking web change

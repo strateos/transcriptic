@@ -9,6 +9,13 @@ import requests
 from .version import __version__
 import platform
 import inspect
+from io import BytesIO
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
+import magic
+
 
 class Connection(object):
     """
@@ -358,7 +365,7 @@ class Connection(object):
                 "launch_request_id": launch_request_id,
                 "test_mode": test_mode
             })
-         )
+        )
 
     def submit_launch_request(self, launch_request_id, project_id=None,
                               protocol_id=None, title=None, test_mode=False,
@@ -382,7 +389,7 @@ class Connection(object):
                     "exists, and that you have access to it?" %
                     self.url(project_id)),
                 '422': lambda resp: AnalysisException(
-                     "Error creating run: %s" % resp.text)
+                    "Error creating run: %s" % resp.text)
             }
         )
 
@@ -398,6 +405,138 @@ class Connection(object):
             '404': lambda resp: Exception("[404] No run found for ID {}. Please ensure you have the "
                                           "right permissions.".format(run_id))
         }, timeout=timeout)
+
+    def upload_dataset_from_filepath(self, file_path, title, run_id,
+                                     analysis_tool, analysis_tool_version):
+        """
+        Helper for uploading a file as a dataset to the specified run.
+        
+        Uses `upload_dataset`.
+        
+        .. code-block:: python
+        
+            api.upload_dataset_from_filepath(
+                "my_file.txt", 
+                title="my cool dataset",
+                run_id="r123",
+                analysis_tool="cool script",
+                analysis_tool_version="v1.0.0"
+            )
+
+        Parameters
+        ----------
+        file: str
+            Path to file to be uploaded
+        title: str
+            Name of dataset
+        run_id: str
+            Run-id
+        analysis_tool: str, optional
+            Name of tool used for analysis
+        analysis_tool_version: str, optional
+            Version of tool used
+            
+        Returns
+        -------
+        response: dict
+            JSON-formatted response
+        """
+        try:
+            file_path = os.path.expanduser(file_path)
+            file_handle = open(file_path, 'rb')
+            name = file_handle.name
+        except (AttributeError, FileNotFoundError) as e:
+            raise ValueError("'file' has to be a valid filepath")
+
+        content_type = magic.from_file(file_path, mime=True)
+
+        self.upload_dataset(file_handle, name, title, run_id, analysis_tool,
+                            analysis_tool_version, content_type)
+
+    def upload_dataset(self, file_handle, name, title, run_id,
+                       analysis_tool, analysis_tool_version,
+                       content_type=None):
+        """
+        Uploads a file_handle as a dataset to the specified run.
+
+        .. code-block:: python           
+            # Uploading a data_frame via file_handle
+            from io import StringIO
+            
+            temp_buffer = StringIO()
+            my_df.to_csv(temp_buffer)
+
+            api.upload_dataset(
+                temp_buffer,
+                name="my_df",
+                title="my cool dataset",
+                run_id="r123",
+                analysis_tool="cool script",
+                analysis_tool_version="v1.0.0"
+            )
+
+        Parameters
+        ----------
+        file: file_handle
+            File handle to be uploaded
+        name: str
+            Dataset filename
+        title: str
+            Name of dataset
+        run_id: str
+            Run-id
+        analysis_tool: str, optional
+            Name of tool used for analysis
+        analysis_tool_version: str, optional
+            Version of tool used
+            
+        Returns
+        -------
+        response: dict
+            JSON-formatted response
+        """
+        uri_route = self.get_route('upload_uri')
+        uri_resp = self.post(uri_route, data=json.dumps({"name": title}))
+        try:
+            key = uri_resp['key']
+            uri = uri_resp['uri']
+        except KeyError as e:
+            raise RuntimeError("Unexpected payload returned for upload_dataset")
+
+        if isinstance(file_handle, StringIO):
+            try:
+                # Convert to bytes
+                file_handle = BytesIO(bytes(file_handle.getvalue(), "utf-8"))
+            except AttributeError as e:
+                raise ValueError("Unable to convert read buffer to bytes")
+
+        headers = {
+            "Content-Disposition": "attachment; filename='{}'".format(name),
+            "Content-Type": content_type
+        }
+        headers = {k: v for k, v in headers.items() if v}
+        self.put(
+            uri,
+            data=file_handle,
+            custom_request=True,
+            headers=headers,
+            status_response={'200': lambda resp: resp}
+        )
+
+        upload_datasets_route = self.get_route("upload_datasets")
+        upload_resp = self.post(
+            upload_datasets_route,
+            json={
+                "s3_key": key,
+                "file_name": name,
+                "title": title,
+                "run_id": run_id,
+                "analysis_tool": analysis_tool,
+                "analysis_tool_version": analysis_tool_version
+            }
+        )
+
+        return upload_resp
 
     def get_zip(self, data_id, file_path=None):
         """
@@ -429,7 +568,6 @@ class Connection(object):
 
         """
         import zipfile
-        from io import BytesIO
         route = self.get_route('get_data_zip', data_id=data_id)
         req = self.get(route, status_response={'200': lambda resp: resp}, stream=True)
         if file_path:
