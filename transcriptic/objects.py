@@ -232,10 +232,27 @@ class Run(_BaseObject):
 
         """
         if self._data_ids.empty:
-            data_dict = {instruction.attributes['operation']['dataref']: instruction.attributes['dataset']['id'] for instruction in self.instructions['Instructions'] if 'dataset' in instruction.attributes}
-            if len(data_dict) > 0:
-                self._data_ids = pd.DataFrame(sorted(data_dict.items()))
-                self._data_ids.columns = ["dataref", "data_id"]
+            datasets = []
+            for dataset in self.attributes['datasets']:
+                inst_id = dataset['instruction_id']
+                if inst_id:
+                    title = next(
+                        inst.attributes['operation']['dataref'] for
+                        inst in self.instructions['Instructions']
+                        if inst.attributes['id'] == inst_id
+                    )
+                else:
+                    title = dataset['title']
+                datasets.append(
+                    {
+                        "title": title,
+                        "data_type": dataset["data_type"],
+                        "data_id": dataset["id"]
+                    }
+                )
+            if len(datasets) > 0:
+                data_ids = pd.DataFrame(datasets)
+                self._data_ids = data_ids[["title", "data_type", "data_id"]]
         return self._data_ids
 
     @property
@@ -303,9 +320,7 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            # TODO: Fix this
-            # num_datasets = len(self.data_ids)
-            num_datasets = len(self.attributes["dataset_ids"])
+            num_datasets = len(self.data_ids)
             if num_datasets == 0:
                 print("No datasets were found.")
             else:
