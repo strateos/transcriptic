@@ -124,6 +124,10 @@ def submit_launch_request(api_root, org_id, project_id):
     return "{api_root}/{org_id}/{project_id}/runs".format(**locals())
 
 
+def dataset_short(api_root, data_id):
+    return "{api_root}/datasets/{data_id}.json".format(**locals())
+
+
 def dataset(api_root, data_id, key):
     return "{api_root}/datasets/{data_id}.json?key={key}".format(**locals())
 

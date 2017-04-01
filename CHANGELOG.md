@@ -1,8 +1,14 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v4.2.0
 Added
 - `upload_dataset` to api object and surrounding infrastructure
+Updated
+- Dataset object is now initialized via a more stable route
+Fixed
+- Reworked `run.data` route based on changes to web response
 
 ## v4.1.2
 Fixed

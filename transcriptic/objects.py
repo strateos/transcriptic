@@ -42,13 +42,14 @@ class _BaseObject(object):
                 self.connection = connection
             (self.id, self.name) = self.load_object(obj_type, obj_id)
             if not attributes:
-                self.attributes = self.connection._get_object(self.id)
+                self.attributes = self.connection._get_object(self.id, obj_type)
             else:
                 self.attributes = attributes
 
     def load_object(self, obj_type, obj_id):
         """Find and match object by name"""
         # TODO: Remove the try/except statement and properly handle cases where objects are not found
+        # TODO: Fix `datasets` route since that only returns non-analysis objects
         try:
             objects = getattr(self.connection, obj_type + 's')()
         except:
@@ -232,10 +233,34 @@ class Run(_BaseObject):
 
         """
         if self._data_ids.empty:
-            data_dict = {instruction.attributes['operation']['dataref']: instruction.attributes['dataset']['id'] for instruction in self.instructions['Instructions'] if 'dataset' in instruction.attributes}
-            if len(data_dict) > 0:
-                self._data_ids = pd.DataFrame(sorted(data_dict.items()))
-                self._data_ids.columns = ["dataref", "data_id"]
+            datasets = []
+            for dataset in self.attributes['datasets']:
+                inst_id = dataset['instruction_id']
+                if inst_id:
+                    titles = [
+                        inst.attributes['operation']['dataref'] for
+                        inst in self.instructions['Instructions']
+                        if inst.attributes['id'] == inst_id
+                    ]
+                    if len(titles) == 0:
+                        title = "unknown"
+                    elif len(titles) == 1:
+                        title = titles[0]
+                    else:
+                    # This should never happen since instruction_ids are unique
+                        raise ValueError("No unique instruction id found")
+                else:
+                    title = dataset['title']
+                datasets.append(
+                    {
+                        "Name": title,
+                        "Type": dataset["data_type"],
+                        "Id": dataset["id"]
+                    }
+                )
+            if len(datasets) > 0:
+                data_ids = pd.DataFrame(datasets)
+                self._data_ids = data_ids[["Name", "Type", "Id"]]
         return self._data_ids
 
     @property
@@ -303,21 +328,23 @@ class Run(_BaseObject):
 
         """
         if self._data.empty:
-            # TODO: Fix this
-            # num_datasets = len(self.data_ids)
-            num_datasets = len(self.attributes["dataset_ids"])
+            num_datasets = len(self.data_ids)
             if num_datasets == 0:
                 print("No datasets were found.")
             else:
                 print("Attempting to fetch %d datasets..." % num_datasets)
                 try:
-                    datasets = self.connection.datasets(project_id=self.project_id, run_id=self.id, timeout=self.timeout)
-                    data_dict = {k: Dataset(datasets[k]["id"], dict(datasets[k], title=k),
-                                            connection=self.connection)
-                                 for k in list(datasets.keys()) if datasets[k]}
-                    self._data = pd.DataFrame(sorted(list(data_dict.items()), key=lambda x: x[0]))
-                    self._data.columns = ["Name", "Datasets"]
-                    self._data.insert(1, "DataType", ([ds.operation for ds in self._data.Datasets]))
+                    data_list = []
+                    for name, data_type, data_id in self.data_ids.values:
+                        dataset = Dataset(data_id)
+                        data_list.append({
+                            "Name": name,
+                            "Type": data_type,
+                            "Source": dataset.analysis_tool or dataset.operation,
+                            "Datasets": dataset
+                        })
+                    data_frame = pd.DataFrame(data_list)
+                    self._data = data_frame[["Name", "Type", "Source", "Datasets"]]
                 except ReadTimeout:
                     print('Operation timed out after %d seconds. Returning data_ids instead of Datasets.\nTo try again, increase value of self.timeout and resubmit request.' % self.timeout)
                     return self.data_ids
@@ -388,16 +415,26 @@ class Dataset(_BaseObject):
         # TODO: Get BaseObject to handle dataset name
         self.name = self.attributes["title"]
         self.id = data_id
-        self.operation = self.attributes["instruction"]["operation"]["op"]
-        self.data_type = self.attributes["data_type"]
-        self._raw_data = None
-        self._data = pd.DataFrame()
+
+        # TODO: Consider more formally distinguishing between dataset types
+        try:
+            self.operation = self.attributes["instruction"]["operation"]["op"]
+        except KeyError:
+            self.operation = None
         try:
             self.container = Container(self.attributes["container"]["id"],
                                        attributes=self.attributes["container"],
                                        connection=connection)
         except KeyError as e:
-            warnings.warn("Missing key {} when initializing dataset".format(e))
+            if 'instruction' in self.attributes:
+                warnings.warn("Missing key {} when initializing dataset".format(e))
+            self.container = None
+
+        self.analysis_tool = self.attributes["analysis_tool"]
+        self.analysis_tool_version = self.attributes["analysis_tool_version"]
+        self.data_type = self.attributes["data_type"]
+        self._raw_data = None
+        self._data = pd.DataFrame()
 
     @property
     def raw_data(self):
