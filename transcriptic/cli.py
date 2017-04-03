@@ -308,6 +308,45 @@ def upload_release(ctx, archive, package):
                                                                 package_id))
 
 
+@cli.command('upload-dataset')
+@click.argument('file_path', type=click.Path(exists=True),
+                metavar="FILE")
+@click.argument('title', metavar="TITLE")
+@click.argument('run_id', metavar="RUN-ID")
+@click.option('--tool', '-t', required=True,
+              help="Name of analysis tool used for generating the dataset")
+@click.option('--version', '-v', required=True,
+              help="Version of analysis tool used for generating the dataset")
+@click.pass_context
+def upload_dataset(ctx, file_path, title, run_id, tool, version):
+    """Uploads specified file as an analysis dataset to the specified run."""
+    resp = ctx.obj.api.upload_dataset_from_filepath(
+        file_path=file_path,
+        title=title,
+        run_id=run_id,
+        analysis_tool=tool,
+        analysis_tool_version=version
+    )
+    try:
+        data_id = resp['data']['id']
+        run_route = ctx.obj.api.url(
+            "/api/runs/{}?fields[runs]=project_id".format(run_id)
+        )
+        run_resp = ctx.obj.api.get(run_route)
+        project = run_resp['data']['attributes']['project_id']
+        data_url = "{}/analysis/{}".format(
+            ctx.obj.api.get_route(
+                'datasets',
+                project_id=project,
+                run_id=run_id
+            ),
+            data_id
+        )
+        click.echo("Dataset uploaded to {}".format(data_url))
+    except KeyError:
+        click.echo("An unexpected response was returned from the server. ")
+
+
 @cli.command()
 @click.pass_context
 @click.option(
