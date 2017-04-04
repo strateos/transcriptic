@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 from builtins import object, str
 import json
 import transcriptic
@@ -9,12 +10,22 @@ import requests
 from .version import __version__
 import platform
 import inspect
+import warnings
 from io import BytesIO
 try:
     from io import StringIO
 except ImportError:
     from StringIO import StringIO
-import magic
+try:
+    import magic
+except ImportError:
+    warnings.warn(
+        "`python-magic` is recommended. You may be missing some system-level "
+        "dependencies if you have already pip-installed it.\n"
+        "Please refer to https://github.com/ahupp/python-magic#installation "
+        "for more installation instructions."
+    )
+    pass
 
 
 class Connection(object):
@@ -452,10 +463,14 @@ class Connection(object):
         except (AttributeError, FileNotFoundError) as e:
             raise ValueError("'file' has to be a valid filepath")
 
-        content_type = magic.from_file(file_path, mime=True)
-
-        self.upload_dataset(file_handle, name, title, run_id, analysis_tool,
-                            analysis_tool_version, content_type)
+        try:
+            content_type = magic.from_file(file_path, mime=True)
+        except NameError:
+            # Handle issues with magic import by not decoding content_type
+            content_type = None
+        return self.upload_dataset(file_handle, name, title, run_id,
+                                   analysis_tool, analysis_tool_version,
+                                   content_type)
 
     def upload_dataset(self, file_handle, name, title, run_id,
                        analysis_tool, analysis_tool_version,
@@ -537,6 +552,10 @@ class Connection(object):
                 "run_id": run_id,
                 "analysis_tool": analysis_tool,
                 "analysis_tool_version": analysis_tool_version
+            },
+            status_response={
+                '404': lambda resp: "[404] Please double-check your parameters "
+                                    "and ensure they are valid."
             }
         )
 

@@ -1,6 +1,9 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+## v4.2.1
+Added
+- `transcriptic upload_dataset` to CLI
 
 ## v4.2.0
 Added
