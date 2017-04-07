@@ -82,7 +82,7 @@ class Connection(object):
     """
     def __init__(self, email=None, token=None, organization_id=False,
                  api_root="https://secure.transcriptic.com", organization=False,
-                 cookie=False, verbose=False, use_environ=True, analytics=True,
+                 cookie=None, verbose=False, use_environ=True, analytics=True,
                  user_id="default", feature_groups=[]):
         if email is None and use_environ:
             email = os.environ['USER_EMAIL']
@@ -97,9 +97,10 @@ class Connection(object):
         self.user_id = user_id
         RELEVANT_GROUPS = set(['can_submit_autoprotocol', 'can_upload_packages'])
         self.feature_groups = list(RELEVANT_GROUPS.intersection(feature_groups))
-        self.headers = {
+        headers = {
             "X-User-Email": email,
             "X-User-Token": token,
+            "Cookie": cookie,
             "Content-Type": "application/json",
             "Accept": "application/json",
             "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(__version__,
@@ -110,8 +111,16 @@ class Connection(object):
                                                                   platform.machine(),
                                                                   platform.architecture()[0])
         }
+        # Filter None
+        clean_headers = {k: v for k, v in headers.items() if v}
+        # If using cookie, pop email and token
+        if cookie:
+            clean_headers.pop("X-User-Email", None)
+            clean_headers.pop("X-User-Token", None)
         # Preload known environment arguments
         self.env_args = dict(api_root=self.api_root, org_id=self.organization_id)
+        self.session = requests.Session()
+        self.session.headers.update(clean_headers)
         transcriptic.api = self
 
     @staticmethod
@@ -624,12 +633,7 @@ class Connection(object):
 
     def update_headers(self, kwargs):
         """Helper function to safely merge and update headers"""
-        self.headers.update(**kwargs)
-        return self.headers
-
-    def _merge_headers(self, kwargs):
-        """Helper function for merging headers"""
-        return dict(kwargs.pop('headers', {}), **self.headers)
+        self.session.headers.update(**kwargs)
 
     def get(self, route, **kwargs):
         return self._call('get', route, **kwargs)
@@ -643,9 +647,8 @@ class Connection(object):
     def delete(self, route, **kwargs):
         return self._call('delete', route, **kwargs)
 
-    @staticmethod
-    def _req_call(method, route, **kwargs):
-        return getattr(requests, method)(route, **kwargs)
+    def _req_call(self, method, route, **kwargs):
+        return getattr(self.session, method)(route, **kwargs)
 
     def _call(self, method, route, custom_request=False, status_response={}, merge_status=True, **kwargs):
         """Base function for handling all requests"""
@@ -653,7 +656,7 @@ class Connection(object):
             if self.verbose:
                 print("{0}: {1}".format(method.upper(), route))
             if 'headers' not in kwargs:
-                return self._handle_response(self._req_call(method, route, headers=self.headers, **kwargs),
+                return self._handle_response(self._req_call(method, route, **kwargs),
                                              merge_status=merge_status, **status_response)
             else:
                 return self._handle_response(self._req_call(method, route, **kwargs), merge_status=merge_status,
