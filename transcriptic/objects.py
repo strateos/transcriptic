@@ -254,13 +254,13 @@ class Run(_BaseObject):
                 datasets.append(
                     {
                         "Name": title,
-                        "Type": dataset["data_type"],
+                        "DataType": dataset["data_type"],
                         "Id": dataset["id"]
                     }
                 )
             if len(datasets) > 0:
                 data_ids = pd.DataFrame(datasets)
-                self._data_ids = data_ids[["Name", "Type", "Id"]]
+                self._data_ids = data_ids[["Name", "DataType", "Id"]]
         return self._data_ids
 
     @property
@@ -339,12 +339,16 @@ class Run(_BaseObject):
                         dataset = Dataset(data_id)
                         data_list.append({
                             "Name": name,
-                            "Type": data_type,
-                            "Source": dataset.analysis_tool or dataset.operation,
+                            "DataType": data_type,
+                            "Operation": dataset.operation,
+                            "AnalysisTool": dataset.analysis_tool,
                             "Datasets": dataset
                         })
                     data_frame = pd.DataFrame(data_list)
-                    self._data = data_frame[["Name", "Type", "Source", "Datasets"]]
+
+                    # Rearrange columns
+                    self._data = data_frame[["Name", "DataType", "Operation",
+                                             "AnalysisTool", "Datasets"]]
                 except ReadTimeout:
                     print('Operation timed out after %d seconds. Returning data_ids instead of Datasets.\nTo try again, increase value of self.timeout and resubmit request.' % self.timeout)
                     return self.data_ids
