@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v4.3.0
+Updated
+- Reworked the structure of `run.data` to be more verbose
+
 ## v4.2.1
 Added
 - `transcriptic upload_dataset` to CLI
