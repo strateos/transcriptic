@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Updated
+- Use `Sessions` object for maintaining persistent api connection
+- More formal support for cookie-based authentication
+
 ## v4.3.0
 Updated
 - Reworked the structure of `run.data` to be more verbose
