@@ -47,5 +47,5 @@ def connect(transcriptic_path="~/.transcriptic"):
     #TODO: Mirror login code from CLI
     try:
         api = Connection.from_file(transcriptic_path)
-    except:
-        print ("Unable to find .transcriptic file, please ensure the right path is provided")
+    except (OSError, IOError):
+        print("Unable to find .transcriptic file, please ensure the right path is provided")

@@ -2,11 +2,20 @@
 
 ## Unreleased
 
+## v5.0.0
+Added
+- Added concept of HiddenOption and email and token as input parameters
 Updated
 - Use `Sessions` object for maintaining persistent api connection
+- Reworked env_args and headers setting and getting to be clearer and more consistent
+- CLI now automatically fits flags in the order of: --flag, environment variable, .transcriptic
 - More formal support for cookie-based authentication
 Fixed
 - Improvements to the way non-unique projects are handled
+- Improved error handling for Py2
+Removed
+- `use_environ` flag is now deprecated in `Connection`. Please specify environment parameters directly
+- `organization` is now deprecated from `Connection`. Please use `organization_id` instead
 
 ## v4.3.0
 Updated
