@@ -5,6 +5,10 @@
 Updated
 - Use `Sessions` object for maintaining persistent api connection
 - More formal support for cookie-based authentication
+Changes
+- `projects` returns a dictionary with `project_id` keys and `project_name` values
+Fixed
+- `get_project_id` will return multiple ids if `project_name` is not unique
 
 ## v4.3.0
 Updated

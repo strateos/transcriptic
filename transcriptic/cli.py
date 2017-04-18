@@ -495,14 +495,14 @@ def projects(ctx, i, json_flag):
     """List the projects in your organization"""
     try:
         projects = ctx.obj.api.projects()
-        proj_names = {}
+        proj_id_names = {}
         all_proj = {}
         for proj in projects:
             status = " (archived)" if proj['archived_at'] else ""
-            proj_names[proj["name"]] = proj["id"]
+            proj_id_names[proj["id"]] = proj["name"]
             all_proj[proj["name"] + status] = proj["id"]
         if i:
-            return proj_names
+            return proj_id_names
         elif json_flag:
             return click.echo(json.dumps(projects))
         else:
@@ -1313,22 +1313,29 @@ def login(ctx, api_root, analytics=True):
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
-    project_id = projs.get(name)
-    if not project_id:
-        project_id = name if name in list(projs.values()) else None
-        if not project_id:
+    if name in projs:
+        return name
+    else:
+        project_ids = [k for k, v in projs.items() if v == name]
+        if not project_ids:
             click.echo(
                 "The project '%s' was not found in your organization." % name)
             return
-    return project_id
+        elif len(project_ids) > 1:
+            click.echo(
+                "Found multiple projects: {} that match '{}'.".format(
+                    project_ids, name))
+            return
+        else:
+            return project_ids[0]
 
 
 @click.pass_context
 def get_project_name(ctx, id):
-    projs = {v: k for k, v in list(ctx.invoke(projects, i=True).items())}
+    projs = ctx.invoke(projects, i=True)
     name = projs.get(id)
     if not name:
-        name = id if name in list(projs.keys()) else None
+        name = id if id in projs.values() else None
         if not name:
             click.echo(
                 "The project '%s' was not found in your organization." % name)
