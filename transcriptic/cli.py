@@ -24,12 +24,10 @@ from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
 
-# Workaround to support the correct input for both Python 2 and 3. Always use
-# input() which will point to the correct builtin.
-try:
+import sys
+if sys.version_info[0] < 3:
     input = raw_input
-except NameError:
-    pass
+    PermissionError = RuntimeError
 
 
 class FeatureGroup(click.Group):
@@ -48,7 +46,7 @@ class FeatureGroup(click.Group):
             ctx.obj.api = Connection.from_file('~/.transcriptic')
         except (FileNotFoundError, OSError):
             # This defaults to feature_groups = []
-            ctx.obj.api = Connection(use_environ=False)
+            ctx.obj.api = Connection()
 
         rows = []
         for subcommand in self.list_commands(ctx):
@@ -80,6 +78,24 @@ class FeatureCommand(click.Command):
         self.feature = feature
 
 
+class HiddenOption(click.Option):
+    """Monkey patch of click Option to enable hidden options
+    TODO: Deprecate once Click 7 lands and use `hidden` option instead
+    """
+    def __init__(self, *param_decls, **attrs):
+        __hidden__ = attrs.pop('hidden', True)
+        click.Option.__init__(self, *param_decls, **attrs)
+        self.__hidden__ = __hidden__
+
+    def get_help_record(self, ctx):
+        """This hijacks the help record so that a hidden option does not show 
+        up in the help text
+        """
+        if self.__hidden__:
+            return
+        click.Option.get_help_record(self, ctx)
+
+
 class ContextObject(object):
     """Object passed along Click context
     Note: `ctx` is passed along whenever the @click.pass_context decorator is
@@ -101,39 +117,55 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.group(context_settings=_CONTEXT_SETTINGS, cls=FeatureGroup)
-@click.option('--apiroot', default=None)
+@click.option('--api-root', default=None, hidden=True, cls=HiddenOption)
+@click.option('--email', default=None, hidden=True, cls=HiddenOption)
+@click.option('--token', default=None, hidden=True, cls=HiddenOption)
+@click.option('--organization', '-o', default=None, hidden=True, cls=HiddenOption)
 @click.option(
     '--config',
     envvar='TRANSCRIPTIC_CONFIG',
     default='~/.transcriptic',
     help='Specify a configuration file.'
 )
-@click.option('--organization', '-o', default=None)
 @click.version_option(prog_name="Transcriptic Python Library (TxPy)")
 @click.pass_context
-def cli(ctx, apiroot, config, organization):
+def cli(ctx, api_root, email, token, organization, config):
     """A command line tool for working with Transcriptic.
-    Note: This is the main entry point of the CLI. ALl commands go through
-    this `group` before calling a sub-`command`
+    
+    Note: This is the main entry point of the CLI. If specifying credentials,
+    note that the order of preference is: --flag, environment then config file.
+    
+    Example: `transcriptic --organization "my_org" projects` >> 
+    `export USER_ORGANIZATION="my_org"` >> `"organization_id": "my_org" in ~/.transcriptic
     """
     if ctx.invoked_subcommand in ['login', 'compile', 'preview', 'summarize', 'init']:
         # For login/local commands, initialize empty connection
         ctx.obj = ContextObject()
-        ctx.obj.api = Connection(use_environ=False)
+        ctx.obj.api = Connection()
     else:
         try:
             ctx.obj = ContextObject()
-            ctx.obj.api = Connection.from_file(config)
-            if organization is not None:
-                ctx.obj.api.organization_id = organization
-            if apiroot is not None:
-                ctx.obj.api.api_root = apiroot
-        except:
+            api = Connection.from_file(config)
+            api.api_root = (
+                api_root or os.environ.get('BASE_URL', None) or api.api_root
+            )
+            api.organization_id = (
+                organization or os.environ.get('USER_ORGANIZATION', None) or
+                api.organization_id
+            )
+            api.email = (
+                email or os.environ.get('USER_EMAIL', None) or api.email
+            )
+            api.token = (
+                token or os.environ.get('USER_TOKEN', None) or api.token
+            )
+            ctx.obj.api = api
+        except (OSError, IOError):
             click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file is missing or out of date")
             analytics = click.confirm("Send TxPy CLI usage information to improve the CLI user "
                                       "experience?", default=True)
-            ctx.obj.api = Connection(use_environ=False)  # Initialize empty connection
-            ctx.invoke(login, analytics=analytics)
+            ctx.obj.api = Connection()  # Initialize empty connection
+            ctx.invoke(login, api_root=api_root, analytics=analytics)
     if ctx.obj.api.analytics:
         try:
             ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand, event_category="cli")
@@ -1263,26 +1295,33 @@ def org_prompt(org_list):
 
 
 @cli.command()
-@click.option('--api-root', default='https://secure.transcriptic.com')
 @click.pass_context
-def login(ctx, api_root, analytics=True):
+def login(ctx, api_root=None, analytics=True):
     """Authenticate to your Transcriptic account."""
+    # For logging in, we should default to the transcriptic domain
+    if api_root is None:
+        api_root = "https://secure.transcriptic.com"
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = ctx.obj.api.post(routes.login(api_root=api_root), data=json.dumps({
-        'user': {
-            'email': email,
-            'password': password,
+    r = ctx.obj.api.post(
+        routes.login(api_root=api_root),
+        data=json.dumps({
+            'user': {
+                'email': email,
+                'password': password,
+            },
+        }),
+        headers={
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
         },
-    }), headers={
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-    }, status_response={
-        '200': lambda resp: resp,
-        '401': lambda resp: resp,
-        'default': lambda resp: resp
-    },
-        custom_request=False)
+        status_response={
+            '200': lambda resp: resp,
+            '401': lambda resp: resp,
+            'default': lambda resp: resp
+        },
+        custom_request=False
+    )
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)

@@ -12,10 +12,14 @@ import platform
 import inspect
 import warnings
 from io import BytesIO
-try:
-    from io import StringIO
-except ImportError:
+
+import sys
+if sys.version_info[0] < 3:
     from StringIO import StringIO
+    PermissionError = RuntimeError
+else:
+    from io import StringIO
+
 try:
     import magic
 except ImportError:
@@ -32,8 +36,8 @@ class Connection(object):
     """
     A Connection object is the object used for communicating with Transcriptic.
 
-    Local usage: This is most easily instantiated by using the `from_file` function after
-    calling `transcriptic login` from the command line.
+    Local usage: This is most easily instantiated by using the `from_file` 
+    function after calling `transcriptic login` from the command line.
 
     .. code-block:: shell
         :caption: shell
@@ -49,16 +53,17 @@ class Connection(object):
         from transcriptic.config import Connection
         api = Connection.from_file("~/.transcriptic")
 
-    For those using Jupyter notebooks on secure.transcriptic.com (beta), a Connection object is automatically
-    instatianted as api.
+    For those using Jupyter notebooks on secure.transcriptic.com (beta), a 
+    Connection object is automatically instantiated as api.
 
     .. code-block:: python
         :caption: python
 
         from transcriptic import api
 
-    The `api` object can then be used for making any api calls. It is recommended to use the objects
-    in `transcriptic.objects` since that wraps the response in a more friendly format.
+    The `api` object can then be used for making any api calls. It is 
+    recommended to use the objects in `transcriptic.objects` since that wraps 
+    the response in a more friendly format.
 
     Example Usage:
 
@@ -68,59 +73,61 @@ class Connection(object):
         api.projects()
         api.runs(project_id="p123456789")
 
-    If you have multiple organizations and would like to switch to a specific organization, or if you
-    would like to auto-load certain projects, you can use the `update_environment` function call.
+    If you have multiple organizations and would like to switch to a specific 
+    organization, or if you would like to auto-load certain projects, you can
+    set it directly by assigning to the corresponding variable.
 
     Example Usage:
 
     .. code-block:: python
         :caption: python
-
-        api.update_environment(org_id="my_other_org", project_id="p123")
-
+        
+        api.organization_id = "my_other_org"
+        api.project_id = "p123"
 
     """
-    def __init__(self, email=None, token=None, organization_id=False,
-                 api_root="https://secure.transcriptic.com", organization=False,
-                 cookie=None, verbose=False, use_environ=True, analytics=True,
+    def __init__(self, email=None, token=None, organization_id=None,
+                 api_root="https://secure.transcriptic.com",
+                 cookie=None, verbose=False, analytics=True,
                  user_id="default", feature_groups=[]):
-        if email is None and use_environ:
-            email = os.environ['USER_EMAIL']
-            token = os.environ['USER_TOKEN']
-            organization_id = os.environ['USER_ORGANIZATION']
+        # Initialize environment args used for computing routes
+        self.env_args = dict()
         self.api_root = api_root
-        self.email = email
-        self.token = token
-        self.organization_id = organization_id or organization
+        self.organization_id = organization_id
+
+        # Initialize session headers
+        self.session = requests.Session()
+        self.session.headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
+                __version__,
+                platform.python_implementation(),
+                platform.python_version(),
+                platform.system(),
+                platform.release(),
+                platform.machine(),
+                platform.architecture()[0]
+            )
+        }
+        # cookie authentication is mutually exclusive from token authentication
+        if cookie:
+            self.cookie = cookie
+        else:
+            self.email = email
+            self.token = token
+
+        # Initialize feature groups
+        RELEVANT_GROUPS = set(
+            ['can_submit_autoprotocol', 'can_upload_packages']
+        )
+        self.feature_groups = list(RELEVANT_GROUPS.intersection(feature_groups))
+
+        # Initialize CLI parameters
         self.verbose = verbose
         self.analytics = analytics
         self.user_id = user_id
-        RELEVANT_GROUPS = set(['can_submit_autoprotocol', 'can_upload_packages'])
-        self.feature_groups = list(RELEVANT_GROUPS.intersection(feature_groups))
-        headers = {
-            "X-User-Email": email,
-            "X-User-Token": token,
-            "Cookie": cookie,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(__version__,
-                                                                  platform.python_implementation(),
-                                                                  platform.python_version(),
-                                                                  platform.system(),
-                                                                  platform.release(),
-                                                                  platform.machine(),
-                                                                  platform.architecture()[0])
-        }
-        # Filter None
-        clean_headers = {k: v for k, v in headers.items() if v}
-        # If using cookie, pop email and token
-        if cookie:
-            clean_headers.pop("X-User-Email", None)
-            clean_headers.pop("X-User-Token", None)
-        # Preload known environment arguments
-        self.env_args = dict(api_root=self.api_root, org_id=self.organization_id)
-        self.session = requests.Session()
-        self.session.headers.update(clean_headers)
+
         transcriptic.api = self
 
     @staticmethod
@@ -128,49 +135,121 @@ class Connection(object):
         """Loads connection from file"""
         with open(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
-            expected_keys = ['email', 'token', 'organization_id', 'api_root', 'analytics', "user_id"]
+            expected_keys = ['email', 'token', 'organization_id', 'api_root',
+                             'analytics', "user_id"]
 
             def key_not_found(): raise OSError("Key not found")
             [key_not_found() for key in expected_keys if key not in cfg.keys()]
             return Connection(**cfg)
 
+    @property
+    def api_root(self):
+        try:
+            return self.env_args['api_root']
+        except (NameError, KeyError):
+            raise ValueError("api_root is not set.")
+
+    @api_root.setter
+    def api_root(self, value):
+        self.update_environment(api_root=value)
+
+    @property
+    def organization_id(self):
+        try:
+            return self.env_args['org_id']
+        except (NameError, KeyError):
+            raise ValueError("organization_id is not set.")
+
+    @organization_id.setter
+    def organization_id(self, value):
+        self.update_environment(org_id=value)
+
+    @property
+    def project_id(self):
+        try:
+            return self.env_args['project_id']
+        except (NameError, KeyError):
+            raise ValueError("project_id is not set.")
+
+    @project_id.setter
+    def project_id(self, value):
+        self.update_environment(project_id=value)
+
+    @property
+    def email(self):
+        try:
+            return self.session.headers['X-User-Email']
+        except (NameError, KeyError):
+            raise ValueError("email is not set.")
+
+    @email.setter
+    def email(self, value):
+        self.update_headers(**{'X-User-Email': value})
+
+    @property
+    def token(self):
+        try:
+            return self.session.headers['X-User-Token']
+        except (NameError, KeyError):
+            raise ValueError("token is not set.")
+
+    @token.setter
+    def token(self, value):
+        self.update_headers(**{'X-User-Token': value})
+
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
         with open(expanduser(path), 'w') as f:
-            f.write(json.dumps({
-                'email': self.email,
-                'token': self.token,
-                'organization_id': self.organization_id,
-                'api_root': self.api_root,
-                'analytics': self.analytics,
-                'user_id': self.user_id,
-                'feature_groups': self.feature_groups
-            }, indent=2))
+            f.write(
+                json.dumps(
+                    {
+                        'email': self.email,
+                        'token': self.token,
+                        'organization_id': self.organization_id,
+                        'api_root': self.api_root,
+                        'analytics': self.analytics,
+                        'user_id': self.user_id,
+                        'feature_groups': self.feature_groups
+                    },
+                    indent=2
+                )
+            )
 
     def update_environment(self, **kwargs):
-        """Update environment variables. To remove an existing variable, set to None"""
+        """
+        Updates environment variables used for computing routes. 
+        To remove an existing variable, set value to None.
+        """
         self.env_args = dict(self.env_args, **kwargs)
+
+    def update_headers(self, **kwargs):
+        """
+        Updates session headers
+        To remove an existing variable, set value to None.
+        """
+        self.session.headers = dict(self.session.headers, **kwargs)
 
     def url(self, path):
         """url format helper"""
         if path.startswith("/"):
-            return "%s%s" % (self.env_args['api_root'], path)
+            return "%s%s" % (self.api_root, path)
         else:
-            return "%s/%s/%s" % (self.env_args['api_root'], self.env_args['org_id'], path)
+            return "%s/%s/%s" % (self.api_root, self.organization_id, path)
 
     def preview_protocol(self, protocol):
         """Post protocol preview"""
         route = self.get_route('preview_protocol')
         protocol = _parse_protocol(protocol)
-        return self.post(route,
-                         json={
-                             "protocol": json.dumps(protocol)
-                         },
-                         allow_redirects=False,
-                         status_response={
-                             '302': lambda resp: resp.headers['Location'],
-                             'default': lambda resp: Exception("cannot preview protocol.")
-                         })
+        err_default = "Unable to preview protocol"
+        return self.post(
+            route,
+            json={"protocol": json.dumps(protocol)},
+            allow_redirects=False,
+            status_response={
+                '302': lambda resp: resp.headers['Location'],
+                'default': lambda resp: RuntimeError(err_default)
+            }
+        )
 
     def organizations(self):
         """Get list of organizations"""
@@ -180,65 +259,72 @@ class Connection(object):
     def get_organization(self, org_id=None):
         """Get particular organization"""
         route = self.get_route('get_organization', org_id=org_id)
-        resp = self.get(route, status_response={
-            '200': lambda resp: resp,
-            '404': lambda resp: RuntimeError('There was an error fetching the organization {}'.format(org_id)),
-            'default': lambda resp: resp
-        })
+        err_404 = "There was an error fetching the organization " \
+                  "{}".format(org_id)
+        resp = self.get(
+            route,
+            status_response={
+                '200': lambda resp: resp,
+                '404': lambda resp: RuntimeError(err_404),
+                'default': lambda resp: resp
+            }
+        )
         return resp
 
     def projects(self):
         """Get list of projects in organization"""
         route = self.get_route('get_projects')
-        return self.get(route, status_response={
-            '200': lambda resp: resp.json()["projects"],
-            'default': lambda resp: RuntimeError(
-                "There was an error listing the projects in your "
-                "organization.  Make sure your login details are correct."
-            )
-        })
+        err_default = "There was an error listing the projects in your " \
+                      "organization.  Make sure your login details are correct."
+        return self.get(
+            route,
+            status_response={
+                '200': lambda resp: resp.json()["projects"],
+                'default': lambda resp: RuntimeError(err_default)
+            }
+        )
 
     def project(self, project_id=None):
         """Get particular project"""
         route = self.get_route('get_project', project_id=project_id)
-        return self.get(route, status_response={
-            'default': lambda resp: RuntimeError(
-                "There was an error fetching project %s" % project_id
-            )
-        })
+        err_default = "There was an error fetching project " \
+                      "{}".format(project_id)
+        return self.get(
+            route,
+            status_response={'default': lambda resp: RuntimeError(err_default)}
+        )
 
     def runs(self, project_id=None):
         """Get list of runs in project"""
         route = self.get_route('get_project_runs', project_id=project_id)
-        return self.get(route, status_response={
-            "200": lambda resp: resp.json(),
-            "default": lambda resp: RuntimeError(
-                "There was an error fetching the runs in project %s" %
-                project_id
-            )
-        })
+        err_default = "There was an error fetching the runs in project " \
+                      "{}".format(project_id)
+        return self.get(
+            route,
+            status_response={
+                "200": lambda resp: resp.json(),
+                "default": lambda resp: RuntimeError(err_default)
+            }
+        )
 
     def create_project(self, title):
         """Create project with given title"""
         route = self.get_route('create_project')
-        return self.post(route, data=json.dumps({
-            'name': title
-        }))
+        return self.post(route, data=json.dumps({'name': title}))
 
     def delete_project(self, project_id=None):
         """Delete project with given project_id"""
         route = self.get_route('delete_project', project_id=project_id)
-        return self.delete(route, status_response={
-            '200': lambda resp: True
-        })
+        return self.delete(route, status_response={'200': lambda resp: True})
 
     def archive_project(self, project_id=None):
         """Archive project with given project_id"""
         route = self.get_route('archive_project', project_id=project_id)
-        return self.put(route, data=json.dumps({"project": {"archived": True}}),
-                        status_response={
-                            '200': lambda resp: True
-                        })
+        return self.put(
+            route,
+            data=json.dumps({"project": {"archived": True}}),
+            status_response={'200': lambda resp: True}
+        )
 
     def packages(self):
         """Get list of packages in organization"""
@@ -268,14 +354,17 @@ class Connection(object):
         route = self.get_route('post_release', package_id=package_id)
         return self.post(route, data=data)
 
-    def get_release_status(self, package_id=None, release_id=None, timestamp=None):
+    def get_release_status(self, package_id=None, release_id=None,
+                           timestamp=None):
         """Get status of current release upload"""
-        route = self.get_route('get_release_status', package_id=package_id, release_id=release_id, timestamp=timestamp)
+        route = self.get_route('get_release_status', package_id=package_id,
+                               release_id=release_id, timestamp=timestamp)
         return self.get(route)
 
     def get_quick_launch(self, project_id=None, quick_launch_id=None):
         """Get quick launch object"""
-        route = self.get_route('get_quick_launch', project_id=project_id, quick_launch_id=quick_launch_id)
+        route = self.get_route('get_quick_launch', project_id=project_id,
+                               quick_launch_id=quick_launch_id)
         return self.get(route)
 
     def create_quick_launch(self, data, project_id=None):
@@ -290,7 +379,8 @@ class Connection(object):
 
     def get_launch_request(self, protocol_id=None, launch_request_id=None):
         """Get launch request id"""
-        route = self.get_route('get_launch_request', protocol_id=protocol_id, launch_request_id=launch_request_id)
+        route = self.get_route('get_launch_request', protocol_id=protocol_id,
+                               launch_request_id=launch_request_id)
         return self.get(route)
 
     def get_protocols(self):
@@ -317,16 +407,23 @@ class Connection(object):
         route = self.get_route('get_payment_methods')
         return self.get(route)
 
-    def monitoring_data(self, data_type, instruction_id=None, grouping=None, start_time=None, end_time=None):
+    def monitoring_data(self, data_type, instruction_id=None, grouping=None,
+                        start_time=None, end_time=None):
         """Get monitoring_data"""
-        route = self.get_route('monitoring_data', data_type=data_type, instruction_id=instruction_id,
-                               grouping=grouping, start_time=start_time, end_time=end_time)
+        route = self.get_route('monitoring_data', data_type=data_type,
+                               instruction_id=instruction_id,
+                               grouping=grouping, start_time=start_time,
+                               end_time=end_time)
         return self.get(route)
 
     def raw_image_data(self, data_id=None):
         """Get raw image data"""
         route = self.get_route('view_raw_image', data_id=data_id)
-        return self.get(route, status_response={'200': lambda resp: resp}, stream=True)
+        return self.get(
+            route,
+            status_response={'200': lambda resp: resp},
+            stream=True
+        )
 
     def _get_object(self, obj_id, obj_type=None):
         """Helper function for loading objects"""
@@ -335,9 +432,11 @@ class Connection(object):
             route = self.get_route('dataset_short', data_id=obj_id)
         else:
             route = self.get_route('deref_route', obj_id=obj_id)
-        return self.get(route, status_response={
-            '404': lambda resp: Exception("[404] No object found for ID " + obj_id)
-        })
+        err_404 = "[404] No object found for ID {}".format(obj_id)
+        return self.get(
+            route,
+            status_response={'404': lambda resp: Exception(err_404)}
+        )
 
     def analyze_run(self, protocol, test_mode=False):
         """Analyze given protocol"""
@@ -354,12 +453,14 @@ class Connection(object):
                                       "".join(["- " + e['message'] + "\n" for e in r.json()['protocol']])
                                       ))
 
-        return self.post(self.get_route('analyze_run'),
-                         data=json.dumps({
-                             "protocol": protocol,
-                             "test_mode": test_mode
-                         }),
-                         status_response={'422': lambda response: error_string(response)})
+        return self.post(
+            self.get_route('analyze_run'),
+            data=json.dumps({
+                "protocol": protocol,
+                "test_mode": test_mode
+            }),
+            status_response={'422': lambda resp: error_string(resp)}
+        )
 
     def submit_run(self, protocol, project_id=None, title=None, test_mode=False,
                    payment_method_id=None):
@@ -372,15 +473,21 @@ class Connection(object):
             "payment_method_id": payment_method_id
         }
         data = {k: v for k, v in payload.items() if v is not None}
-        return self.post(self.get_route('submit_run', project_id=project_id),
-                         data=json.dumps(data),
-                         status_response={
-                             '404': lambda resp: AnalysisException("Error: Couldn't create run (404). \n"
-                                                                   "Are you sure the project %s "
-                                                                   "exists, and that you have access to it?" %
-                                                                   self.url(project_id)),
-                             '422': lambda resp: AnalysisException("Error creating run: %s" % resp.text)
-                         })
+        route = self.get_route('submit_run', project_id=project_id)
+        err_404 = "Error: Couldn't create run (404).\n Are you sure the " \
+                  "project {} exists, and that you have access " \
+                  "to it?".format(self.url(project_id))
+
+        def err_422(resp): "Error creating run: {}".format(resp.text)
+
+        return self.post(
+            route,
+            data=json.dumps(data),
+            status_response={
+                '404': lambda resp: AnalysisException(err_404),
+                '422': lambda resp: AnalysisException(err_422)
+            }
+        )
 
     def analyze_launch_request(self, launch_request_id, test_mode=False):
         return self.post(
@@ -425,10 +532,13 @@ class Connection(object):
     def datasets(self, project_id=None, run_id=None, timeout=30.0):
         """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
-        return self.get(route, status_response={
-            '404': lambda resp: Exception("[404] No run found for ID {}. Please ensure you have the "
-                                          "right permissions.".format(run_id))
-        }, timeout=timeout)
+        err_404 = "[404] No run found for ID {}. Please ensure you have the " \
+                  "right permissions.".format(run_id)
+        return self.get(
+            route,
+            status_response={'404': lambda resp: Exception(err_404)},
+            timeout=timeout
+        )
 
     def upload_dataset_from_filepath(self, file_path, title, run_id,
                                      analysis_tool, analysis_tool_version):
@@ -505,7 +615,7 @@ class Connection(object):
 
         Parameters
         ----------
-        file: file_handle
+        file_handle: file_handle
             File handle to be uploaded
         name: str
             Dataset filename
@@ -517,6 +627,8 @@ class Connection(object):
             Name of tool used for analysis
         analysis_tool_version: str, optional
             Version of tool used
+        content_type: str
+            Type of content uploaded
             
         Returns
         -------
@@ -572,9 +684,11 @@ class Connection(object):
 
     def get_zip(self, data_id, file_path=None):
         """
-        Get zip file with given data_id. Downloads to memory and returns a Python ZipFile by default.
-        When dealing with larger files where it may not be desired to load the entire file into memory,
-        specifying `file_path` will enable the file to be downloaded locally.
+        Get zip file with given data_id. Downloads to memory and returns a 
+        Python ZipFile by default.
+        When dealing with larger files where it may not be desired to load the 
+        entire file into memory, specifying `file_path` will enable the file to 
+        be downloaded locally.
 
         Example Usage:
 
@@ -591,7 +705,8 @@ class Connection(object):
         data_id: data_id
             Data id of file to download
         file_path: Optional[str]
-            Path to file which to save the response to. If specified, will not return ZipFile explicitly.
+            Path to file which to save the response to. If specified, will not 
+            return ZipFile explicitly.
 
         Returns
         ----------
@@ -601,7 +716,8 @@ class Connection(object):
         """
         import zipfile
         route = self.get_route('get_data_zip', data_id=data_id)
-        req = self.get(route, status_response={'200': lambda resp: resp}, stream=True)
+        req = self.get(route, status_response={'200': lambda resp: resp},
+                       stream=True)
         if file_path:
             f = open(file_path, 'wb')
             # Buffer download of data into memory with smaller chunk sizes
@@ -615,25 +731,25 @@ class Connection(object):
             return zipfile.ZipFile(BytesIO(req.content))
 
     def get_route(self, method, **kwargs):
-        """Helper function to automatically match and supply required arguments"""
+        """
+        Helper function to automatically match and supply required arguments
+        """
         route_method = getattr(routes, method)
         route_method_args, _, _, route_defaults = inspect.getargspec(route_method)
         if route_defaults:
             route_method_args = route_method_args[:-len(route_defaults)]
-        # Update loaded argument dictionary with additional arguments which are not None
-        arg_dict = dict(self.env_args, **{k: v for k, v in list(kwargs.items()) if v is not None})
+        # Update loaded argument dict with new arguments which are not None
+        new_args = {k: v for k, v in list(kwargs.items()) if v is not None}
+        arg_dict = dict(self.env_args, **new_args)
         input_args = []
         for arg in route_method_args:
             if arg_dict[arg]:
                 input_args.append(arg_dict[arg])
             else:
-                raise Exception("For route: {0}, argument {1} needs to be provided.".format(method, arg))
+                raise Exception("For route: {0}, argument {1} needs to be "
+                                "provided.".format(method, arg))
 
         return route_method(*tuple(input_args))
-
-    def update_headers(self, kwargs):
-        """Helper function to safely merge and update headers"""
-        self.session.headers.update(**kwargs)
 
     def get(self, route, **kwargs):
         return self._call('get', route, **kwargs)
@@ -650,32 +766,53 @@ class Connection(object):
     def _req_call(self, method, route, **kwargs):
         return getattr(self.session, method)(route, **kwargs)
 
-    def _call(self, method, route, custom_request=False, status_response={}, merge_status=True, **kwargs):
+    def _call(self, method, route, custom_request=False, status_response={},
+              merge_status=True, **kwargs):
         """Base function for handling all requests"""
         if not custom_request:
             if self.verbose:
                 print("{0}: {1}".format(method.upper(), route))
             if 'headers' not in kwargs:
-                return self._handle_response(self._req_call(method, route, **kwargs),
-                                             merge_status=merge_status, **status_response)
+                return self._handle_response(
+                    self._req_call(method, route, **kwargs),
+                    merge_status=merge_status,
+                    **status_response
+                )
             else:
-                return self._handle_response(self._req_call(method, route, **kwargs), merge_status=merge_status,
-                                             **status_response)
+                return self._handle_response(
+                    self._req_call(method, route, **kwargs),
+                    merge_status=merge_status,
+                    **status_response
+                )
         else:
-            return self._handle_response(self._req_call(method, route, **kwargs), merge_status=merge_status,
-                                         **status_response)
+            return self._handle_response(
+                self._req_call(method, route, **kwargs),
+                merge_status=merge_status,
+                **status_response
+            )
 
     def _handle_response(self, response, **kwargs):
-        unauthorized_resp = "You are not authorized to execute this command. For more information on access " \
+        unauthorized_resp = "You are not authorized to execute this command. " \
+                            "For more information on access " \
                             "permissions see the package documentation."
-        internal_error_resp = "An internal server error has occured. Please contact support for assistance."
-        default_status_response = {'200': lambda resp: resp.json(),
-                                   '201': lambda resp: resp.json(),
-                                   '401': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
-                                   '403': lambda resp: PermissionError("[%d] %s" % (resp.status_code, unauthorized_resp)),
-                                   '500': lambda resp: Exception("[%d] %s" % (resp.status_code, internal_error_resp)),
-                                   'default': lambda resp: Exception("[%d] %s" % (resp.status_code, resp.text))
-                                   }
+        internal_error_resp = "An internal server error has occurred. " \
+                              "Please contact support for assistance."
+        default_status_response = {
+            '200': lambda resp: resp.json(),
+            '201': lambda resp: resp.json(),
+            '401': lambda resp: PermissionError(
+                "[%d] %s" % (resp.status_code, unauthorized_resp)
+            ),
+            '403': lambda resp: PermissionError(
+                "[%d] %s" % (resp.status_code, unauthorized_resp)
+            ),
+            '500': lambda resp: Exception(
+                "[%d] %s" % (resp.status_code, internal_error_resp)
+            ),
+            'default': lambda resp: Exception(
+                "[%d] %s" % (resp.status_code, resp.text)
+            )
+        }
         if kwargs['merge_status']:
             kwargs.pop('merge_status')
             status_response = dict(default_status_response, **kwargs)
@@ -683,18 +820,23 @@ class Connection(object):
             kwargs.pop('merge_status')
             status_response = dict(**kwargs)
 
-        return_val = status_response.get(str(response.status_code), status_response['default'])
+        return_val = status_response.get(
+            str(response.status_code),
+            status_response['default']
+        )
 
         if isinstance(return_val(response), Exception):
             raise return_val(response)
         else:
             return return_val(response)
 
-    def _post_analytics(self, client_id=None, event_action=None, event_category="cli"):
+    def _post_analytics(self, client_id=None, event_action=None,
+                        event_category="cli"):
         route = "https://www.google-analytics.com/collect"
         if not client_id:
             client_id = self.user_id
-        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(client_id, event_action, event_category)
+        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}' \
+                 '&ec={}'.format(client_id, event_action, event_category)
         requests.post(route, packet)
 
 
@@ -712,7 +854,8 @@ def _parse_protocol(protocol):
     try:
         from autoprotocol import Protocol
     except ImportError as IE:
-        raise RuntimeError("Please install `autoprotocol-python` in order to work with Protocol objects")
+        raise RuntimeError("Please install `autoprotocol-python` in order "
+                           "to work with Protocol objects")
     if isinstance(protocol, Protocol):
         return protocol.as_dict()
 
