@@ -6,7 +6,7 @@ Updated
 - Use `Sessions` object for maintaining persistent api connection
 - More formal support for cookie-based authentication
 Fixed
-- improvements to the way non-unique projects are handled
+- Improvements to the way non-unique projects are handled
 
 ## v4.3.0
 Updated
