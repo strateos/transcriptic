@@ -495,14 +495,14 @@ def projects(ctx, i, json_flag):
     """List the projects in your organization"""
     try:
         projects = ctx.obj.api.projects()
-        proj_names = {}
+        proj_id_names = {}
         all_proj = {}
         for proj in projects:
             status = " (archived)" if proj['archived_at'] else ""
-            proj_names[proj["name"]] = proj["id"]
-            all_proj[proj["name"] + status] = proj["id"]
+            proj_id_names[proj["id"]] = proj["name"]
+            all_proj[proj["id"]] = proj["name"] + status
         if i:
-            return proj_names
+            return proj_id_names
         elif json_flag:
             return click.echo(json.dumps(projects))
         else:
@@ -510,9 +510,9 @@ def projects(ctx, i, json_flag):
             click.echo('{:^40}'.format("PROJECT NAME") + "|" +
                        '{:^40}'.format("PROJECT ID"))
             click.echo('{:-^80}'.format(''))
-            for name, i in list(all_proj.items()):
+            for proj_id, name in list(all_proj.items()):
                 click.echo('{:<40}'.format(name) + "|" +
-                           '{:^40}'.format(i))
+                           '{:^40}'.format(proj_id))
                 click.echo('{:-^80}'.format(''))
     except RuntimeError:
         click.echo("There was an error listing the projects in your "
@@ -549,7 +549,7 @@ def runs(ctx, project_name, json_flag):
         else:
             click.echo(
                 '\n{:^120}'.format("Runs in Project '%s':\n" %
-                                   get_project_name(project_name))
+                                   get_project_name(project_id))
             )
             click.echo('{:^30}'.format("RUN TITLE") + "|" +
                        '{:^30}'.format("RUN ID") + "|" +
@@ -574,10 +574,13 @@ def create_project(ctx, name, dev):
     existing = ctx.obj.api.projects()
     for p in existing:
         if name == p['name'].split('.')[-1]:
-            click.echo("You already have an existing project with the name "
-                       "\"%s\".  Please choose a different project name." %
-                       name)
-            return
+            click.confirm(
+                "You already have an existing project with the name '{}'. "
+                "Are you sure you want to create another one?".format(name),
+                default=False,
+                abort=True
+            )
+            break
     try:
         new_proj = ctx.obj.api.create_project(name)
         click.echo(
@@ -1313,22 +1316,30 @@ def login(ctx, api_root, analytics=True):
 @click.pass_context
 def get_project_id(ctx, name):
     projs = ctx.invoke(projects, i=True)
-    project_id = projs.get(name)
-    if not project_id:
-        project_id = name if name in list(projs.values()) else None
-        if not project_id:
+    if name in projs:
+        return name
+    else:
+        project_ids = [k for k, v in projs.items() if v == name]
+        if not project_ids:
             click.echo(
                 "The project '%s' was not found in your organization." % name)
             return
-    return project_id
+        elif len(project_ids) > 1:
+            click.echo(
+                "Found multiple projects: {} that match '{}'.".format(
+                    project_ids, name))
+            # TODO: Add project selector with dates and number of runs
+            return
+        else:
+            return project_ids[0]
 
 
 @click.pass_context
 def get_project_name(ctx, id):
-    projs = {v: k for k, v in list(ctx.invoke(projects, i=True).items())}
+    projs = ctx.invoke(projects, i=True)
     name = projs.get(id)
     if not name:
-        name = id if name in list(projs.keys()) else None
+        name = id if id in projs.values() else None
         if not name:
             click.echo(
                 "The project '%s' was not found in your organization." % name)
