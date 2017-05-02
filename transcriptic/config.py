@@ -11,6 +11,7 @@ from .version import __version__
 import platform
 import inspect
 import warnings
+import io
 from io import BytesIO
 
 import sys
@@ -643,9 +644,9 @@ class Connection(object):
         except KeyError as e:
             raise RuntimeError("Unexpected payload returned for upload_dataset")
 
-        if isinstance(file_handle, StringIO):
+        if isinstance(file_handle, io.StringIO):
             try:
-                # Convert to bytes
+                # io.StringIO instances must be converted to bytes
                 file_handle = BytesIO(bytes(file_handle.getvalue(), "utf-8"))
             except AttributeError as e:
                 raise ValueError("Unable to convert read buffer to bytes")
