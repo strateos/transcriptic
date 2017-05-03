@@ -11,14 +11,11 @@ from .version import __version__
 import platform
 import inspect
 import warnings
-from io import BytesIO
+from io import StringIO, BytesIO
 
 import sys
 if sys.version_info[0] < 3:
-    from StringIO import StringIO
     PermissionError = RuntimeError
-else:
-    from io import StringIO
 
 try:
     import magic
@@ -597,10 +594,10 @@ class Connection(object):
         """
         Uploads a file_handle as a dataset to the specified run.
 
-        .. code-block:: python           
-            # Uploading a data_frame via file_handle
+        .. code-block:: python
+            # Uploading a data_frame via file_handle, using Py3
             from io import StringIO
-            
+
             temp_buffer = StringIO()
             my_df.to_csv(temp_buffer)
 
@@ -629,7 +626,7 @@ class Connection(object):
             Version of tool used
         content_type: str
             Type of content uploaded
-            
+
         Returns
         -------
         response: dict
@@ -645,7 +642,7 @@ class Connection(object):
 
         if isinstance(file_handle, StringIO):
             try:
-                # Convert to bytes
+                # io.StringIO instances must be converted to bytes
                 file_handle = BytesIO(bytes(file_handle.getvalue(), "utf-8"))
             except AttributeError as e:
                 raise ValueError("Unable to convert read buffer to bytes")
