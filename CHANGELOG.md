@@ -1,8 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v5.0.1
 Fixed
 - in `Connection.upload_dataset()`, only convert io.StringIO instance to bytes, not StringIO.StringIO instance
+- Issue with `upload-release`
 
 ## v5.0.0
 Added
