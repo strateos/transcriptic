@@ -281,29 +281,16 @@ def upload_release(ctx, archive, package):
     with click.progressbar(None, 100, "Upload Progress",
                            show_eta=False, width=70,
                            fill_char="|", empty_char="-") as bar:
-        bar.update(10)
-        info = ctx.obj.api.get(ctx.obj.api.get_route(
-            'upload_sign'), params={'name': archive})
-        bar.update(30)
-        aws_url = ctx.obj.api.get_route('aws_upload')
-        files = {'file': open(os.path.basename(archive), 'rb')}
-        data = OrderedDict([
-            ('key', info['key']),
-            ('AWSAccessKeyId', 'AKIAJVJ67EJYCQXO7ZSQ'),
-            ('acl', 'private'),
-            ('success_action_status', '201'),
-            ('policy', info['policy']),
-            ('signature', info['signature']),
-        ])
-        response = ctx.obj.api.post(aws_url, data=data, files=files, headers={},
-                                    status_response={'201': lambda resp: resp})
+        bar.update(40)
+        file = open(os.path.basename(archive), 'rb')
+        url = ctx.obj.api.upload_to_uri(
+            file, 'application/zip, application/octet-stream', archive, archive
+        )
         bar.update(20)
-        response_tree = ET.fromstring(response.content)
-        loc = dict((i.tag, i.text) for i in response_tree)
         try:
             up = ctx.obj.api.post_release(
                 data=json.dumps({"release":
-                                 {"binary_attachment_url": loc["Key"]}}
+                                 {"binary_attachment_url": url}}
                                 ),
                 package_id=package_id
             )

@@ -632,6 +632,46 @@ class Connection(object):
         response: dict
             JSON-formatted response
         """
+        s3_key = self.upload_to_uri(file_handle, content_type, title, name)
+        upload_datasets_route = self.get_route("upload_datasets")
+        upload_resp = self.post(
+            upload_datasets_route,
+            json={
+                "s3_key": s3_key,
+                "file_name": name,
+                "title": title,
+                "run_id": run_id,
+                "analysis_tool": analysis_tool,
+                "analysis_tool_version": analysis_tool_version
+            },
+            status_response={
+                '404': lambda resp: "[404] Please double-check your parameters "
+                                    "and ensure they are valid."
+            }
+        )
+
+        return upload_resp
+
+    def upload_to_uri(self, file_handle, content_type, title, name):
+        """
+        Helper for uploading files via the `upload_uri` route
+        
+        Parameters
+        ----------
+        file_handle: file_handle
+            File handle to be uploaded
+        content_type: str
+            Type of content uploaded
+        title: str
+            Title of content to be uploaded
+        name: str
+            Name of file to be uploaded
+
+        Returns
+        -------
+        key: str
+            s3 key
+        """
         uri_route = self.get_route('upload_uri')
         uri_resp = self.post(uri_route, data=json.dumps({"name": title}))
         try:
@@ -659,25 +699,7 @@ class Connection(object):
             headers=headers,
             status_response={'200': lambda resp: resp}
         )
-
-        upload_datasets_route = self.get_route("upload_datasets")
-        upload_resp = self.post(
-            upload_datasets_route,
-            json={
-                "s3_key": key,
-                "file_name": name,
-                "title": title,
-                "run_id": run_id,
-                "analysis_tool": analysis_tool,
-                "analysis_tool_version": analysis_tool_version
-            },
-            status_response={
-                '404': lambda resp: "[404] Please double-check your parameters "
-                                    "and ensure they are valid."
-            }
-        )
-
-        return upload_resp
+        return key
 
     def get_zip(self, data_id, file_path=None):
         """
