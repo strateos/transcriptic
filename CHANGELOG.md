@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.0.2
+Fixed
+- Made cookie updates actually update headers
+
 ## v5.0.1
 Fixed
 - in `Connection.upload_dataset()`, only convert io.StringIO instance to bytes, not StringIO.StringIO instance
