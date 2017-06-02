@@ -109,8 +109,17 @@ class Connection(object):
         }
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
+            if email is not None or token is not None:
+                warnings.warn("Cookie and token authentication is mutually "
+                              "exclusive. Ignoring email and token")
+            self.session.headers["X-User-Email"] = None
+            self.session.headers["X-User-Token"] = None
             self.cookie = cookie
         else:
+            if cookie is not None:
+                warnings.warn("Cookie and token authentication is mutually "
+                              "exclusive. Ignoring cookie")
+            self.session.headers["Cookie"] = None
             self.email = email
             self.token = token
 
@@ -133,8 +142,7 @@ class Connection(object):
         with open(expanduser(path), 'r') as f:
             cfg = json.loads(f.read())
             expected_keys = ['email', 'token', 'organization_id', 'api_root',
-                             'analytics', "user_id"]
-
+                             'analytics', 'user_id']
             def key_not_found(): raise OSError("Key not found")
             [key_not_found() for key in expected_keys if key not in cfg.keys()]
             return Connection(**cfg)
@@ -181,6 +189,10 @@ class Connection(object):
 
     @email.setter
     def email(self, value):
+        if self.cookie is not None:
+            warnings.warn("Cookie and token authentication is mutually "
+                          "exclusive. Clearing cookie from headers")
+            self.update_headers(**{'Cookie': None})
         self.update_headers(**{'X-User-Email': value})
 
     @property
@@ -192,7 +204,26 @@ class Connection(object):
 
     @token.setter
     def token(self, value):
+        if self.cookie is not None:
+            warnings.warn("Cookie and token authentication is mutually "
+                          "exclusive. Clearing cookie from headers")
+            self.update_headers(**{'Cookie': None})
         self.update_headers(**{'X-User-Token': value})
+
+    @property
+    def cookie(self):
+        try:
+            return self.session.headers['Cookie']
+        except (NameError, KeyError):
+            return ValueError("cookie is not set.")
+
+    @cookie.setter
+    def cookie(self, value):
+        if self.email is not None or self.token is not None:
+            warnings.warn("Cookie and token authentication is mutually "
+                          "exclusive. Clearing email and token from headers")
+            self.update_headers(**{'X-User-Email': None, 'X-User-Token': None})
+        self.update_headers(**{'Cookie': value})
 
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
