@@ -28,6 +28,8 @@ import sys
 if sys.version_info[0] < 3:
     input = raw_input
     PermissionError = RuntimeError
+    # not exactly identical, but similar enough for this case
+    FileNotFoundError= IOError
 
 
 class FeatureGroup(click.Group):

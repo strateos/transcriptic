@@ -16,6 +16,8 @@ from io import StringIO, BytesIO
 import sys
 if sys.version_info[0] < 3:
     PermissionError = RuntimeError
+    # not exactly identical, but similar enough for this case
+    FileNotFoundError= IOError
 
 try:
     import magic

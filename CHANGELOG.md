@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.0.3
+Fixed
+- FileNotFound incompatibility error for Python2 (when ~/.transcriptic file isn't specified)
+
 ## v5.0.2
 Fixed
 - Made cookie updates actually update headers
