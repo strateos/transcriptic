@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.0.4
+Fixed
+- Error with `transcriptic launch --local` when a file is provided
+
 ## v5.0.3
 Fixed
 - FileNotFound incompatibility error for Python2 (when ~/.transcriptic file isn't specified)

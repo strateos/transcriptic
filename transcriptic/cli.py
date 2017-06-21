@@ -1115,7 +1115,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         generation_errs = launch_protocol["generation_errors"]
         if len(generation_errs) > 0:
             for errors in generation_errs:
-                click.echo("\n\n" + errors["message"])
+                click.echo("\n\n" + str(errors["message"]))
             click.echo("\nPlease fix the above errors and try again.")
             return
 
@@ -1158,7 +1158,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         if not params:
             run_protocol(manifest, protocol_obj, quick_launch["inputs"])
         else:
-            run_protocol(manifest, protocol_obj, params)
+            run_protocol(manifest, protocol_obj, json.load(params))
 
 
 def _create_launch_request(params, bsl=1, test_mode=False):
