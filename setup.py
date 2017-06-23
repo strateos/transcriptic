@@ -24,17 +24,17 @@ setup(
     install_requires=[
         'Click>=5.1',
         'requests>=2.0',
+        'future>=0.15',
+        'pandas>=0.18',
         'python-magic>=0.4.13'
     ],
     extras_require={
         'analysis': [
-            'pandas>=0.18',
             'matplotlib>=1.4',
             'scipy>=0.16',
             'numpy>=1.10',
             'plotly==1.9.6',
-            'pillow>=3.1.0',
-            'future>=0.15'
+            'pillow>=3.1.0'
         ]
     },
     entry_points='''

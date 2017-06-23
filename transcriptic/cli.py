@@ -11,8 +11,6 @@ import json
 import locale
 import os
 import time
-import sys
-import xml.etree.ElementTree as ET
 import zipfile
 
 from transcriptic.english import AutoprotocolParser
