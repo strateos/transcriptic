@@ -10,16 +10,20 @@ Transcriptic is the robotic cloud laboratory for the life sciences. [https://www
 
 ## Setup
 
+To get the full experience, we recommend installing the analysis module:
+```
+$ pip install transcriptic[analysis]
+```
+For a barebones CLI install, you'll do:
 ```
 $ pip install transcriptic
 ```
 
-or
-
+Alternatively, if you're interested in contributing or living at the edge:
 ```
 $ git clone https://github.com/transcriptic/transcriptic.git
 $ cd transcriptic
-$ pip install .
+$ pip install .[analysis]
 ```
 
 to upgrade to the latest version using pip or check whether you're already up to date:

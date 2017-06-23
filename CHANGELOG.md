@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v5.1.0
+Updated
+- Shifted non-core cli dependencies (i.e. those used in analysis) to the `extras_require` field
+- Documentation updated to reflect the changes
+
 ## v5.0.4
 Fixed
 - Error with `transcriptic launch --local` when a file is provided
