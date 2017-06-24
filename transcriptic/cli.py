@@ -15,7 +15,6 @@ import zipfile
 
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.objects import ProtocolPreview
 from transcriptic.util import iter_json, flatmap, ascii_encode
 from transcriptic import routes
 from os.path import isfile
@@ -1522,3 +1521,17 @@ def stdchannel_redirected(stdchannel, dest_filename):
             os.dup2(oldstdchannel, stdchannel.fileno())
         if dest_file is not None:
             dest_file.close()
+
+
+# Placing this here since this is exclusively used by the CLI currently
+class ProtocolPreview(object):
+    """
+    An object for previewing protocols
+    """
+    def __init__(self, protocol, connection):
+        self.protocol = protocol
+        self.preview_url = connection.preview_protocol(protocol)
+
+    def _repr_html_(self):
+        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
+        style="height:500px" seamless></iframe>""" % self.preview_url

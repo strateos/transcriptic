@@ -16,16 +16,6 @@ def _check_api(obj_type):
     return api
 
 
-class ProtocolPreview(object):
-    def __init__(self, protocol, connection):
-        self.protocol = protocol
-        self.preview_url = connection.preview_protocol(protocol)
-
-    def _repr_html_(self):
-        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px" seamless></iframe>""" % self.preview_url
-
-
 class _BaseObject(object):
     """Base object which other objects inherit from"""
 

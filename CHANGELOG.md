@@ -5,6 +5,7 @@
 ## v5.1.0
 Updated
 - Shifted non-core cli dependencies (i.e. those used in analysis) to the `extras_require` field
+- Shifted relative imports in base `__init__` file to make this possible
 - Documentation updated to reflect the changes
 
 ## v5.0.4
