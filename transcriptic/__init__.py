@@ -5,7 +5,20 @@ from .version import __version__
 api = None
 
 """
-Below are a bunch of entry functions to facilitate easy access to the library.
+Transcriptic
+============
+
+The Transcriptic library is separated into three components:
+1) Core. The core modules allow the ability to make calls to the Transcriptic 
+webapp to create and obtain data. This can be done via the `api` object or
+via the command-line using the CLI.
+2) Objects. This module provides a Jupyter-centric means for interacting with 
+objects returned from the Transcriptic webapp such as Run, Project and Dataset.
+3) Analysis. This module provides some basic analysis wrappers around datasets
+returned from the webapp using standard Python scientific libraries.
+
+The __init__ file contains a bunch of entry functions to facilitate easy access
+to the library.
 """
 
 

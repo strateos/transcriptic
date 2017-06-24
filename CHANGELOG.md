@@ -6,6 +6,7 @@
 Updated
 - Shifted non-core cli dependencies (i.e. those used in analysis) to the `extras_require` field
 - Shifted relative imports in base `__init__` file to make this possible
+- Shifted `objects` to a separate module, but preserved existing relative imports path for backwards compatibility
 - Documentation updated to reflect the changes
 
 ## v5.0.4

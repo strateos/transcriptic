@@ -2,11 +2,16 @@ from __future__ import print_function
 from __future__ import absolute_import
 from operator import itemgetter
 from builtins import str
-import pandas as pd
 from builtins import object
 import warnings
 from requests.exceptions import ReadTimeout
 from copy import deepcopy
+
+try:
+    import pandas as pd
+except ImportError:
+    raise ImportError("Please run `pip install transcriptic[objects] if you "
+                      "would like to use Transcriptic objects.")
 
 
 def _check_api(obj_type):

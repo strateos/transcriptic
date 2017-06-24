@@ -10,20 +10,35 @@ Transcriptic is the robotic cloud laboratory for the life sciences. [https://www
 
 ## Setup
 
-To get the full experience, we recommend installing the analysis module:
-```
-$ pip install transcriptic[analysis]
-```
+### Organization
+TxPy is separated into three main components:
+1) Core. The core modules allow the ability to make calls to the Transcriptic
+webapp to create and obtain data. This can be done via the `api` object or
+via the command-line using the CLI.
+2) Objects. This module provides a Jupyter-centric means for interacting with
+objects returned from the Transcriptic webapp such as Run, Project and Dataset.
+3) Analysis. This module provides some basic analysis wrappers around datasets
+returned from the webapp using standard Python scientific libraries.
+
+### Installation
 For a barebones CLI install, you'll do:
 ```
 $ pip install transcriptic
+```
+We recommend installing the `objects` module for Jupyter-centric navigation:
+```
+$ pip install transcriptic[objects]
+```
+Lastly, we recommend installing the `analysis` module for a full-fledged experience:
+```
+$ pip install transcriptic[analysis]
 ```
 
 Alternatively, if you're interested in contributing or living at the edge:
 ```
 $ git clone https://github.com/transcriptic/transcriptic.git
 $ cd transcriptic
-$ pip install .[analysis]
+$ pip install .[objects,analysis]
 ```
 
 to upgrade to the latest version using pip or check whether you're already up to date:

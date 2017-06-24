@@ -3,13 +3,19 @@ from __future__ import print_function
 from builtins import range
 from past.utils import old_div
 from builtins import object
-import plotly.plotly as py
-import pandas
-import matplotlib.pyplot as plt
-import plotly.tools as tls
-import numpy as np
+
 from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
+
+try:
+    import plotly.plotly as py
+    import pandas
+    import matplotlib.pyplot as plt
+    import plotly.tools as tls
+    import numpy as np
+except ImportError:
+    raise ImportError("Please run `pip install transcriptic[analysis] if you "
+                      "would like to use the Transcriptic analysis module.")
 
 
 class _PlateRead(object):
