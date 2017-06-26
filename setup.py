@@ -13,7 +13,7 @@ setup(
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
     version=__version__,
-    packages=['transcriptic', 'transcriptic.analysis', 'transcriptic.objects'],
+    packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
     tests_require=[
         'pytest>=2.9.0',
@@ -28,7 +28,7 @@ setup(
         'python-magic>=0.4.13'
     ],
     extras_require={
-        'objects': [
+        'jupyter': [
             'pandas>=0.18'
         ],
         'analysis': [

@@ -10,7 +10,7 @@ from copy import deepcopy
 try:
     import pandas as pd
 except ImportError:
-    raise ImportError("Please run `pip install transcriptic[objects] if you "
+    raise ImportError("Please run `pip install transcriptic[jupyter] if you "
                       "would like to use Transcriptic objects.")
 
 
@@ -24,7 +24,7 @@ def _check_api(obj_type):
 class _BaseObject(object):
     """Base object which other objects inherit from"""
 
-    # TODO: Inherit more stuff from here. Need to ensure web has unified fields for objects
+    # TODO: Inherit more stuff from here. Need to ensure web has unified fields for jupyter
     def __init__(self, obj_type, obj_id, attributes, connection=None):
         # If attributes and connection are explicitly provided, just return and not do any smart parsing
         if attributes and connection:

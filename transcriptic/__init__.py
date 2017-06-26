@@ -9,16 +9,16 @@ Transcriptic
 ============
 
 The Transcriptic library is separated into three components:
-1) Core. The core modules allow the ability to make calls to the Transcriptic 
-webapp to create and obtain data. This can be done via the `api` object or
-via the command-line using the CLI.
-2) Objects. This module provides a Jupyter-centric means for interacting with 
+1) Core. The core modules provide a barebones client for making calls to 
+the Transcriptic webapp to create and obtain data. This can be done via the 
+`api` object or via the command-line using the CLI.
+2) Jupyter. This module provides a Jupyter-centric means for interacting with
 objects returned from the Transcriptic webapp such as Run, Project and Dataset.
 3) Analysis. This module provides some basic analysis wrappers around datasets
 returned from the webapp using standard Python scientific libraries.
 
 The __init__ file contains a bunch of entry functions to facilitate easy access
-to the library.
+to the Jupyter library.
 """
 
 
@@ -35,7 +35,7 @@ def run(run_id):
     Run object: Run
         Transcriptic representation of a Run object
     """
-    from .objects import Run
+    from .jupyter import Run
     return Run(run_id)
 
 
@@ -52,7 +52,7 @@ def project(project_id):
     Project object: Project
         Transcriptic representation of a Project object
     """
-    from .objects import Project
+    from .jupyter import Project
     return Project(project_id)
 
 
@@ -69,7 +69,7 @@ def container(container_id):
     Container object: Container
         Transcriptic representation of a Container object
     """
-    from .objects import Container
+    from .jupyter import Container
     return Container(container_id)
 
 
