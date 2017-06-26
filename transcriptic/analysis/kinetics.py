@@ -1,8 +1,13 @@
 from builtins import object
-import plotly as py
-import plotly.graph_objs as go
-import pandas as pd
 from builtins import set
+
+try:
+    import plotly as py
+    import plotly.graph_objs as go
+    import pandas as pd
+except ImportError:
+    raise ImportError("Please run `pip install transcriptic[analysis] if you "
+                      "would like to use the Transcriptic analysis module.")
 
 
 class _Kinetics(object):

@@ -13,7 +13,7 @@ setup(
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
     version=__version__,
-    packages=['transcriptic', 'transcriptic.analysis'],
+    packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
     tests_require=[
         'pytest>=2.9.0',
@@ -24,15 +24,22 @@ setup(
     install_requires=[
         'Click>=5.1',
         'requests>=2.0',
-        'pandas>=0.18',
-        'matplotlib>=1.4',
-        'scipy>=0.16',
-        'numpy>=1.10',
-        'plotly==1.9.6',
-        'pillow>=3.1.0',
         'future>=0.15',
         'python-magic>=0.4.13'
     ],
+    extras_require={
+        'jupyter': [
+            'pandas>=0.18'
+        ],
+        'analysis': [
+            'pandas>=0.18',
+            'matplotlib>=1.4',
+            'scipy>=0.16',
+            'numpy>=1.10',
+            'plotly==1.9.6',
+            'pillow>=3.1.0'
+        ]
+    },
     entry_points='''
         [console_scripts]
         transcriptic=transcriptic.cli:cli

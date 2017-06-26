@@ -2,11 +2,16 @@ from __future__ import print_function
 from __future__ import absolute_import
 from operator import itemgetter
 from builtins import str
-import pandas as pd
 from builtins import object
 import warnings
 from requests.exceptions import ReadTimeout
 from copy import deepcopy
+
+try:
+    import pandas as pd
+except ImportError:
+    raise ImportError("Please run `pip install transcriptic[jupyter] if you "
+                      "would like to use Transcriptic objects.")
 
 
 def _check_api(obj_type):
@@ -16,20 +21,10 @@ def _check_api(obj_type):
     return api
 
 
-class ProtocolPreview(object):
-    def __init__(self, protocol, connection):
-        self.protocol = protocol
-        self.preview_url = connection.preview_protocol(protocol)
-
-    def _repr_html_(self):
-        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px" seamless></iframe>""" % self.preview_url
-
-
 class _BaseObject(object):
     """Base object which other objects inherit from"""
 
-    # TODO: Inherit more stuff from here. Need to ensure web has unified fields for objects
+    # TODO: Inherit more stuff from here. Need to ensure web has unified fields for jupyter
     def __init__(self, obj_type, obj_id, attributes, connection=None):
         # If attributes and connection are explicitly provided, just return and not do any smart parsing
         if attributes and connection:
