@@ -413,6 +413,16 @@ class Connection(object):
                                launch_request_id=launch_request_id)
         return self.get(route)
 
+    def resolve_quick_launch_inputs(self, raw_inputs, project_id=None,
+                                    quick_launch_id=None):
+        """Resolves `raw_inputs` to `inputs` for quick_launch"""
+        route = self.get_route(
+            'resolve_quick_launch_inputs',
+            project_id=project_id,
+            launch_request_id=quick_launch_id
+        )
+        return self.post(route, data=raw_inputs)
+
     def get_protocols(self):
         """Get list of available protocols"""
         route = self.get_route('get_protocols')
