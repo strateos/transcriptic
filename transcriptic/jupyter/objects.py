@@ -585,6 +585,8 @@ class Instruction(object):
         Warp events include discrete monitoring events such as liquid sensing 
         events for a particular instruction.
         """
+        # Note: We may consider adding special classes for specific warp
+        # events, with more specific annotations/fields.
         if self._warp_events.empty:
             self._warp_events = self.monitoring(data_type='events')
         return self._warp_events
