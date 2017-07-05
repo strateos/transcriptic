@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- `warp_events`, a new property of the `Instruction` object is added. This provides information on discrete monitoring events
+Updated
+- Instruction object now has an `Id` field
+
 
 ## v5.1.0
 Updated

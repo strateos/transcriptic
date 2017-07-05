@@ -437,7 +437,7 @@ class Connection(object):
         route = self.get_route('get_payment_methods')
         return self.get(route)
 
-    def monitoring_data(self, data_type, instruction_id=None, grouping=None,
+    def monitoring_data(self, data_type, instruction_id, grouping=None,
                         start_time=None, end_time=None):
         """Get monitoring_data"""
         route = self.get_route('monitoring_data', data_type=data_type,

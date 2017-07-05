@@ -267,8 +267,9 @@ class Run(_BaseObject):
             self._instructions = pd.DataFrame(instruction_list)
             self._instructions.columns = ["Instructions"]
             self._instructions.insert(0, "Name", [inst.name for inst in self._instructions.Instructions])
-            self._instructions.insert(1, "Started", [inst.started_at for inst in self._instructions.Instructions])
-            self._instructions.insert(2, "Completed", [inst.completed_at for inst in self._instructions.Instructions])
+            self._instructions.insert(1, "Id", [inst.id for inst in self._instructions.Instructions])
+            self._instructions.insert(2, "Started", [inst.started_at for inst in self._instructions.Instructions])
+            self._instructions.insert(3, "Completed", [inst.completed_at for inst in self._instructions.Instructions])
         return self._instructions
 
     @property
@@ -557,6 +558,7 @@ class Instruction(object):
         else:
             self.device_id = None
         self._warps = pd.DataFrame()
+        self._warp_events = pd.DataFrame()
 
     @property
     def warps(self):
@@ -577,6 +579,18 @@ class Instruction(object):
                               "Transcriptic for assistance.")
         return self._warps
 
+    @property
+    def warp_events(self):
+        """
+        Warp events include discrete monitoring events such as liquid sensing 
+        events for a particular instruction.
+        """
+        # Note: We may consider adding special classes for specific warp
+        # events, with more specific annotations/fields.
+        if self._warp_events.empty:
+            self._warp_events = self.monitoring(data_type='events')
+        return self._warp_events
+
     def monitoring(self, data_type='pressure', grouping=None):
         """
         View monitoring data of a given instruction
@@ -591,14 +605,24 @@ class Instruction(object):
         Returns
         -------
         DataFrame
-            Returns a pandas dataframe of the monitoring data
+            Returns a pandas dataframe of the monitoring data if present.
+            Returns an empty dataframe if no data can be found due to errors.
         """
         response = self.connection.monitoring_data(
             instruction_id=self.id,
             data_type=data_type,
             grouping=grouping
         )
-        return pd.DataFrame(response['results'])
+        # Handle errors by returning empty dataframe
+        if "error" in response:
+            warnings.warn(response["error"])
+            return pd.DataFrame()
+        res = pd.DataFrame(response['results'])
+        # re-order so that "name" column is always leading
+        if "name" in res.columns:
+            rearr_cols = ["name"] + res.columns[res.columns != "name"].tolist()
+            return res[rearr_cols]
+        return res
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
