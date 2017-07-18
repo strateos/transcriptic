@@ -1,11 +1,14 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+
+## v5.2.0
 Added
 - `warp_events`, a new property of the `Instruction` object is added. This provides information on discrete monitoring events
 Updated
 - Instruction object now has an `Id` field
-
+Fixed
+- Fixed issue with broken direct imports of Jupyter objects (e.g. `from transcriptic import Run`)
 
 ## v5.1.0
 Updated

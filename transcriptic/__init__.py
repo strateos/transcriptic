@@ -1,5 +1,5 @@
 from __future__ import print_function
-from transcriptic.config import Connection
+from .config import Connection
 from .version import __version__
 
 api = None
@@ -20,6 +20,14 @@ returned from the webapp using standard Python scientific libraries.
 The __init__ file contains a bunch of entry functions to facilitate easy access
 to the Jupyter library.
 """
+
+""" Allow direct import of Jupyter objects such as `Run` directly if the
+required imports are present
+"""
+try:
+    from .jupyter import Run, Project, Container, Dataset, ProtocolPreview
+except ImportError as e:
+    pass
 
 
 def run(run_id):
