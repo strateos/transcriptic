@@ -419,9 +419,9 @@ class Connection(object):
         route = self.get_route(
             'resolve_quick_launch_inputs',
             project_id=project_id,
-            launch_request_id=quick_launch_id
+            quick_launch_id=quick_launch_id
         )
-        return self.post(route, data=raw_inputs)
+        return self.post(route, json=raw_inputs)
 
     def get_protocols(self):
         """Get list of available protocols"""

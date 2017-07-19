@@ -84,7 +84,7 @@ def create_quick_launch(api_root, org_id, project_id):
     return "{api_root}/{org_id}/{project_id}/runs/quick_launch".format(**locals())
 
 
-def resolve_quick_launch_inputs(api_root, project_id, quick_launch_id):
+def resolve_quick_launch_inputs(api_root, org_id, project_id, quick_launch_id):
     return "{api_root}/{org_id}/{project_id}/runs/quick_launch/" \
            "{quick_launch_id}/resolve_inputs".format(**locals())
 

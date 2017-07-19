@@ -1083,7 +1083,10 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         if save_input:
             try:
                 with click.open_file(save_input, 'w') as f:
-                    f.write(json.dumps(quick_launch["raw_inputs"], indent=2))
+                    f.write(
+                        json.dumps(dict(parameters=quick_launch["raw_inputs"]),
+                                   indent=2)
+                    )
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
 
@@ -1159,10 +1162,17 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
             """
             In the case of a local `launch`, we need to generate `inputs` from
             `raw_inputs`, since the `run_protocol` function takes in JSON which 
-            is `inputs`-formatted
+            is `inputs`-formatted.
+            `inputs` is basically an extended version of `raw_inputs`, where
+            we populate properties such as aliquot information for specified
+            containerIds.
+            In order to generate these `inputs`, we can create a new quick 
+            launch
             """
             try:
                 params = json.loads(params.read())
+                # This is the input format required by resolve_inputs
+                formatted_inputs = dict(inputs=params['parameters'])
             except ValueError:
                 print_stderr("Unable to load parameters given. "
                              "File is probably incorrectly formatted.")
@@ -1171,11 +1181,12 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
                 data=json.dumps({"manifest": protocol_obj}),
                 project_id=project
             )
-            inputs = ctx.obj.api.resolve_quick_launch_inputs(
-                params,
+            quick_launch_obj = ctx.obj.api.resolve_quick_launch_inputs(
+                formatted_inputs,
                 project_id=project,
-                quick_Launch_id=quick_launch
+                quick_launch_id=quick_launch['id']
             )
+            inputs = quick_launch_obj['inputs']
             run_protocol(
                 manifest, protocol_obj, inputs
             )
@@ -1217,7 +1228,6 @@ def _get_quick_launch(ctx, protocol, project):
         data=json.dumps({"manifest": protocol}),
         project_id=project
     )
-
     quick_launch_mtime = quick_launch["updated_at"]
 
     format_str = "\nOpening %s"
