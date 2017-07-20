@@ -3,6 +3,8 @@
 ## Unreleased
 Updated
 - `transcriptic launch --save_input` now outputs the same type of JSON
+Added
+- `test` flag to `transcriptic launch`, enabling the submission of test runs via the launch command
 
 ## v5.2.0
 Added
