@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Updated
+- `transcriptic launch --save_input` now outputs the same type of JSON
 
 ## v5.2.0
 Added

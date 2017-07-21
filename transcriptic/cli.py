@@ -1083,7 +1083,10 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         if save_input:
             try:
                 with click.open_file(save_input, 'w') as f:
-                    f.write(json.dumps(quick_launch["inputs"], indent=2))
+                    f.write(
+                        json.dumps(dict(parameters=quick_launch["raw_inputs"]),
+                                   indent=2)
+                    )
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
 
@@ -1110,6 +1113,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
 
         # Check for generation errors
         generation_errs = launch_protocol["generation_errors"]
+
         if len(generation_errs) > 0:
             for errors in generation_errs:
                 click.echo("\n\n" + str(errors["message"]))
@@ -1155,7 +1159,37 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         if not params:
             run_protocol(manifest, protocol_obj, quick_launch["inputs"])
         else:
-            run_protocol(manifest, protocol_obj, json.load(params))
+            """
+            In the case of a local `launch`, we need to generate `inputs` from
+            `raw_inputs`, since the `run_protocol` function takes in JSON which 
+            is `inputs`-formatted.
+            `inputs` is basically an extended version of `raw_inputs`, where
+            we populate properties such as aliquot information for specified
+            containerIds.
+            In order to generate these `inputs`, we can create a new quick 
+            launch
+            """
+            try:
+                params = json.loads(params.read())
+                # This is the input format required by resolve_inputs
+                formatted_inputs = dict(inputs=params['parameters'])
+            except ValueError:
+                print_stderr("Unable to load parameters given. "
+                             "File is probably incorrectly formatted.")
+                return
+            quick_launch = ctx.obj.api.create_quick_launch(
+                data=json.dumps({"manifest": protocol_obj}),
+                project_id=project
+            )
+            quick_launch_obj = ctx.obj.api.resolve_quick_launch_inputs(
+                formatted_inputs,
+                project_id=project,
+                quick_launch_id=quick_launch['id']
+            )
+            inputs = quick_launch_obj['inputs']
+            run_protocol(
+                manifest, protocol_obj, inputs
+            )
 
 
 def _create_launch_request(params, bsl=1, test_mode=False):
