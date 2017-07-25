@@ -1040,8 +1040,10 @@ def compile(protocol_name, args):
               help='Payment id to be used for run submission. '
                    'Use `transcriptic payments` command to list existing '
                    'payment methods.')
+@click.option('--test', help='Submit this run in test mode', is_flag=True)
 @click.pass_context
-def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=None):
+def launch(ctx, protocol, project, save_input, local, accept_quote, params,
+           pm=None, test=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
@@ -1109,7 +1111,9 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
                              "File is probably incorrectly formatted.")
                 return
 
-        req_id, launch_protocol = _get_launch_request(ctx, params, protocol_obj)
+        req_id, launch_protocol = _get_launch_request(
+            ctx, params, protocol_obj, test
+        )
 
         # Check for generation errors
         generation_errs = launch_protocol["generation_errors"]
@@ -1123,7 +1127,8 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         # Confirm proceeding with purchase
         if not accept_quote:
             click.echo("\n\nCost Breakdown")
-            resp = ctx.obj.api.analyze_launch_request(req_id)
+            resp = ctx.obj.api.analyze_launch_request(req_id,
+                                                      test_mode=test)
             click.echo(price(resp))
             confirmed = click.confirm(
                 'Would you like to continue with launching the protocol',
@@ -1146,7 +1151,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params, pm=N
         try:
             req_json = ctx.obj.api.submit_launch_request(
                 req_id, protocol_id=protocol_obj["id"],
-                project_id=project, title=default_title, test_mode=None,
+                project_id=project, title=default_title, test_mode=test,
                 payment_method_id=pm
             )
             run_id = req_json['id']
@@ -1201,9 +1206,10 @@ def _create_launch_request(params, bsl=1, test_mode=False):
     return json.dumps(params_dict)
 
 
-def _get_launch_request(ctx, params, protocol):
+def _get_launch_request(ctx, params, protocol, test_mode):
     """Launches protocol from parameters"""
-    launch_request = _create_launch_request(params)
+    launch_request = _create_launch_request(params, test_mode=test_mode)
+
     launch_protocol = ctx.obj.api.launch_protocol(launch_request,
                                                   protocol_id=protocol["id"])
     launch_request_id = launch_protocol["id"]
