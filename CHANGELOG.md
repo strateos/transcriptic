@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.1
+Updated
+- `transcriptic login` now properly respects the `--api-root` option and persists the result into the dotfile
+
 ## v5.3.0
 Updated
 - `transcriptic launch --save_input` now outputs the same type of JSON

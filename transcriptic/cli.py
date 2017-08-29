@@ -12,6 +12,7 @@ import locale
 import os
 import time
 import zipfile
+import requests
 
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
@@ -135,15 +136,31 @@ def cli(ctx, api_root, email, token, organization, config):
     note that the order of preference is: --flag, environment then config file.
     
     Example: `transcriptic --organization "my_org" projects` >> 
-    `export USER_ORGANIZATION="my_org"` >> `"organization_id": "my_org" in ~/.transcriptic
+    `export USER_ORGANIZATION="my_org"` >> `"organization_id": "my_org" in
+     ~/.transcriptic
     """
-    if ctx.invoked_subcommand in ['login', 'compile', 'preview', 'summarize', 'init']:
-        # For login/local commands, initialize empty connection
-        ctx.obj = ContextObject()
+    # Initialize ContextObject to be used for storing api object
+    ctx.obj = ContextObject()
+
+    if ctx.invoked_subcommand in ['compile', 'preview', 'summarize', 'init']:
+        # For local commands, initialize empty connection
         ctx.obj.api = Connection()
+    elif ctx.invoked_subcommand == 'login':
+        # Load analytics option from existing dotfile if present, else prompt
+        try:
+            api = Connection.from_file(config)
+            api.api_root = (
+                api_root or os.environ.get('BASE_URL', None) or api.api_root
+            )
+            ctx.obj.api = api
+        except (OSError, IOError):
+            ctx.obj.api = Connection()
+        # Echo a warning if other options are defined for login
+        if organization or email or token:
+            click.echo("Only the `--api-root` option is applicable for the "
+                       "`login` command. All other options are ignored.")
     else:
         try:
-            ctx.obj = ContextObject()
             api = Connection.from_file(config)
             api.api_root = (
                 api_root or os.environ.get('BASE_URL', None) or api.api_root
@@ -160,15 +177,18 @@ def cli(ctx, api_root, email, token, organization, config):
             )
             ctx.obj.api = api
         except (OSError, IOError):
-            click.echo("Welcome to TxPy! It seems like your `.transcriptic` config file is missing or out of date")
-            analytics = click.confirm("Send TxPy CLI usage information to improve the CLI user "
+            click.echo("Welcome to TxPy! It seems like your `.transcriptic` "
+                       "config file is missing or out of date")
+            analytics = click.confirm("Send TxPy CLI usage information to "
+                                      "improve the CLI user "
                                       "experience?", default=True)
             ctx.obj.api = Connection()  # Initialize empty connection
             ctx.invoke(login, api_root=api_root, analytics=analytics)
     if ctx.obj.api.analytics:
         try:
-            ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand, event_category="cli")
-        except:
+            ctx.obj.api._post_analytics(event_action=ctx.invoked_subcommand,
+                                        event_category="cli")
+        except requests.exceptions.RequestException:
             pass
 
 
@@ -1324,30 +1344,41 @@ def org_prompt(org_list):
 @click.pass_context
 def login(ctx, api_root=None, analytics=True):
     """Authenticate to your Transcriptic account."""
-    # For logging in, we should default to the transcriptic domain
     if api_root is None:
-        api_root = "https://secure.transcriptic.com"
+        # Always default to the pre-defined api-root if possible, else use
+        # the secure.transcriptic.com domain
+        try:
+            api_root = ctx.obj.api.api_root
+        except ValueError:
+            api_root = "https://secure.transcriptic.com"
+
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-    r = ctx.obj.api.post(
-        routes.login(api_root=api_root),
-        data=json.dumps({
-            'user': {
-                'email': email,
-                'password': password,
+    try:
+        r = ctx.obj.api.post(
+            routes.login(api_root=api_root),
+            data=json.dumps({
+                'user': {
+                    'email': email,
+                    'password': password,
+                },
+            }),
+            headers={
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
-        }),
-        headers={
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        status_response={
-            '200': lambda resp: resp,
-            '401': lambda resp: resp,
-            'default': lambda resp: resp
-        },
-        custom_request=False
-    )
+            status_response={
+                '200': lambda resp: resp,
+                '401': lambda resp: resp,
+                'default': lambda resp: resp
+            },
+            custom_request=False
+        )
+    except requests.exceptions.RequestException:
+        click.echo("Error logging into specified host: {}. Please check your "
+                   "internet connection and host name".format(api_root))
+        sys.exit(1)
+
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
