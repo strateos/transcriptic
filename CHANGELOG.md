@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.2
+Updated
+- `transcriptic select_org` now has an optional `organization` argument. When specified, i.e. `transcriptic select_org my_org`, it'll skip the prompt and set the organization value to `my_org` directly.
+
 ## v5.3.1
 Updated
 - `transcriptic login` now properly respects the `--api-root` option and persists the result into the dotfile
