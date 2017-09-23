@@ -1287,11 +1287,20 @@ def _get_quick_launch(ctx, protocol, project):
     return quick_launch
 
 @cli.command()
+@click.argument(
+    'organization',
+    metavar='ORGANIZATION_NAME',
+    type=str,
+    required=False
+)
 @click.pass_context
-def select_org(ctx):
-    """Allows you to switch organizations"""
+def select_org(ctx, organization=None):
+    """Allows you to switch organizations. If the organization argument
+    is provided, this will directly select the specified organization.
+    """
     org_list = [{"name": org['name'], "subdomain": org['subdomain']} for org in ctx.obj.api.organizations()]
-    organization = org_prompt(org_list)
+    if organization is None:
+        organization = org_prompt(org_list)
 
     r = ctx.obj.api.get_organization(org_id=organization)
     if r.status_code != 200:
