@@ -273,10 +273,10 @@ class Connection(object):
         err_default = "Unable to preview protocol"
         return self.post(
             route,
-            json={"protocol": json.dumps(protocol)},
+            json={"protocol": protocol},
             allow_redirects=False,
             status_response={
-                '302': lambda resp: resp.headers['Location'],
+                '200': lambda resp: resp.json()["key"],
                 'default': lambda resp: RuntimeError(err_default)
             }
         )
