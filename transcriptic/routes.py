@@ -149,6 +149,10 @@ def preview_protocol(api_root):
     return "{api_root}/runs/preview".format(**locals())
 
 
+def preview_protocol_embed(api_root, preview_id):
+    return "{api_root}/runs/preview/{preview_id}.embed".format(**locals())
+
+
 def view_data(api_root, data_id):
     return "{api_root}/datasets/{data_id}.embed".format(**locals())
 

@@ -935,13 +935,12 @@ def preview(ctx, protocol_name, view, dye_test):
 @cli.command()
 @click.argument('file', default='-')
 @click.pass_context
-@click.option('--tree', '-t', is_flag=True,
-              help='Prints a job tree with instructions as leaf nodes')
-@click.option('--lookup', '-l', is_flag=True,
-              help='Queries Transcriptic to convert resourceID to string')
+@click.option('--html',   '-x', is_flag=True, help='Generates an html view of the autoprotocol')
+@click.option('--tree',   '-t', is_flag=True, help='Prints a job tree with instructions as leaf nodes')
+@click.option('--lookup', '-l', is_flag=True, help='Queries Transcriptic to convert resourceID to string')
 # time allowance is on order of seconds
 @click.option('--runtime', type=click.INT, default=5)
-def summarize(ctx, file, tree, lookup, runtime):
+def summarize(ctx, file, html, tree, lookup, runtime):
     """Summarize Autoprotocol as a list of plain English steps, as well as a
     visualized Job Tree contingent upon desired runtime allowance (in seconds).
     A Job Tree refers to a structure of protocol based on container dependency,
@@ -955,27 +954,35 @@ def summarize(ctx, file, tree, lookup, runtime):
     python my_script.py | transcriptic summarize --tree
 
     python my_script.py | transcriptic summarize --tree --runtime 20
+
+    python my_script.py | transcriptic summarize --html
     """
     with click.open_file(file, 'r') as f:
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            click.echo(
-                "The autoprotocol you're trying to summarize is invalid.")
+            click.echo("The autoprotocol you're trying to summarize is invalid.")
             return
 
-    if lookup:
+    # context to pass into the parser given that the default ctx is not set for this method.
+    api_context = None
+
+    if lookup or html:
         try:
-            config = '~/.transcriptic'
-            ctx.obj = ContextObject()
+            config      = '~/.transcriptic'
+            ctx.obj     = ContextObject()
             ctx.obj.api = Connection.from_file(config)
-            parser = AutoprotocolParser(protocol, ctx=ctx)
+            api_context = ctx
         except:
             click.echo("Connection with Transcriptic failed. "
                        "Summarizing without lookup.", err=True)
-            parser = AutoprotocolParser(protocol)
-    else:
-        parser = AutoprotocolParser(protocol)
+
+    if html:
+        url = ProtocolPreview(protocol, ctx.obj.api).preview_url
+        click.echo("View your protocol here {}".format(url))
+        return
+
+    parser = AutoprotocolParser(protocol, ctx=api_context)
 
     if tree:
         import multiprocessing
@@ -1609,8 +1616,9 @@ class ProtocolPreview(object):
     An object for previewing protocols
     """
     def __init__(self, protocol, connection):
-        self.protocol = protocol
-        self.preview_url = connection.preview_protocol(protocol)
+        self.protocol    = protocol
+        preview_id       = connection.preview_protocol(protocol)
+        self.preview_url = connection.get_route('preview_protocol_embed', preview_id=preview_id)
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
