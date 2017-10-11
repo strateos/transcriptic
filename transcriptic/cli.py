@@ -13,6 +13,7 @@ import os
 import time
 import zipfile
 import requests
+from jinja2 import Environment, PackageLoader
 
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
@@ -523,6 +524,45 @@ def delete_package(ctx, name, force):
                 click.echo("There was a problem deleting this package.")
         except Exception as err:
             click.echo("\n" + str(err))
+
+
+@cli.command()
+@click.pass_context
+@click.argument('name')
+def generate_protocol(ctx, name):
+    """Generate a python protocol scaffold"""
+    # TODO we should update click to be like rails
+    #   transcriptic generate protocol FOO
+    #   transcriptic generate other_type FOO
+    env = Environment(loader=PackageLoader('transcriptic', 'templates'))
+    template_infos = [
+        {"template_name": 'manifest.json.jinja',    "file_name": "manifest.json"},
+        {"template_name": 'protocol.py.jinja',      "file_name": "{}.py".format(name)},
+        {"template_name": 'requirements.txt.jinja', "file_name": "requirements.txt"}
+    ]
+
+    # make directory for protocol
+    dirname = name
+    os.makedirs(dirname, exist_ok=True)
+
+    # write __init__ package file
+    open('{}/{}'.format(dirname, '__init__.py'), 'w').write('')
+
+    for template_info in template_infos:
+        template_name = template_info["template_name"]
+        file_name     = template_info["file_name"]
+        template      = env.get_template(template_name)
+        file          = open('{}/{}'.format(dirname, file_name), 'w')
+        output        = template.render(name=name)
+        file.write(output)
+
+    click.echo("Successfully generated protocol '{}'!".format(name))
+    click.echo("Testing the protocol is as easy as:")
+    click.echo("")
+    click.echo("\tcd {}".format(name))
+    click.echo("\tpip install -r requirements.txt")
+    click.echo("\ttranscriptic preview {}".format(name))
+    click.echo("\ttranscriptic launch --local {} -p SOME_PROJECT_ID".format(name))
 
 
 @cli.command()

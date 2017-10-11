@@ -1,0 +1,41 @@
+################################################################################################
+# This example protocol will create a new destination container and
+# transfer `volume` amount of `source_aliquot` into each well.
+#
+# Test locally with some like the following, though will need to supply a valid project id.
+# You must be in the same directory as the manifest and the protocol for the command to succeed.
+#
+#   transcriptic launch --local {{ name }} -p SOME_PROJECT_ID
+#
+# For more information about autoprotocol-python check out the documentation.
+#
+#   http://autoprotocol-python.readthedocs.io/en/latest/
+#
+# For more information about editing the manifest.json check out the documentation.
+#
+#   https://developers.transcriptic.com/v1.0/docs/input-types
+################################################################################################
+
+
+def {{ name }}(protocol, params):
+    # These arguments and their types are specified in the manifest.json
+    #   source_aliquot is of type Well
+    #   volume is of type string and will be in the format similar to '100:microliter'
+    #   dest_ctype is of type string and will be one of the options specified in the manifest.
+    source_well = params["source_aliquot"]
+    volume      = params["volume"]
+    dest_ctype  = params["dest_ctype"]
+
+    # Create a ref for a the destination container
+    dest_container = protocol.ref("destination_container",
+                                  cont_type=dest_ctype,
+                                  storage="ambient")
+
+    for dest_well in dest_container.wells_from(0, 12):
+        # add an instruction to the protocol
+        protocol.transfer(source_well, dest_well, volume)
+
+
+if __name__ == '__main__':
+    from autoprotocol.harness import run
+    run({{ name }}, "{{ name }}")
