@@ -1,0 +1,64 @@
+{
+  "license": "MIT",
+  "format": "python",
+  "protocols": [
+    {
+      "name": "{{ name }}",
+      "display_name": "{{ name }} example protocol",
+      "categories": [
+        "Example Protocol"
+      ],
+      "description": "This is an example description for a protocol.",
+      "version": "0.0.1",
+      "command_string": "python -m {{ name }}",
+      "inputs": {
+        "source_aliquot": {
+          "type": "aliquot",
+          "label": "Source aliquot",
+          "description": "Source Aliquot to transfer volume from"
+        },
+        "volume": {
+          "type": "volume",
+          "label": "Transfer volume per well",
+          "default": "20:microliter",
+          "description": "Volume to transfer from source well to every well of the destination container."
+        },
+        "dest_ctype": {
+          "label": "Destination Container type",
+          "type": "choice",
+          "default": "96-pcr",
+          "options": [
+            { "value": "96-pcr" },
+            { "value": "96-flat" },
+            { "value": "96-deep" },
+            { "value": "384-pcr" },
+            { "value": "384-flat" },
+            { "value": "384-echo" }
+          ]
+        }
+      },
+      "preview": {
+        "refs": {
+          "fake_source_container": {
+            "label": "Fake Source Container",
+            "type": "micro-2.0",
+            "store": "cold_20",
+            "cover": null,
+            "aliquots": {
+              "0": {
+                "name": "Fake Source Aliquot",
+                "volume": "1800.0:microliter",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "parameters": {
+          "source_aliquot": "fake_source_container/0",
+          "volume": "20:microliter",
+          "dest_ctype": "96-pcr"
+        }
+      }
+    }
+  ]
+}

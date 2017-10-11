@@ -15,6 +15,7 @@ setup(
     version=__version__,
     packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     setup_requires=['pytest-runner'],
+    include_package_data=True,
     tests_require=[
         'pytest>=2.9.0',
         'tox>=2.3.1',
@@ -25,7 +26,8 @@ setup(
         'Click>=5.1',
         'requests>=2.0',
         'future>=0.15',
-        'python-magic>=0.4.13'
+        'python-magic>=0.4.13',
+        'Jinja2==2.8',
     ],
     extras_require={
         'jupyter': [
@@ -60,5 +62,5 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5'
-    ]
+    ],
 )
