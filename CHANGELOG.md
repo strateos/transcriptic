@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.3
+Updated
+- `transcriptic summarize` now has an optional `--html` argument. When specified it will return a url to view the autoprotocol.
+
 ## v5.3.2
 Updated
 - `transcriptic select_org` now has an optional `organization` argument. When specified, i.e. `transcriptic select_org my_org`, it'll skip the prompt and set the organization value to `my_org` directly.
