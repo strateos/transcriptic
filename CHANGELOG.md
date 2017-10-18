@@ -3,7 +3,8 @@
 ## Unreleased
 
 ## v6.0.0
-Bumping version after adding breaking changes
+Breaking
+- Remove `transcriptic init`.  Use `transcriptic generate_protocol <NAME>` instead.
 
 ## v5.3.4
 Updated

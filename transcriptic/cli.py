@@ -19,7 +19,6 @@ from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.util import iter_json, flatmap, ascii_encode
 from transcriptic import routes
-from os.path import isfile
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -143,7 +142,7 @@ def cli(ctx, api_root, email, token, organization, config):
     # Initialize ContextObject to be used for storing api object
     ctx.obj = ContextObject()
 
-    if ctx.invoked_subcommand in ['compile', 'preview', 'summarize', 'init']:
+    if ctx.invoked_subcommand in ['compile', 'preview', 'summarize', 'generate_protocol']:
         # For local commands, initialize empty connection
         ctx.obj.api = Connection()
     elif ctx.invoked_subcommand == 'login':
@@ -861,38 +860,6 @@ def is_valid_payment_method(ctx, id):
     """Determines if payment is valid"""
     methods = ctx.obj.api.payment_methods()
     return any([id == method['id'] and method['is_valid'] for method in methods])
-
-
-@cli.command(cls=FeatureCommand, feature='can_upload_packages')
-@click.argument('path', default='.')
-def init(path):
-    """Initialize a directory with a manifest.json file."""
-    manifest_data = OrderedDict(
-        format="python",
-        license="MIT",
-        protocols=[{
-            "name": "SampleProtocol",
-            "version": "0.0.1",
-            "display_name": "Sample Protocol",
-            "description": "This is a protocol.",
-            "command_string": "python sample_protocol.py",
-            "inputs": {},
-            "preview": {"refs": {}, "parameters": {}},
-        }]
-    )
-    try:
-        os.makedirs(path)
-    except OSError:
-        click.echo("Specified directory already exists.")
-    if isfile('%s/manifest.json' % path):
-        click.confirm("This directory already contains a manifest.json file, "
-                      "would you like to overwrite it with an empty one? ",
-                      default=False,
-                      abort=True)
-    with open('%s/manifest.json' % path, 'w+') as f:
-        click.echo('Creating empty manifest.json...')
-        f.write(json.dumps(dict(manifest_data), indent=2))
-        click.echo("manifest.json created")
 
 
 @cli.command(cls=FeatureCommand, feature='can_submit_autoprotocol')
