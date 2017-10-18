@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v5.3.4
+Updated
+- Added `transcriptic generate_protocol <NAME>` that generates a scaffold of a python protocol.
+
+
 ## v5.3.3
 Updated
 - `transcriptic summarize` now has an optional `--html` argument. When specified it will return a url to view the autoprotocol.
