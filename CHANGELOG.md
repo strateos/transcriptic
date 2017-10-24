@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.5
+Fixed
+- Fixed backwards compatibility bug with using `makedirs` with Python 2
+
 ## v5.3.4
 Updated
 - Added `transcriptic generate_protocol <NAME>` that generates a scaffold of a python protocol.

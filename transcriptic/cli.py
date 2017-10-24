@@ -17,7 +17,7 @@ from jinja2 import Environment, PackageLoader
 
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.util import iter_json, flatmap, ascii_encode
+from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
 from transcriptic import routes
 from os.path import isfile
 from collections import OrderedDict
@@ -89,7 +89,7 @@ class HiddenOption(click.Option):
         self.__hidden__ = __hidden__
 
     def get_help_record(self, ctx):
-        """This hijacks the help record so that a hidden option does not show 
+        """This hijacks the help record so that a hidden option does not show
         up in the help text
         """
         if self.__hidden__:
@@ -132,11 +132,11 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def cli(ctx, api_root, email, token, organization, config):
     """A command line tool for working with Transcriptic.
-    
+
     Note: This is the main entry point of the CLI. If specifying credentials,
     note that the order of preference is: --flag, environment then config file.
-    
-    Example: `transcriptic --organization "my_org" projects` >> 
+
+    Example: `transcriptic --organization "my_org" projects` >>
     `export USER_ORGANIZATION="my_org"` >> `"organization_id": "my_org" in
      ~/.transcriptic
     """
@@ -543,7 +543,7 @@ def generate_protocol(ctx, name):
 
     # make directory for protocol
     dirname = name
-    os.makedirs(dirname, exist_ok=True)
+    makedirs(dirname, exist_ok=True)
 
     # write __init__ package file
     open('{}/{}'.format(dirname, '__init__.py'), 'w').write('')
@@ -1233,12 +1233,12 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params,
         else:
             """
             In the case of a local `launch`, we need to generate `inputs` from
-            `raw_inputs`, since the `run_protocol` function takes in JSON which 
+            `raw_inputs`, since the `run_protocol` function takes in JSON which
             is `inputs`-formatted.
             `inputs` is basically an extended version of `raw_inputs`, where
             we populate properties such as aliquot information for specified
             containerIds.
-            In order to generate these `inputs`, we can create a new quick 
+            In order to generate these `inputs`, we can create a new quick
             launch
             """
             try:
