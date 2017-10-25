@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.6
+Fixed
+- Fixed encoding bug with Python 3
+
 ## v5.3.5
 Fixed
 - Fixed backwards compatibility bug with using `makedirs` with Python 2

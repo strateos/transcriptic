@@ -147,14 +147,13 @@ def by_well(datasets, well):
 def makedirs(name, mode=None, exist_ok=False):
     """Forward ports `exist_ok` flag for Py2 makedirs. Retains mode defaults"""
     from os import makedirs
+    mode = mode if mode is not None else 0o777
     if sys.version_info[0] < 3:
         # Note that Py2 makedirs still errors on all errno.EEXIST, unlike Py3
-        mode = mode if mode is not None else 0777
         try:
             makedirs(name, mode)
         except OSError:
             if not exist_ok:
                 raise
     else:
-        mode = mode if mode is not None else 0o777
         makedirs(name, mode, exist_ok)
