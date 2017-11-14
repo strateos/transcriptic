@@ -89,10 +89,6 @@ def resolve_quick_launch_inputs(api_root, org_id, project_id, quick_launch_id):
            "{quick_launch_id}/resolve_inputs".format(**locals())
 
 
-def aws_upload():
-    return "https://transcriptic-uploads.s3.amazonaws.com"
-
-
 def login(api_root):
     return "{api_root}/users/sign_in".format(**locals())
 
@@ -137,8 +133,8 @@ def datasets(api_root, org_id, project_id, run_id):
     return "{api_root}/{org_id}/{project_id}/runs/{run_id}/data".format(**locals())
 
 
-def upload_uri(api_root):
-    return "{api_root}/upload/make_upload_uri".format(**locals())
+def upload(api_root):
+    return "{api_root}/api/uploads".format(**locals())
 
 
 def upload_datasets(api_root):
