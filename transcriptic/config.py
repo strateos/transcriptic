@@ -716,6 +716,10 @@ class Connection(object):
         key: str
             s3 key
         """
+        # TODO:
+        # Currently, we are passing `0` for file_size as it doesn't really
+        # matter for non multipart uploads, though it would be better to
+        # supply the correct value.
         data = {
             "attributes": {
                 "file_name": name,
