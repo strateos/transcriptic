@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.7
+Fixed
+- Fixed dataset and release uploading.
+
 ## v5.3.6
 Fixed
 - Fixed encoding bug with Python 3

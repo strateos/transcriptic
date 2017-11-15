@@ -303,14 +303,14 @@ def upload_release(ctx, archive, package):
                            fill_char="|", empty_char="-") as bar:
         bar.update(40)
         file = open(os.path.basename(archive), 'rb')
-        url = ctx.obj.api.upload_to_uri(
+        upload_id = ctx.obj.api.upload_to_uri(
             file, 'application/zip, application/octet-stream', archive, archive
         )
         bar.update(20)
         try:
             up = ctx.obj.api.post_release(
                 data=json.dumps({"release":
-                                 {"binary_attachment_url": url}}
+                                 {"upload_id": upload_id}}
                                 ),
                 package_id=package_id
             )

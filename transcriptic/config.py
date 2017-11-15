@@ -12,6 +12,7 @@ import platform
 import inspect
 import warnings
 from io import StringIO, BytesIO
+from time import time
 
 import sys
 if sys.version_info[0] < 3:
@@ -675,12 +676,12 @@ class Connection(object):
         response: dict
             JSON-formatted response
         """
-        s3_key = self.upload_to_uri(file_handle, content_type, title, name)
+        upload_id = self.upload_to_uri(file_handle, content_type, title, name)
         upload_datasets_route = self.get_route("upload_datasets")
         upload_resp = self.post(
             upload_datasets_route,
             json={
-                "s3_key": s3_key,
+                "upload_id": upload_id,
                 "file_name": name,
                 "title": title,
                 "run_id": run_id,
@@ -688,8 +689,8 @@ class Connection(object):
                 "analysis_tool_version": analysis_tool_version
             },
             status_response={
-                '404': lambda resp: "[404] Please double-check your parameters "
-                                    "and ensure they are valid."
+                '404': lambda resp: "[404] Please double-check your parameters"
+                                    " and ensure they are valid."
             }
         )
 
@@ -697,8 +698,8 @@ class Connection(object):
 
     def upload_to_uri(self, file_handle, content_type, title, name):
         """
-        Helper for uploading files via the `upload_uri` route
-        
+        Helper for uploading files via the `upload` route
+
         Parameters
         ----------
         file_handle: file_handle
@@ -715,11 +716,25 @@ class Connection(object):
         key: str
             s3 key
         """
-        uri_route = self.get_route('upload_uri')
-        uri_resp = self.post(uri_route, data=json.dumps({"name": title}))
+        # TODO:
+        # Currently, we are passing `0` for file_size as it doesn't really
+        # matter for non multipart uploads, though it would be better to
+        # supply the correct value.
+        data = {
+            "attributes": {
+                "file_name": name,
+                "file_size": 0,
+                "last_modified": int(time()),
+                "is_multipart": False
+            }
+        }
+
+        uri_route = self.get_route('upload')
+        uri_resp = self.post(uri_route, data=json.dumps({"data": data}))
+
         try:
-            key = uri_resp['key']
-            uri = uri_resp['uri']
+            upload_id = uri_resp['data']['id']
+            upload_uri = uri_resp['data']['attributes']['upload_url']
         except KeyError as e:
             raise RuntimeError("Unexpected payload returned for upload_dataset")
 
@@ -736,13 +751,13 @@ class Connection(object):
         }
         headers = {k: v for k, v in headers.items() if v}
         self.put(
-            uri,
+            upload_uri,
             data=file_handle,
             custom_request=True,
             headers=headers,
             status_response={'200': lambda resp: resp}
         )
-        return key
+        return upload_id
 
     def get_zip(self, data_id, file_path=None):
         """
