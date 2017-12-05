@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.8
+Updated
+- Jinja2 dependency made less strict
+
 ## v5.3.7
 Fixed
 - Fixed dataset and release uploading.

@@ -27,7 +27,7 @@ setup(
         'requests>=2.0',
         'future>=0.15',
         'python-magic>=0.4.13',
-        'Jinja2==2.8',
+        'Jinja2>=2.7,<3',
     ],
     extras_require={
         'jupyter': [
