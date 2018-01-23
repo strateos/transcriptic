@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.10
+Updated
+- Made `transcriptic analyze` command visible to all
+
 ## v5.3.9
 Updated
 - Analyze handles missing pricing information.
