@@ -895,7 +895,7 @@ def init(path):
         click.echo("manifest.json created")
 
 
-@cli.command(cls=FeatureCommand, feature='can_submit_autoprotocol')
+@cli.command()
 @click.argument('file', default='-')
 @click.option('--test', help='Analyze this run in test mode', is_flag=True)
 @click.pass_context
