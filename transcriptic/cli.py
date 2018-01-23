@@ -939,15 +939,23 @@ def format_analysis(response):
 
 def price(response):
     """Prints out price based on response"""
+
+    # quote won't appear in response if user is missing permissions.
+    if "quote" not in response or "items" not in response["quote"]:
+        return
+
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     separator_len = 24
+
     for quote_item in response['quote']['items']:
         quote_str = "  %s: %s" % (
             quote_item["title"],
             locale.currency(float(quote_item["cost"]), grouping=True))
         click.echo(quote_str)
         separator_len = max(separator_len, len(quote_str))
+
     click.echo('-' * separator_len)
+
     click.echo("  Total Cost: %s" %
                locale.currency(float(response['total_cost']),
                                grouping=True))

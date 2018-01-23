@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.3.9
+Updated
+- Analyze handles missing pricing information.
+
 ## v5.3.8
 Updated
 - Jinja2 dependency made less strict
