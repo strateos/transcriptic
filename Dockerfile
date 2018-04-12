@@ -33,7 +33,7 @@ RUN mkdir /python_eggs
 ENV PYTHON_EGG_CACHE /python_eggs
 
 # Upgrade pip and virtualenv to enable wheels
-RUN pip install -U pip virtualenv
+RUN pip install -U pip virtualenv setuptools
 RUN pip3 install -U pip
 
 # Install TxPy for Python2
