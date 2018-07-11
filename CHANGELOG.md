@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- Ability to filter by package id when using transcriptic launch
 
 ## v5.3.10
 Updated
