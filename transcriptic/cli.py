@@ -1146,7 +1146,7 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params,
             )
         )
         if len(matched_protocols) == 0:
-            print_stderr("Protocol {}{} was not found.".format(protocol, " in package {}".format(pkg) if pkg else ""))
+            print_stderr("Protocol {} in {} was not found.".format(protocol, "package {}".format(pkg) if pkg else "unspecified package"))
             return
         elif len(matched_protocols) > 1:
             print_stderr("More than one match found. Using the first match.")
