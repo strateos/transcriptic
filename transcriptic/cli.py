@@ -1140,10 +1140,18 @@ def launch(ctx, protocol, project, save_input, local, accept_quote, params,
         print_stderr("Searching for {}...".format(protocol))
         protocol_list = ctx.obj.api.get_protocols()
 
-        matched_protocols = [protocol_obj for protocol_obj in protocol_list if protocol_obj['name'] == protocol and (pkg is None or protocol_obj['package_id'] == pkg)]
+        matched_protocols = [p for p in protocol_list if (
+            p['name'] == protocol and (pkg is None or p['package_id'] == pkg)
+        )]
 
         if len(matched_protocols) == 0:
-            print_stderr("Protocol {} in {} was not found.".format(protocol, "package {}".format(pkg) if pkg else "unspecified package"))
+            print_stderr(
+                "Protocol {} in {} was not found."
+                "".format(
+                    protocol,
+                    "package {}".format(pkg) if pkg else "unspecified package"
+                )
+            )
             return
         elif len(matched_protocols) > 1:
             print_stderr("More than one match found. Using the first match.")
