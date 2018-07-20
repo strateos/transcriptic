@@ -18,8 +18,8 @@ TEMP_DICT = {"cold_20": "-20 degrees celsius",
 
 class AutoprotocolParser(object):
 
-    def __init__(self, protocol_obj, ctx=None, parsed_output=None):
-        self.ctx = ctx
+    def __init__(self, protocol_obj, api=None, parsed_output=None):
+        self.api = api 
         self.resource = dict()
         self.parse(protocol_obj)
 
@@ -427,8 +427,8 @@ class AutoprotocolParser(object):
             resource_id = opts["resource_id"]
             if resource_id in self.resource:
                 reagent = self.resource[resource_id]
-            elif self.ctx:
-                resource = self.ctx.obj.api.resources(resource_id)
+            elif self.api:
+                resource = self.api.resources(resource_id)
                 if resource["results"]:
                     reagent = resource["results"][0]["name"].lower()
                     self.resource[resource_id] = reagent
@@ -512,8 +512,8 @@ class AutoprotocolParser(object):
         resource_id = opts["resource_id"]
         if resource_id in self.resource:
             reagent = self.resource[resource_id]
-        elif self.ctx:
-            resource = self.ctx.obj.api.resources(resource_id)
+        elif self.api:
+            resource = self.api.resources(resource_id)
             if resource["results"]:
                 reagent = resource["results"][0]["name"].lower()
                 self.resource[resource_id] = reagent

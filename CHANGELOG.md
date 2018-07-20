@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v5.4.1
+Updated
+- Separated out the CLI logic into programatically callable functions.
+
 ## v5.4.0
 Added
 - Ability to filter by package id when using transcriptic launch
