@@ -1,6 +1,8 @@
 ## `transcriptic` Changelog
 
 ## Unreleased
+Added
+- `attachments` attribute on `Dataset`
 
 ## v5.4.1
 Updated

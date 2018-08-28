@@ -384,6 +384,8 @@ class Dataset(_BaseObject):
         Dataset name
     data : DataFrame
         DataFrame of well-indexed data values. Note that associated metadata is found in attributes dictionary
+    attachments : dict(str, bytes)
+        names and data of all attachments for the dataset
     container: Container
         Container object that was used for this dataset
     operation: str
@@ -435,6 +437,13 @@ class Dataset(_BaseObject):
         self.data_type = self.attributes["data_type"]
         self._raw_data = None
         self._data = pd.DataFrame()
+        self._attachments = None
+
+    @property
+    def attachments(self):
+        if not self._attachments:
+            self._attachments = self.connection.attachments(data_id=self.id)
+        return self._attachments
 
     @property
     def raw_data(self):

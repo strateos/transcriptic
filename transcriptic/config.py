@@ -570,6 +570,51 @@ class Connection(object):
         route = self.get_route('dataset', data_id=data_id, key=key)
         return self.get(route)
 
+    def _get_uploads_from_key(self, key):
+        """Fetches uploads for a data upload key
+
+        Parameters
+        ----------
+        key : str
+            data upload key
+
+        Returns
+        -------
+        requests.Response
+            response for the
+        """
+        return self.get(
+            route=self.get_route(method="get_uploads", key=key),
+            status_response={'200': lambda resp: resp},
+            stream=True
+        )
+
+    def attachments(self, data_id):
+        """Fetches all attachments for a given dataset id
+
+        Parameters
+        ----------
+        data_id : str
+            dataset id
+
+        Returns
+        -------
+        dict(str, bytes)
+            a dict of attachment names and contents
+
+        """
+        dataset_route = self.get_route("dataset_short", data_id=data_id)
+        dataset_attachments = self.get(dataset_route).get("attachments")
+        attachment_names = [
+            os.path.basename(_.get("name", ""))
+            for _ in dataset_attachments
+        ]
+        attachment_contents = [
+            self._get_uploads_from_key(_.get("key")).content
+            for _ in dataset_attachments
+        ]
+        return dict(zip(attachment_names, attachment_contents))
+
     def datasets(self, project_id=None, run_id=None, timeout=30.0):
         """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
