@@ -581,7 +581,6 @@ class Connection(object):
         Returns
         -------
         requests.Response
-            response for the
         """
         return self.get(
             route=self.get_route(method="get_uploads", key=key),
