@@ -663,7 +663,7 @@ class Connection(object):
         try:
             file_path = os.path.expanduser(file_path)
             file_handle = open(file_path, 'rb')
-            name = file_handle.name
+            name = os.path.basename(file_handle.name)
         except (AttributeError, FileNotFoundError) as e:
             raise ValueError("'file' has to be a valid filepath")
 
@@ -790,7 +790,7 @@ class Connection(object):
                 raise ValueError("Unable to convert read buffer to bytes")
 
         headers = {
-            "Content-Disposition": "attachment; filename='{}'".format(name),
+            "Content-Disposition": "attachment; filename={}".format(name),
             "Content-Type": content_type
         }
         headers = {k: v for k, v in headers.items() if v}
