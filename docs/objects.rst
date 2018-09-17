@@ -1,25 +1,25 @@
-transcriptic.objects
----------------------
+transcriptic.jupyter.objects
+----------------------------
 
 Project
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Project
+.. autoclass:: transcriptic.jupyter.objects.Project
 
 
 Project.runs()
 ^^^^^^^^^^^^^^
-.. automethod:: transcriptic.objects.Project.runs
+.. automethod:: transcriptic.jupyter.objects.Project.runs
 
 Project.submit()
 ^^^^^^^^^^^^^^^^
-.. automethod:: transcriptic.objects.Project.submit
+.. automethod:: transcriptic.jupyter.objects.Project.submit
 
 
 Run
 ~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Run
+.. autoclass:: transcriptic.jupyter.objects.Run
     :members:
     :undoc-members:
     :show-inheritance:
@@ -27,7 +27,7 @@ Run
 Dataset
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Dataset
+.. autoclass:: transcriptic.jupyter.objects.Dataset
     :members:
     :undoc-members:
     :show-inheritance:
@@ -35,7 +35,7 @@ Dataset
 Instruction
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Instruction
+.. autoclass:: transcriptic.jupyter.objects.Instruction
     :members:
     :undoc-members:
     :show-inheritance:
@@ -43,7 +43,7 @@ Instruction
 Container
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: transcriptic.objects.Container
+.. autoclass:: transcriptic.jupyter.objects.Container
     :members:
     :undoc-members:
     :show-inheritance:

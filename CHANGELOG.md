@@ -7,6 +7,7 @@ Added
 
 Fixed
 - Analyzed Dataset content-disposition
+- Docstring building
 
 ## v5.4.1
 Updated

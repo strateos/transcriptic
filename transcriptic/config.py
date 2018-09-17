@@ -683,6 +683,7 @@ class Connection(object):
         Uploads a file_handle as a dataset to the specified run.
 
         .. code-block:: python
+
             # Uploading a data_frame via file_handle, using Py3
             from io import StringIO
 
