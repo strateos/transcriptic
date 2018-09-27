@@ -5,9 +5,9 @@
 .. toctree::
     :hidden:
 
-    objects
-    analysis
-    config
+    Objects <objects>
+    Analysis <analysis>
+    Config <config>
 
 .. include:: README.rst
 
