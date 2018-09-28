@@ -1,12 +1,15 @@
 ## `transcriptic` Changelog
 
+## v5.5.1
+Fixed
+- Docstring building
+
 ## v5.5.0
 Added
 - `attachments` attribute on `Dataset`
 
 Fixed
 - Analyzed Dataset content-disposition
-- Docstring building
 
 ## v5.4.1
 Updated
