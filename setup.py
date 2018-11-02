@@ -17,10 +17,12 @@ setup(
     setup_requires=['pytest-runner'],
     include_package_data=True,
     tests_require=[
-        'pytest>=2.9.0',
-        'tox>=2.3.1',
+        'coverage==4.*',
+        'future>=0.15',
         'jsonschema>=2.5',
-        'future>=0.15'
+        'pylint==1.*',
+        'pytest==3.*',
+        'tox==3.*'
     ],
     install_requires=[
         'Click>=5.1',
