@@ -88,29 +88,42 @@ class _PlateRead(object):
             if len(group_wells) > len(data_dict):
                 raise ValueError(
                     "Sum of group lengths exceeds total no. of wells.")
-            try:
-                self.df = pandas.DataFrame(
-                    [data_dict[humanize(well, well_count,
-                                        col_count).lower()][0]
-                     for well in group_wells], columns=[group_labels[0]])
-            except:
-                raise ValueError("Well %s is not in the dataset" % well)
+            wells = [
+                humanize(_, well_count, col_count).lower()
+                for _ in group_wells
+            ]
+            if not all(_ in data_dict for _ in wells):
+                raise ValueError(
+                    "Not all wells {} are in dataset {}."
+                    "".format(wells, data_dict)
+                )
+
+            self.df = pandas.DataFrame(
+                [data_dict[_][0] for _ in wells],
+                columns=[group_labels[0]]
+            )
         elif all(isinstance(i, list) for i in group_wells):
             if group_wells and (sum([len(i) for i in group_wells]) >
                                 len(data_dict)):
                 raise ValueError(
                     "Sum of group lengths exceeds total no. of wells.")
             for (idx, well_list) in enumerate(group_wells):
-                try:
-                    col = pandas.DataFrame(
-                        [data_dict[humanize(well, well_count,
-                                            col_count).lower()][0]
-                         for well in well_list], columns=[group_labels[idx]])
-                    # if group_well members are of different lengths,
-                    # concat automatically pads resultant DataFrame with NaN
-                    self.df = pandas.concat([self.df, col], axis=1)
-                except:
-                    raise ValueError("Well %s is not in the dataset" % well)
+                wells = [
+                    humanize(_, well_count, col_count).lower()
+                    for _ in well_list
+                ]
+                if not all(_ in data_dict for _ in wells):
+                    raise ValueError(
+                        "Not all wells {} are in dataset {}."
+                        "".format(wells, data_dict)
+                    )
+                col = pandas.DataFrame(
+                    [data_dict[_][0] for _ in wells],
+                    columns=[group_labels[0]]
+                )
+                # if group_well members are of different lengths,
+                # concat automatically pads resultant DataFrame with NaN
+                self.df = pandas.concat([self.df, col], axis=1)
         else:
             raise ValueError(
                 "Format Error: Group Well List should be a list of list of \
@@ -340,6 +353,7 @@ def compare_standards(pr_obj, std_pr_obj):
     sampleCV = pandas.DataFrame(pr_obj.cv, columns=["Sample (%) CV"])
 
     try:
+        # pylint: disable=import-error
         from IPython.display import HTML, display
         if pr_obj.name:
             display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
