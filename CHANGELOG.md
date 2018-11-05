@@ -3,10 +3,10 @@ Updated
 - run tox tests against python 3.5 instead of 3.4
 
 Added
-- linting and doc building as part of testing
+- lint and build docs with tox
 
 Fixed
-- doc and lint failures
+- doc and lint errors
 
 ## v5.5.1
 Fixed
