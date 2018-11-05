@@ -1,4 +1,12 @@
 ## `transcriptic` Changelog
+Updated
+- run tox tests against python 3.5 instead of 3.4
+
+Added
+- linting and doc building as part of testing
+
+Fixed
+- doc and lint failures
 
 ## v5.5.1
 Fixed
