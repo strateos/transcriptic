@@ -56,6 +56,7 @@ class ImagePlate(object):
             Returns a HTML iframe of the full-size image which is rendered nicely in IPython (if IPython is present)
         """
         try:
+            # pylint: disable=import-error
             from IPython.display import HTML
             return (HTML("""<iframe src="%s")" frameborder="0" \
                 allowtransparency="true" style="height:500px;" seamless> \

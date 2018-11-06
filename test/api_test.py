@@ -1,6 +1,6 @@
 import pytest
 from transcriptic.config import AnalysisException
-from mockAPI import mockRoute
+from .helpers.mockAPI import mockRoute
 
 class TestAnalyze:
     @pytest.fixture(autouse=True)

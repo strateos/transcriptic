@@ -15,7 +15,11 @@ def protocol_response(method, protocol_path=None, response_path=None, **kwargs):
         api = Connection.from_file("~/.transcriptic")
     protocol = json.loads(open(protocol_path).read())
 
-    response = requests.post(api.get_route(method), headers=api.headers, data=json.dumps({'protocol': protocol}))
+    response = requests.post(
+        api.get_route(method),
+        headers=api.session.headers,
+        data=json.dumps({'protocol': protocol})
+    )
     with open(response_path, 'w') as out_file:
         json.dump(response.json(), out_file, indent=2)
 

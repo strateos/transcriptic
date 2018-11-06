@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from builtins import object
-from builtins import str
+from builtins import object, str
 
 import click
 import os
@@ -13,7 +12,6 @@ from transcriptic import commands
 
 import sys
 if sys.version_info[0] < 3:
-    input = raw_input
     PermissionError = RuntimeError
     # not exactly identical, but similar enough for this case
     FileNotFoundError = IOError

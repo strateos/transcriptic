@@ -1,7 +1,9 @@
 import pytest
 
-import sys
 import os
+import sys
+from .helpers.mockAPI import MockResponse
+from .helpers.util import load_protocol
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
@@ -9,13 +11,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 @pytest.fixture()
 def test_api(monkeypatch):
     from transcriptic.config import Connection
-    from mockAPI import _req_call as mockCall
+    from .helpers.mockAPI import _req_call as mockCall
     api = Connection(email="mock@api.com", organization_id="mock", api_root="mock-api")
     monkeypatch.setattr(api, '_req_call', mockCall)
     return api
-
-
-from util import load_protocol
 
 
 class JsonDB:
@@ -37,9 +36,6 @@ class JsonDB:
 @pytest.fixture(scope="module")
 def json_db():
     return JsonDB()
-
-
-from mockAPI import MockResponse
 
 
 class ResponseDB:

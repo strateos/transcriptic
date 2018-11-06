@@ -25,7 +25,8 @@ to the Jupyter library.
 required imports are present
 """
 try:
-    from .jupyter import Run, Project, Container, Dataset, ProtocolPreview
+    from .jupyter import Run, Project, Container, Dataset
+    from .commands import ProtocolPreview
 except ImportError as e:
     pass
 
@@ -94,8 +95,8 @@ def preview(protocol):
     Protocol object: ProtocolPreview
         Transcriptic representation of a Protocol object
     """
-    from .cli import ProtocolPreview
-    return ProtocolPreview(protocol, connection=api)
+    from .commands import ProtocolPreview
+    return ProtocolPreview(protocol, api=api)
 
 
 def analyze(protocol, test_mode=False):
