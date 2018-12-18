@@ -544,12 +544,12 @@ class DataObject(object):
         Master attributes dictionary
     """
 
-    def __init__(self, id=None):
+    def __init__(self, data_object_id=None):
         attributes = {}
 
         # Fetch dataobject from server if id supplied
-        if id is not None:
-            attributes = DataObject.fetch_attributes(id)
+        if data_object_id is not None:
+            attributes = DataObject.fetch_attributes(data_object_id)
 
         self.__init_attrs(attributes)
 
@@ -561,20 +561,20 @@ class DataObject(object):
     def __init_attrs(self, attributes):
         self.attributes = attributes
 
-        self.i = attributes.get('id')
-        self.dataset_i = attributes.get('dataset_id')
-        self.content_typ = attributes.get('content_type')
-        self.forma = attributes.get('format')
-        self.nam = attributes.get('name')
-        self.siz = attributes.get('size')
-        self.statu = attributes.get('status')
-        self.ur = attributes.get('url')
+        self.id = attributes.get('id')
+        self.dataset_id = attributes.get('dataset_id')
+        self.content_type = attributes.get('content_type')
+        self.format = attributes.get('format')
+        self.name = attributes.get('name')
+        self.size = attributes.get('size')
+        self.status = attributes.get('status')
+        self.url = attributes.get('url')
         self.validation_errors = attributes.get('validation_errors')
 
     @staticmethod
-    def fetch_attributes(id):
+    def fetch_attributes(data_object_id):
         connection = _check_api('data_objects')
-        return connection.data_object(id)
+        return connection.data_object(data_object_id)
 
     @staticmethod
     def init_from_attributes(attributes):
@@ -584,15 +584,15 @@ class DataObject(object):
         return data_object
 
     @staticmethod
-    def init_from_id(id):
-        return DataObject(id)
+    def init_from_id(data_object_id):
+        return DataObject(data_object_id)
 
     @staticmethod
-    def init_from_dataset_id(id):
+    def init_from_dataset_id(data_object_id):
         connection = _check_api('data_objects')
 
         # array of attributes
-        attributes_arr = connection.data_objects(id)
+        attributes_arr = connection.data_objects(data_object_id)
 
         return [DataObject.init_from_attributes(a) for a in attributes_arr]
 
@@ -618,6 +618,10 @@ class DataObject(object):
         return self._data
 
     @property
+    def data_str(self):
+        return self.data.decode('utf-8')
+
+    @property
     def json(self):
         if self._json:
             return self._json
@@ -629,8 +633,7 @@ class DataObject(object):
     def dataframe(self):
         """Creates a simple Pandas Dataframe"""
         if self.format == 'csv' or self.content_type == 'text/csv':
-            s = StringIO(str(self.data))
-            return pd.read_csv(s)
+            return pd.read_csv(StringIO(self.data_str))
         else:
             return pd.DataFrame(self.json)
 
