@@ -387,7 +387,7 @@ class Dataset(_BaseObject):
         Dataset name
     data : DataFrame
         DataFrame of well-indexed data values. Note that associated metadata is found in attributes dictionary
-    data_objects : List or DataObject
+    data_objects : list(DataObject)
         List of DataObject type
     attachments : dict(str, bytes)
         names and data of all attachments for the dataset
@@ -532,20 +532,16 @@ class DataObject(object):
         format
     size: int
         size in bytes
-    status: string
+    status: Enum("valid", "invalid", "unverified")
         valid vs invalid
     url: str
         download url which expires every 1hr.  Call `refresh` to renew
-    validation_errors: Array[str]
+    validation_errors: list(str)
         validation errors
     container: Container
         Container object that was used for this data object
-    aliquot: Aliquot
-        Aliquot object that was used for this data object
     attributes: dict
         Master attributes dictionary
-    connection: transcriptic.config.Connection
-        Transcriptic Connection object associated with this specific object
     """
 
     def __init__(self, id=None):
@@ -559,20 +555,20 @@ class DataObject(object):
 
         # cached values
         self._container = None
-        self._data      = None
-        self._json      = None
+        self._data = None
+        self._json = None
 
     def __init_attrs(self, attributes):
         self.attributes = attributes
 
-        self.id                = attributes.get('id')
-        self.dataset_id        = attributes.get('dataset_id')
-        self.content_type      = attributes.get('content_type')
-        self.format            = attributes.get('format')
-        self.name              = attributes.get('name')
-        self.size              = attributes.get('size')
-        self.status            = attributes.get('status')
-        self.url               = attributes.get('url')
+        self.i = attributes.get('id')
+        self.dataset_i = attributes.get('dataset_id')
+        self.content_typ = attributes.get('content_type')
+        self.forma = attributes.get('format')
+        self.nam = attributes.get('name')
+        self.siz = attributes.get('size')
+        self.statu = attributes.get('status')
+        self.ur = attributes.get('url')
         self.validation_errors = attributes.get('validation_errors')
 
     @staticmethod
