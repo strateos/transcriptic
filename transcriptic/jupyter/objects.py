@@ -575,19 +575,23 @@ class DataObject(object):
         self.url               = attributes.get('url')
         self.validation_errors = attributes.get('validation_errors')
 
+    @staticmethod
     def fetch_attributes(id):
         connection = _check_api('data_objects')
         return connection.data_object(id)
 
+    @staticmethod
     def init_from_attributes(attributes):
         data_object = DataObject()
         data_object.__init_attrs(attributes)
 
         return data_object
 
+    @staticmethod
     def init_from_id(id):
         return DataObject(id)
 
+    @staticmethod
     def init_from_dataset_id(id):
         connection = _check_api('data_objects')
 
