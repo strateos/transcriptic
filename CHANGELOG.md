@@ -4,6 +4,7 @@ Updated
 
 Added
 - lint and build docs with tox
+- DataObject class which should help ease the transition from Datasets to DataObjects with regards to fetching data.
 
 Fixed
 - doc and lint errors

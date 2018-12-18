@@ -625,6 +625,62 @@ class Connection(object):
             timeout=timeout
         )
 
+    def data_object(self, id):
+        """Fetches a data object by id
+
+        Parameters
+        ----------
+        id: str
+            data_object id
+
+        Returns
+        -------
+        dict
+            attributes dict
+        """
+        route = self.get_route("data_object", id=id)
+        attributes = self.get(route).get("data").get('attributes')
+        attributes['id'] = id
+
+        return attributes
+
+    def data_objects(self, dataset_id):
+        """Fetches all data objects given a dataset id
+
+        Parameters
+        ----------
+        dataset_id: str
+            dataset id
+
+        Returns
+        -------
+        arr[dict]
+            array of attributes dict
+        """
+        route_base = self.get_route("data_objects", dataset_id=dataset_id)
+        page = 0
+        limit = 50
+        has_more = True
+
+        results = []
+
+        while has_more:
+            route = "{}&page[limit]={}&page[offset]={}".format(route_base, limit, page * limit)
+            response = self.get(route)
+            entities = response.get("data")
+
+            for entity in entities:
+                attributes = entity["attributes"]
+                attributes["id"] = entity["id"]
+                results.append(attributes)
+
+            page += 1
+
+            if len(entities) != limit:
+                has_more = False
+
+        return results
+
     def upload_dataset_from_filepath(self, file_path, title, run_id,
                                      analysis_tool, analysis_tool_version):
         """

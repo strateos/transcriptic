@@ -133,6 +133,14 @@ def datasets(api_root, org_id, project_id, run_id):
     return "{api_root}/{org_id}/{project_id}/runs/{run_id}/data".format(**locals())
 
 
+def data_object(api_root, id):
+    return "{api_root}/api/data_objects/{id}".format(**locals())
+
+
+def data_objects(api_root, dataset_id):
+    return "{api_root}/api/data_objects?filter[dataset_id]={dataset_id}".format(**locals())
+
+
 def get_uploads(api_root, key):
     return "{api_root}/upload/url_for?key={key}".format(**locals())
 
