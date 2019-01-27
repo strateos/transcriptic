@@ -1,4 +1,5 @@
 ## `transcriptic` Changelog
+## v5.6.0
 Updated
 - run tox tests against python 3.5 instead of 3.4
 
