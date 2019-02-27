@@ -9,8 +9,8 @@ Transcriptic
 ============
 
 The Transcriptic library is separated into three components:
-1) Core. The core modules provide a barebones client for making calls to 
-the Transcriptic webapp to create and obtain data. This can be done via the 
+1) Core. The core modules provide a barebones client for making calls to
+the Transcriptic webapp to create and obtain data. This can be done via the
 `api` object or via the command-line using the CLI.
 2) Jupyter. This module provides a Jupyter-centric means for interacting with
 objects returned from the Transcriptic webapp such as Run, Project and Dataset.

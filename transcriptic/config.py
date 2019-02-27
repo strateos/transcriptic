@@ -32,6 +32,27 @@ except ImportError:
     pass
 
 
+def initialize_default_session():
+    """
+    Initialize a default `requests.Session()` object which can be used for
+    requests into the tx web api.
+    """
+    session = requests.Session()
+    session.headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
+            __version__,
+            platform.python_implementation(),
+            platform.python_version(),
+            platform.system(),
+            platform.release(),
+            platform.machine(),
+            platform.architecture()[0]
+        )
+    }
+    return session
+
 class Connection(object):
     """
     A Connection object is the object used for communicating with Transcriptic.
@@ -89,27 +110,18 @@ class Connection(object):
     def __init__(self, email=None, token=None, organization_id=None,
                  api_root="https://secure.transcriptic.com",
                  cookie=None, verbose=False, analytics=True,
-                 user_id="default", feature_groups=[]):
+                 user_id="default", feature_groups=[],
+                 session=None):
         # Initialize environment args used for computing routes
         self.env_args = dict()
         self.api_root = api_root
         self.organization_id = organization_id
 
         # Initialize session headers
-        self.session = requests.Session()
-        self.session.headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
-                __version__,
-                platform.python_implementation(),
-                platform.python_version(),
-                platform.system(),
-                platform.release(),
-                platform.machine(),
-                platform.architecture()[0]
-            )
-        }
+        if session is None:
+            session = initialize_default_session()
+        self.session = session
+
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
             if email is not None or token is not None:
@@ -142,13 +154,27 @@ class Connection(object):
     @staticmethod
     def from_file(path):
         """Loads connection from file"""
-        with open(expanduser(path), 'r') as f:
-            cfg = json.loads(f.read())
-            expected_keys = ['email', 'token', 'organization_id', 'api_root',
-                             'analytics', 'user_id']
-            def key_not_found(): raise OSError("Key not found")
-            [key_not_found() for key in expected_keys if key not in cfg.keys()]
-            return Connection(**cfg)
+        config_path = expanduser(path)
+        with open(config_path) as f:
+            cfg = json.load(f)
+
+        expected_keys = set(('email', 'token', 'organization_id', 'api_root',
+                            'analytics', 'user_id'))
+        keys = set(cfg.keys())
+
+        if not keys.issuperset(expected_keys):
+            raise OSError(
+                "Key(s) not found in configuration file ({}) Missing {}".format(
+                    config_path, repr(expected_keys - keys)))
+        return Connection(**cfg)
+
+    @staticmethod
+    def from_default_config():
+        """
+        Load the default configuration file from the home directory of the current
+        user and return a Connection instance that is costructed from it.
+        """
+        return Connection.from_file("~/.transcriptic")
 
     @property
     def api_root(self):
@@ -356,6 +382,30 @@ class Connection(object):
             data=json.dumps({"project": {"archived": True}}),
             status_response={'200': lambda resp: True}
         )
+
+    def modify_aliquot_properties(
+            self,
+            aliquot_id,
+            set_properties={},
+            delete_properties=[]):
+        """
+        Modify the properties of an alquot:
+
+        If specified set_properties must be dict mapping {str: str}
+        these properties will be set on the aliquot specified.
+
+        If specified delete_properties must be a list of string
+        properties which will be deleted on the aliquot.
+        """
+        route = self.get_route("modify_aliquot_properties")
+        return self.put(
+            route,
+            data=json.dumps({
+                "set_properties": set_properties,
+                "delete_properties": delete_properties
+            })
+        )
+
 
     def packages(self):
         """Get list of packages in organization"""
