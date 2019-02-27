@@ -122,6 +122,7 @@ class Connection(object):
             session = initialize_default_session()
         self.session = session
 
+        # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
             if email is not None or token is not None:
