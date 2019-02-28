@@ -154,7 +154,7 @@ def upload_datasets(api_root):
 
 
 def modify_aliquot_properties(api_root, aliquot_id):
-    return "{api_root}/api/aliquots/{aliquot_id}/modify_properties.json".format(**locals())
+    return "{api_root}/api/aliquots/{aliquot_id}/modify_properties".format(**locals())
 
 
 def preview_protocol(api_root):

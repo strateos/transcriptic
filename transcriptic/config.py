@@ -107,11 +107,18 @@ class Connection(object):
         api.project_id = "p123"
 
     """
-    def __init__(self, email=None, token=None, organization_id=None,
-                 api_root="https://secure.transcriptic.com",
-                 cookie=None, verbose=False, analytics=True,
-                 user_id="default", feature_groups=[],
-                 session=None):
+    def __init__(
+            self,
+            email=None,
+            token=None,
+            organization_id=None,
+            api_root="https://secure.transcriptic.com",
+            cookie=None,
+            verbose=False,
+            analytics=True,
+            user_id="default",
+            feature_groups=[],
+            session=None):
         # Initialize environment args used for computing routes
         self.env_args = dict()
         self.api_root = api_root
@@ -398,7 +405,7 @@ class Connection(object):
         If specified delete_properties must be a list of string
         properties which will be deleted on the aliquot.
         """
-        route = self.get_route("modify_aliquot_properties")
+        route = self.get_route("modify_aliquot_properties", aliquot_id=aliquot_id)
         return self.put(
             route,
             data=json.dumps({
