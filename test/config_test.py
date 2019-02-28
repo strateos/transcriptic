@@ -4,6 +4,11 @@ import unittest
 import tempfile
 
 import transcriptic.config
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
+
 
 class ConnectionInitTests(unittest.TestCase):
     def test_inits_valid(self):
@@ -52,30 +57,29 @@ class ConnectionInitTests(unittest.TestCase):
             with self.assertRaisesRegexp(OSError, "token"):
                 transcriptic.config.Connection.from_file(config_file.name)
 
-    def test_aliquot_modify(self):
+    def get_mocked_connection(self):
         # NOTE(meawoppl) - This could be the start of a testing pattern
         # for this module.
         class FakeReturn:
-            status_code=200
+            status_code = 200
 
             def json(self):
                 return {}
 
-        faked_session = transcriptic.config.initialize_default_session()
-
-        calls = []
-        def mock_put(*args, **kwargs):
-            calls.append((args, kwargs))
-            return FakeReturn()
-
-        faked_session.put = mock_put
-
+        session = transcriptic.config.initialize_default_session()
+        session.put = Mock(return_value=FakeReturn())
         connection = transcriptic.config.Connection(
             email="foo@transcriptic.com",
             token="bar",
             organization_id="txid",
             api_root="https://fake.transcriptic.com",
-            session=faked_session)
+            session=session)
+        return session, connection
+
+    def test_aliquot_modify(self):
+        session, connection = self.get_mocked_connection()
 
         connection.modify_aliquot_properties("23534245", {"prop1": "val1"})
-        self.assertTrue(len(calls) > 0)
+        session.put.assert_called_with(
+            'https://fake.transcriptic.com/api/aliquots/23534245/modify_properties',
+            data='{"delete_properties": [], "set_properties": {"prop1": "val1"}}')
