@@ -1,9 +1,9 @@
 import json
-import os
 import unittest
 import tempfile
 
 import transcriptic.config
+
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -13,7 +13,6 @@ except ImportError:
 class ConnectionInitTests(unittest.TestCase):
     def test_inits_valid(self):
         with tempfile.NamedTemporaryFile() as config_file:
-
             with open(config_file.name, 'w') as f:
                 json.dump(
                     {
@@ -73,7 +72,8 @@ class ConnectionInitTests(unittest.TestCase):
             token="bar",
             organization_id="txid",
             api_root="https://fake.transcriptic.com",
-            session=session)
+            session=session
+        )
         return session, connection
 
     def test_aliquot_modify(self):
