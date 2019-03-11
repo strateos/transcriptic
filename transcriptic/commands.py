@@ -927,9 +927,9 @@ def login(api, config, api_root=None, analytics=True):
                 '200': lambda resp: resp,
                 '401': lambda resp: resp,
                 'default': lambda resp: resp
-            },
-            custom_request=False
+            }
         )
+
     except requests.exceptions.RequestException:
         click.echo("Error logging into specified host: {}. Please check your "
                    "internet connection and host name".format(api_root))
@@ -945,15 +945,17 @@ def login(api, config, api_root=None, analytics=True):
     feature_groups = user.get('feature_groups')
     organization = org_prompt(user['organizations'])
 
-    r = api.get(routes.get_organization(api_root=api_root, org_id=organization), headers={
-        'X-User-Email': email,
-        'X-User-Token': token,
-        'Accept': 'application/json',
-    }, status_response={
-        '200': lambda resp: resp,
-        'default': lambda resp: resp
-    },
-        custom_request=True)
+    r = api.get(
+        routes.get_organization(api_root=api_root, org_id=organization),
+        headers={
+            'X-User-Email': email,
+            'X-User-Token': token,
+            'Accept': 'application/json'},
+        status_response={
+            '200': lambda resp: resp,
+            'default': lambda resp: resp}
+    )
+
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
         sys.exit(1)
