@@ -8,6 +8,7 @@ import platform
 import sys
 import time
 import warnings
+import zipfile
 
 from builtins import object, str
 import requests
@@ -751,7 +752,7 @@ class Connection(object):
         .. code-block:: python
 
             api.upload_dataset_from_filepath(
-                "my_file.txt", 
+                "my_file.txt",
                 title="my cool dataset",
                 run_id="r123",
                 analysis_tool="cool script",
@@ -776,6 +777,7 @@ class Connection(object):
         response: dict
             JSON-formatted response
         """
+        # NOTE(meawoppl) title argument is unused?
         try:
             file_path = os.path.expanduser(file_path)
             file_handle = open(file_path, 'rb')
@@ -951,7 +953,6 @@ class Connection(object):
             A Python ZipFile is returned unless `file_path` is specified
 
         """
-        import zipfile
         route = self.get_route('get_data_zip', data_id=data_id)
         req = self.get(
             route,
