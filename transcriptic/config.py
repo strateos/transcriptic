@@ -406,12 +406,13 @@ class Connection(object):
         route = self.get_route("modify_aliquot_properties", aliquot_id=aliquot_id)
         return self.put(
             route,
-            data=json.dumps({
+            json={
+                "id": aliquot_id,
                 "data": {
-                    "set_properties": set_properties,
-                    "delete_properties": delete_properties
+                    "set": set_properties,
+                    "delete": delete_properties
                 }
-            })
+            }
         )
 
     def packages(self):
