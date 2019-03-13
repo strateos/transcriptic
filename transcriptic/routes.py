@@ -153,6 +153,10 @@ def upload_datasets(api_root):
     return "{api_root}/api/datasets".format(**locals())
 
 
+def modify_aliquot_properties(api_root, aliquot_id):
+    return "{api_root}/api/aliquots/{aliquot_id}/modify_properties".format(**locals())
+
+
 def preview_protocol(api_root):
     return "{api_root}/runs/preview".format(**locals())
 

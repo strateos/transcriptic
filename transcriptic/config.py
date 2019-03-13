@@ -1,24 +1,26 @@
 from __future__ import print_function
 
-from builtins import object, str
 import json
-import transcriptic
-import os
-from os.path import expanduser
-from . import routes
-import requests
-from .version import __version__
-import platform
 import inspect
-import warnings
-from io import StringIO, BytesIO
-from time import time
-
+import io
+import os
+import platform
 import sys
+import time
+import warnings
+import zipfile
+
+from builtins import object, str
+import requests
+
+import transcriptic
+from . import routes
+from .version import __version__
+
 if sys.version_info[0] < 3:
     PermissionError = RuntimeError
     # not exactly identical, but similar enough for this case
-    FileNotFoundError= IOError
+    FileNotFoundError = IOError
 
 try:
     import magic
@@ -29,8 +31,28 @@ except ImportError:
         "Please refer to https://github.com/ahupp/python-magic#installation "
         "for more installation instructions."
     )
-    pass
 
+
+def initialize_default_session():
+    """
+    Initialize a default `requests.Session()` object which can be used for
+    requests into the tx web api.
+    """
+    session = requests.Session()
+    session.headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
+            __version__,
+            platform.python_implementation(),
+            platform.python_version(),
+            platform.system(),
+            platform.release(),
+            platform.machine(),
+            platform.architecture()[0]
+        )
+    }
+    return session
 
 class Connection(object):
     """
@@ -81,35 +103,34 @@ class Connection(object):
 
     .. code-block:: python
         :caption: python
-        
+
         api.organization_id = "my_other_org"
         api.project_id = "p123"
 
     """
-    def __init__(self, email=None, token=None, organization_id=None,
-                 api_root="https://secure.transcriptic.com",
-                 cookie=None, verbose=False, analytics=True,
-                 user_id="default", feature_groups=[]):
+    def __init__(
+            self,
+            email=None,
+            token=None,
+            organization_id=None,
+            api_root="https://secure.transcriptic.com",
+            cookie=None,
+            verbose=False,
+            analytics=True,
+            user_id="default",
+            feature_groups=[],
+            session=None):
         # Initialize environment args used for computing routes
         self.env_args = dict()
         self.api_root = api_root
         self.organization_id = organization_id
 
         # Initialize session headers
-        self.session = requests.Session()
-        self.session.headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
-                __version__,
-                platform.python_implementation(),
-                platform.python_version(),
-                platform.system(),
-                platform.release(),
-                platform.machine(),
-                platform.architecture()[0]
-            )
-        }
+        if session is None:
+            session = initialize_default_session()
+        self.session = session
+
+        # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
             if email is not None or token is not None:
@@ -127,10 +148,8 @@ class Connection(object):
             self.token = token
 
         # Initialize feature groups
-        RELEVANT_GROUPS = set(
-            ['can_submit_autoprotocol', 'can_upload_packages']
-        )
-        self.feature_groups = list(RELEVANT_GROUPS.intersection(feature_groups))
+        feature_groups = set(['can_submit_autoprotocol', 'can_upload_packages'])
+        self.feature_groups = list(feature_groups.intersection(feature_groups))
 
         # Initialize CLI parameters
         self.verbose = verbose
@@ -142,13 +161,27 @@ class Connection(object):
     @staticmethod
     def from_file(path):
         """Loads connection from file"""
-        with open(expanduser(path), 'r') as f:
-            cfg = json.loads(f.read())
-            expected_keys = ['email', 'token', 'organization_id', 'api_root',
-                             'analytics', 'user_id']
-            def key_not_found(): raise OSError("Key not found")
-            [key_not_found() for key in expected_keys if key not in cfg.keys()]
-            return Connection(**cfg)
+        config_path = os.path.expanduser(path)
+        with open(config_path) as f:
+            cfg = json.load(f)
+
+        expected_keys = set(('email', 'token', 'organization_id', 'api_root',
+                             'analytics', 'user_id'))
+        keys = set(cfg.keys())
+
+        if not keys.issuperset(expected_keys):
+            raise OSError(
+                "Key(s) not found in configuration file ({}) Missing {}".format(
+                    config_path, repr(expected_keys - keys)))
+        return Connection(**cfg)
+
+    @staticmethod
+    def from_default_config():
+        """
+        Load the default configuration file from the home directory of the
+        current user and return a Connection instance that is costructed from it.
+        """
+        return Connection.from_file("~/.transcriptic")
 
     @property
     def api_root(self):
@@ -230,7 +263,7 @@ class Connection(object):
 
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
-        with open(expanduser(path), 'w') as f:
+        with open(os.path.expanduser(path), 'w') as f:
             f.write(
                 json.dumps(
                     {
@@ -355,6 +388,32 @@ class Connection(object):
             route,
             data=json.dumps({"project": {"archived": True}}),
             status_response={'200': lambda resp: True}
+        )
+
+    def modify_aliquot_properties(
+            self,
+            aliquot_id,
+            set_properties={},
+            delete_properties=[]):
+        """
+        Modify the properties of an alquot:
+
+        If specified set_properties must be dict mapping {str: str}
+        these properties will be set on the aliquot specified.
+
+        If specified delete_properties must be a list of string
+        properties which will be deleted on the aliquot.
+        """
+        route = self.get_route("modify_aliquot_properties", aliquot_id=aliquot_id)
+        return self.put(
+            route,
+            json={
+                "id": aliquot_id,
+                "data": {
+                    "set": set_properties,
+                    "delete": delete_properties
+                }
+            }
         )
 
     def packages(self):
@@ -519,7 +578,8 @@ class Connection(object):
                   "project {} exists, and that you have access " \
                   "to it?".format(self.url(project_id))
 
-        def err_422(resp): "Error creating run: {}".format(resp.text)
+        def err_422(resp):
+            "Error creating run: {}".format(resp.text)
 
         return self.post(
             route,
@@ -665,7 +725,8 @@ class Connection(object):
         results = []
 
         while has_more:
-            route = "{}&page[limit]={}&page[offset]={}".format(route_base, limit, page * limit)
+            route = "{}&page[limit]={}&page[offset]={}".format(
+                route_base, limit, page * limit)
             response = self.get(route)
             entities = response.get("data")
 
@@ -685,13 +746,13 @@ class Connection(object):
                                      analysis_tool, analysis_tool_version):
         """
         Helper for uploading a file as a dataset to the specified run.
-        
+
         Uses `upload_dataset`.
-        
+
         .. code-block:: python
-        
+
             api.upload_dataset_from_filepath(
-                "my_file.txt", 
+                "my_file.txt",
                 title="my cool dataset",
                 run_id="r123",
                 analysis_tool="cool script",
@@ -710,7 +771,7 @@ class Connection(object):
             Name of tool used for analysis
         analysis_tool_version: str, optional
             Version of tool used
-            
+
         Returns
         -------
         response: dict
@@ -720,7 +781,7 @@ class Connection(object):
             file_path = os.path.expanduser(file_path)
             file_handle = open(file_path, 'rb')
             name = os.path.basename(file_handle.name)
-        except (AttributeError, FileNotFoundError) as e:
+        except (AttributeError, FileNotFoundError):
             raise ValueError("'file' has to be a valid filepath")
 
         try:
@@ -741,9 +802,9 @@ class Connection(object):
         .. code-block:: python
 
             # Uploading a data_frame via file_handle, using Py3
-            from io import StringIO
+            import io
 
-            temp_buffer = StringIO()
+            temp_buffer = io.StringIO()
             my_df.to_csv(temp_buffer)
 
             api.upload_dataset(
@@ -817,6 +878,8 @@ class Connection(object):
         key: str
             s3 key
         """
+        # NOTE(meawoppl) title argument is unused?
+
         # TODO:
         # Currently, we are passing `0` for file_size as it doesn't really
         # matter for non multipart uploads, though it would be better to
@@ -825,7 +888,7 @@ class Connection(object):
             "attributes": {
                 "file_name": name,
                 "file_size": 0,
-                "last_modified": int(time()),
+                "last_modified": int(time.time()),
                 "is_multipart": False
             }
         }
@@ -836,14 +899,14 @@ class Connection(object):
         try:
             upload_id = uri_resp['data']['id']
             upload_uri = uri_resp['data']['attributes']['upload_url']
-        except KeyError as e:
+        except KeyError:
             raise RuntimeError("Unexpected payload returned for upload_dataset")
 
-        if isinstance(file_handle, StringIO):
+        if isinstance(file_handle, io.StringIO):
             try:
                 # io.StringIO instances must be converted to bytes
-                file_handle = BytesIO(bytes(file_handle.getvalue(), "utf-8"))
-            except AttributeError as e:
+                file_handle = io.BytesIO(bytes(file_handle.getvalue(), "utf-8"))
+            except AttributeError:
                 raise ValueError("Unable to convert read buffer to bytes")
 
         headers = {
@@ -854,7 +917,6 @@ class Connection(object):
         self.put(
             upload_uri,
             data=file_handle,
-            custom_request=True,
             headers=headers,
             status_response={'200': lambda resp: resp}
         )
@@ -862,10 +924,10 @@ class Connection(object):
 
     def get_zip(self, data_id, file_path=None):
         """
-        Get zip file with given data_id. Downloads to memory and returns a 
+        Get zip file with given data_id. Downloads to memory and returns a
         Python ZipFile by default.
-        When dealing with larger files where it may not be desired to load the 
-        entire file into memory, specifying `file_path` will enable the file to 
+        When dealing with larger files where it may not be desired to load the
+        entire file into memory, specifying `file_path` will enable the file to
         be downloaded locally.
 
         Example Usage:
@@ -892,21 +954,23 @@ class Connection(object):
             A Python ZipFile is returned unless `file_path` is specified
 
         """
-        import zipfile
         route = self.get_route('get_data_zip', data_id=data_id)
-        req = self.get(route, status_response={'200': lambda resp: resp},
-                       stream=True)
+        req = self.get(
+            route,
+            status_response={'200': lambda resp: resp},
+            stream=True
+        )
+
         if file_path:
-            f = open(file_path, 'wb')
-            # Buffer download of data into memory with smaller chunk sizes
-            chunk_sz = 1024  # 1kb chunks
-            for chunk in req.iter_content(chunk_sz):
-                if chunk:
-                    f.write(chunk)
-            f.close()
+            with open(file_path, 'wb') as f:
+                # Buffer download of data into memory with smaller chunk sizes
+                chunk_sz = 1024  # 1kb chunks
+                for chunk in req.iter_content(chunk_sz):
+                    if chunk:
+                        f.write(chunk)
             print("Zip file downloaded locally to {}.".format(file_path))
         else:
-            return zipfile.ZipFile(BytesIO(req.content))
+            return zipfile.ZipFile(io.BytesIO(req.content))
 
     def get_route(self, method, **kwargs):
         """
@@ -944,30 +1008,15 @@ class Connection(object):
     def _req_call(self, method, route, **kwargs):
         return getattr(self.session, method)(route, **kwargs)
 
-    def _call(self, method, route, custom_request=False, status_response={},
-              merge_status=True, **kwargs):
+    def _call(self, method, route, status_response={}, **kwargs):
         """Base function for handling all requests"""
-        if not custom_request:
-            if self.verbose:
-                print("{0}: {1}".format(method.upper(), route))
-            if 'headers' not in kwargs:
-                return self._handle_response(
-                    self._req_call(method, route, **kwargs),
-                    merge_status=merge_status,
-                    **status_response
-                )
-            else:
-                return self._handle_response(
-                    self._req_call(method, route, **kwargs),
-                    merge_status=merge_status,
-                    **status_response
-                )
-        else:
-            return self._handle_response(
-                self._req_call(method, route, **kwargs),
-                merge_status=merge_status,
-                **status_response
-            )
+        if self.verbose:
+            print("{0}: {1}".format(method.upper(), route))
+
+        return self._handle_response(
+            self._req_call(method, route, **kwargs),
+            **status_response
+        )
 
     def _handle_response(self, response, **kwargs):
         unauthorized_resp = "You are not authorized to execute this command. " \
@@ -991,12 +1040,7 @@ class Connection(object):
                 "[%d] %s" % (resp.status_code, resp.text)
             )
         }
-        if kwargs['merge_status']:
-            kwargs.pop('merge_status')
-            status_response = dict(default_status_response, **kwargs)
-        else:
-            kwargs.pop('merge_status')
-            status_response = dict(**kwargs)
+        status_response = dict(default_status_response, **kwargs)
 
         return_val = status_response.get(
             str(response.status_code),
@@ -1008,13 +1052,17 @@ class Connection(object):
         else:
             return return_val(response)
 
-    def _post_analytics(self, client_id=None, event_action=None,
-                        event_category="cli"):
+    # NOTE(meawoppl) This is only called externally
+    def _post_analytics(
+            self,
+            client_id=None,
+            event_action=None,
+            event_category="cli"):
         route = "https://www.google-analytics.com/collect"
         if not client_id:
             client_id = self.user_id
-        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}' \
-                 '&ec={}'.format(client_id, event_action, event_category)
+        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(
+            client_id, event_action, event_category)
         requests.post(route, packet)
 
 
@@ -1031,9 +1079,8 @@ def _parse_protocol(protocol):
         return protocol
     try:
         from autoprotocol import Protocol
-    except ImportError as IE:
+    except ImportError:
         raise RuntimeError("Please install `autoprotocol-python` in order "
                            "to work with Protocol objects")
     if isinstance(protocol, Protocol):
         return protocol.as_dict()
-

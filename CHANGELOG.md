@@ -1,4 +1,14 @@
 ## `transcriptic` Changelog
+
+## Unreleased Changes:
+Added
+- Added `Connection.from_default_config()` method and tests
+- Added `Connection.modify_aliquot_properties()` for aliquot property managment
+
+Updated
+- Lint and cleanup
+- Starter work on testing `Connection` methods.
+
 ## v5.6.0
 Updated
 - run tox tests against python 3.5 instead of 3.4

@@ -20,6 +20,7 @@ setup(
         'coverage==4.*',
         'future>=0.15',
         'jsonschema>=2.5',
+        'mock>=2.*',
         'pylint==1.*',
         'pytest==3.*',
         'tox==3.*'
