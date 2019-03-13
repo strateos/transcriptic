@@ -79,7 +79,9 @@ class ConnectionInitTests(unittest.TestCase):
     def test_aliquot_modify(self):
         session, connection = self.get_mocked_connection()
 
-        connection.modify_aliquot_properties("23534245", {"prop1": "val1"})
+        aliquot_id = "23534245"
+        props = {"prop1": "val1"}
+        connection.modify_aliquot_properties(aliquot_id, props)
         session.put.assert_called_with(
             'https://fake.transcriptic.com/api/aliquots/23534245/modify_properties',
-            data='{"delete_properties": [], "set_properties": {"prop1": "val1"}}')
+            json={"id": aliquot_id, "data": {"delete": [], "set": props}})
