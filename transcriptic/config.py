@@ -178,8 +178,8 @@ class Connection(object):
     @staticmethod
     def from_default_config():
         """
-        Load the default configuration file from the home directory of the current
-        user and return a Connection instance that is costructed from it.
+        Load the default configuration file from the home directory of the
+        current user and return a Connection instance that is costructed from it.
         """
         return Connection.from_file("~/.transcriptic")
 
@@ -777,12 +777,11 @@ class Connection(object):
         response: dict
             JSON-formatted response
         """
-        # NOTE(meawoppl) title argument is unused?
         try:
             file_path = os.path.expanduser(file_path)
             file_handle = open(file_path, 'rb')
             name = os.path.basename(file_handle.name)
-        except (AttributeError, FileNotFoundError) as e:
+        except (AttributeError, FileNotFoundError):
             raise ValueError("'file' has to be a valid filepath")
 
         try:
@@ -879,6 +878,8 @@ class Connection(object):
         key: str
             s3 key
         """
+        # NOTE(meawoppl) title argument is unused?
+
         # TODO:
         # Currently, we are passing `0` for file_size as it doesn't really
         # matter for non multipart uploads, though it would be better to
