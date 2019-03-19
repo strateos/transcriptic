@@ -1,13 +1,14 @@
 ## `transcriptic` Changelog
 
-## Unreleased Changes:
+## v6.0.0
 Added
 - Added `Connection.from_default_config()` method and tests
 - Added `Connection.modify_aliquot_properties()` for aliquot property managment
 
 Updated
-- Lint and cleanup
+- Lint and docs, test cleanup
 - Starter work on testing `Connection` methods.
+- Updated dependencies to only support python 2.7 and python >=3.5
 
 ## v5.6.0
 Updated
