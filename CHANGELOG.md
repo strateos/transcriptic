@@ -1,6 +1,6 @@
 ## `transcriptic` Changelog
 
-## v5.7.0
+## v6.0.0
 Added
 - Added `Connection.from_default_config()` method and tests
 - Added `Connection.modify_aliquot_properties()` for aliquot property managment
