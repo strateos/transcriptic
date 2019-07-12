@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import print_function
-from builtins import object, str
+#!/usr/bin/env python3
 
 import click
 import os
@@ -9,12 +6,6 @@ import requests
 
 from transcriptic.config import Connection
 from transcriptic import commands
-
-import sys
-if sys.version_info[0] < 3:
-    PermissionError = RuntimeError
-    # not exactly identical, but similar enough for this case
-    FileNotFoundError = IOError
 
 
 class FeatureGroup(click.Group):

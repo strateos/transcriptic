@@ -1,7 +1,3 @@
-from __future__ import division
-from builtins import str
-from past.builtins import basestring
-from past.utils import old_div
 import click
 import itertools
 import re
@@ -84,7 +80,7 @@ def robotize(well_ref, well_count, col_count):
     """Function referenced from autoprotocol.container_type.robotize()"""
     if isinstance(well_ref, list):
         return [robotize(well, well_count, col_count) for well in well_ref]
-    if not isinstance(well_ref, (basestring, int)):
+    if not isinstance(well_ref, (str, int)):
         raise TypeError("ContainerType.robotize(): Well reference given "
                         "is not of type 'str' or 'int'.")
 
@@ -95,7 +91,7 @@ def robotize(well_ref, well_count, col_count):
         col = int(m.group(2)) - 1
         well_num = row * col_count + col
         # Check bounds
-        if row > (old_div(well_count, col_count)):
+        if row > (well_count // col_count):
             raise ValueError("Row given exceeds "
                              "container dimensions.")
         if col > col_count or col < 0:

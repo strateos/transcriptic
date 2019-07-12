@@ -1,9 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-from builtins import range
-from past.utils import old_div
-from builtins import object
-
 from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
 
@@ -256,7 +250,7 @@ class Absorbance(_PlateRead):
             ss_res = result[1]
             ss_tot = np.sum(
                 np.square((plot_obj["values"] - plot_obj["values"].mean())))
-            print("%s R^2: %s" % (self.name, (1-old_div(ss_res, ss_tot))))
+            print("%s R^2: %s" % (self.name, (1-(ss_res // ss_tot))))
 
 
 class Fluorescence(_PlateRead):
@@ -337,7 +331,7 @@ def compare_standards(pr_obj, std_pr_obj):
     # Compare against mean of standard absorbance
     # Check to ensure CVs are at least 2 apart
     for indx in range(len(pr_obj.cv)):
-        cv_ratio = old_div(pr_obj.cv.iloc[indx], std_pr_obj.cv.iloc[indx])
+        cv_ratio = pr_obj.cv.iloc[indx] // std_pr_obj.cv.iloc[indx]
         if cv_ratio < 2:
             print("Warning for %s: Sample CV is only %s times that of Standard \
                 CV. RMSE may be inaccurate." % (

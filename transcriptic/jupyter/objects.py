@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from builtins import object
-from builtins import str
 from copy import deepcopy
 from io import StringIO
 from operator import itemgetter
@@ -917,4 +913,3 @@ class Container(_BaseObject):
 
         """
         return "Container(%s)" % (str(self.name))
-

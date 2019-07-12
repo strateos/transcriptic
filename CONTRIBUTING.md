@@ -14,7 +14,7 @@ For analysis purposes, we prefer using Pandas DataFrames and NumPy arrays for re
 
 
 ## Version Compatibility
-We use the [future](https://pypi.python.org/pypi/future) module to maintain Python 2/3 compatibility. As a result, all code written should be Python 2.7 and Python 3.5+ compatible.
+TxPy is written with Python 3.5+ compatibility in mind. Python 2 is no longer officialy supported.
 
 
 ## Styling and Documentation
@@ -25,6 +25,26 @@ For documentation purposes, we follow [NumPy style doc strings](https://github.c
 
 ## Testing
 For testing purposes, we write tests in the `test` folder in the [pytest](http://pytest.org/latest/getting-started.html)
-format. We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests.
+format. We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests. 
 
-Ensure that all tests pass when you run `tox` in the main folder.
+The `tox` command is run by Jenkins and is currently configured to run the main module tests, generate a coverage report and build documentation.
+
+Generally, please ensure that all tests pass when you execute `tox` in the root folder.
+```
+cd $TXPY_ROOT_DIR
+tox
+```
+
+If you're using [pyenv](https://github.com/pyenv/pyenv) to manage python versions, ensure you have all the tested environments in your `.python-version` file. i.e.`pyenv local 3.5.6 3.6.8 3.7.3`
+
+### Running Specific Tests
+Specific tests are controlled by the `tox.ini` configuration file.
+
+To run just the main module tests, execute `python setup.py test` in the root folder. This is specified by the main `[testenv]` flag in `tox.ini`.
+
+To build the docs locally, execute `sphinx-build -W -b html -d tmp/doctrees . -d tmp/html` in the `docs` directory. This is specified by the `[testenv:docs]` flag in `tox.ini`.
+
+## Pull Requests
+To contribute, please submit a pull-request to the [Github repository](http://github.com/transcriptic/transcriptic).
+
+Before submitting the request, please ensure that all tests pass by running `tox` in the main directory.

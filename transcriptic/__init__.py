@@ -1,4 +1,3 @@
-from __future__ import print_function
 from .config import Connection
 from .version import __version__
 
@@ -169,7 +168,7 @@ def connect(transcriptic_path="~/.transcriptic"):
     transcriptic_path:
      Path to transcriptic dot-file
     """
-    #TODO: Mirror login code from CLI
+    # TODO: Mirror login code from CLI
     try:
         api = Connection.from_file(transcriptic_path)
     except (OSError, IOError):
