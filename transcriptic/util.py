@@ -145,12 +145,4 @@ def makedirs(name, mode=None, exist_ok=False):
     """Forward ports `exist_ok` flag for Py2 makedirs. Retains mode defaults"""
     from os import makedirs
     mode = mode if mode is not None else 0o777
-    if sys.version_info[0] < 3:
-        # Note that Py2 makedirs still errors on all errno.EEXIST, unlike Py3
-        try:
-            makedirs(name, mode)
-        except OSError:
-            if not exist_ok:
-                raise
-    else:
-        makedirs(name, mode, exist_ok)
+    makedirs(name, mode, exist_ok)
