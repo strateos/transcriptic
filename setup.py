@@ -39,6 +39,7 @@ test_deps = [
 
 doc_deps = [
     'releases==1.*',
+    'mock==3.*',
     'Sphinx==1.7.*',
     'sphinx_rtd_theme==0.*'
 ]
