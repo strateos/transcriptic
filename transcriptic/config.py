@@ -1,26 +1,16 @@
-from __future__ import print_function
-
-import json
 import inspect
 import io
+import json
 import os
 import platform
-import sys
+import requests
 import time
+import transcriptic
 import warnings
 import zipfile
 
-from builtins import object, str
-import requests
-
-import transcriptic
 from . import routes
 from .version import __version__
-
-if sys.version_info[0] < 3:
-    PermissionError = RuntimeError
-    # not exactly identical, but similar enough for this case
-    FileNotFoundError = IOError
 
 try:
     import magic
@@ -53,6 +43,7 @@ def initialize_default_session():
         )
     }
     return session
+
 
 class Connection(object):
     """

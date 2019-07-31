@@ -1,6 +1,3 @@
-from builtins import object
-from builtins import set
-
 try:
     import plotly as py
     import plotly.graph_objs as go
@@ -194,4 +191,3 @@ class Spectrophotometry(_Kinetics):
             return string[:(max_len - 3)] + "..."
         else:
             return string
-

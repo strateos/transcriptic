@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import print_function
-from builtins import bytes
-from builtins import object
-from builtins import next
-from builtins import str
+#!/usr/bin/env python3
 
 import click
 import json
@@ -13,25 +7,17 @@ import os
 import time
 import zipfile
 import requests
-from jinja2 import Environment, PackageLoader
 
+from collections import OrderedDict
+from contextlib import contextmanager
+from jinja2 import Environment, PackageLoader
+from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
 from transcriptic import routes
-from os.path import isfile
-from collections import OrderedDict
-from contextlib import contextmanager
 
 import sys
-if sys.version_info[0] < 3:
-    PermissionError = RuntimeError
-    # not exactly identical, but similar enough for this case
-    FileNotFoundError = IOError
-
-######################
-# COMMANDS
-######################
 
 
 def submit(api, file, project, title=None, test=None, pm=None):

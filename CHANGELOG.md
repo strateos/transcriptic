@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+Updated
+- Support only Python >=3.5, drop Python 2 support
+- Pin dependencies
+
 ## v6.0.0
 Added
 - Added `Connection.from_default_config()` method and tests

@@ -1,12 +1,63 @@
-#!/usr/bin/env python
-from setuptools import setup
+#!/usr/bin/env python3
 import sys
+
+from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
 # Load version
 exec(open('transcriptic/version.py').read())
 
-if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
-    raise RuntimeError("Python version 2.7 or >= 3.5 required.")
+
+# Test Runner (reference: https://docs.pytest.org/en/latest/goodpractices.html)
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = "--cov=transcriptic --cov-report=term"
+
+    def run_tests(self):
+        import shlex
+
+         # import here, cause outside the eggs aren't loaded
+        import pytest
+
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
+
+
+# Test and Documentation dependencies
+test_deps = [
+    'coverage==4.*',
+    'jsonschema==2.*',
+    'mock==3.*',
+    'pylint==1.*',
+    'pytest==3.*',
+    'pytest-cov==2.*',
+    'tox==3.*'
+]
+
+doc_deps = [
+    'releases==1.*',
+    'mock==3.*',
+    'Sphinx==1.7.*',
+    'sphinx_rtd_theme==0.*'
+]
+
+# Extra module dependencies
+jupyter_deps = [
+    'pandas==0.*'
+]
+
+analysis_deps = [
+    'pandas==0.*',
+    'matplotlib==1.*',
+    'scipy==0.*',
+    'numpy==1.*',
+    'plotly==1.9.6',
+    'pillow==3.*'
+]
+
 
 setup(
     name='transcriptic',
@@ -14,37 +65,22 @@ setup(
     url='https://github.com/transcriptic/transcriptic',
     version=__version__,
     packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
-    setup_requires=['pytest-runner'],
     include_package_data=True,
-    tests_require=[
-        'coverage==4.*',
-        'future>=0.15',
-        'jsonschema>=2.5',
-        'mock>=2.*',
-        'pylint==1.*',
-        'pytest==3.*',
-        'tox==3.*'
-    ],
+    tests_require=test_deps,
+    python_requires='>=3.5',
     install_requires=[
-        'Click>=5.1',
-        'requests>=2.0',
-        'future>=0.15',
-        'python-magic>=0.4.13',
-        'Jinja2>=2.7,<3',
+        'Click==7.*',
+        'requests==2.*',
+        'python-magic==0.*',
+        'Jinja2==2.*',
     ],
     extras_require={
-        'jupyter': [
-            'pandas>=0.18'
-        ],
-        'analysis': [
-            'pandas>=0.18',
-            'matplotlib>=1.4',
-            'scipy>=0.16',
-            'numpy>=1.10',
-            'plotly==1.9.6',
-            'pillow>=3.1.0'
-        ]
+        'jupyter': jupyter_deps,
+        'analysis': analysis_deps,
+        'docs': doc_deps,
+        'test': test_deps
     },
+    cmdclass={"pytest": PyTest},
     entry_points='''
         [console_scripts]
         transcriptic=transcriptic.cli:cli
@@ -60,9 +96,8 @@ setup(
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
-    ],
+    ]
 )

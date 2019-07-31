@@ -1,5 +1,3 @@
-from future import standard_library
-from builtins import object
 from io import BytesIO
 
 from transcriptic import api
@@ -9,8 +7,6 @@ try:
 except ImportError:
     raise ImportError("Please run `pip install transcriptic[analysis] if you "
                       "would like to use the Transcriptic analysis module.")
-
-standard_library.install_aliases()
 
 
 class ImagePlate(object):
