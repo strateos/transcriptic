@@ -1,5 +1,6 @@
 ## `transcriptic` Changelog
 
+## v7.0.0
 Added
 - zsh auto-completion support
 
