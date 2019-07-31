@@ -1,6 +1,6 @@
 FROM debian:jessie
 
-MAINTAINER Transcriptic <team@transcriptic.com>
+MAINTAINER Transcriptic <engineering@strateos.com>
 
 # Default userid=1000 as that is the first non-root userid on linux
 ARG uid=1000

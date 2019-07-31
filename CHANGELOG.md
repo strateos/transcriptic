@@ -6,6 +6,7 @@ Added
 Updated
 - Support only Python >=3.5, drop Python 2 support
 - Pin dependencies
+- Email references to point towards strateos
 
 ## v6.0.0
 Added
