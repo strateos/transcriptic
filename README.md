@@ -70,7 +70,7 @@ View [Developer Specific Documentation](http://transcriptic.readthedocs.io/en/la
 
 ## Permissions
 
-Note that direct analysis and submission of Autoprotocol is currently restricted. Please contact sales@transcriptic.com if you would like to do so.
+Note that direct analysis and submission of Autoprotocol is currently restricted. Please contact sales@strateos.com if you would like to do so.
 
 ## Contributing
 
