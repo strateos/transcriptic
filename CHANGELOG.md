@@ -1,5 +1,8 @@
 ## `transcriptic` Changelog
 
+Added
+- zsh auto-completion support
+
 Updated
 - Support only Python >=3.5, drop Python 2 support
 - Pin dependencies
