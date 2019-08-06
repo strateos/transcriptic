@@ -28,34 +28,34 @@ class PyTest(TestCommand):
 
 # Test and Documentation dependencies
 test_deps = [
-    'coverage==4.*',
-    'jsonschema==2.*',
-    'mock==3.*',
-    'pylint==1.*',
-    'pytest==3.*',
-    'pytest-cov==2.*',
-    'tox==3.*'
+    'coverage>=4.5, <5',
+    'jsonschema>=2.6, <3',
+    'mock>=3, <4',
+    'pylint>=1.9, <2',
+    'pytest>=4, <5',
+    'pytest-cov>=2, <3',
+    'tox>=3.7, <4'
 ]
 
 doc_deps = [
-    'releases==1.*',
-    'mock==3.*',
-    'Sphinx==1.7.*',
-    'sphinx_rtd_theme==0.*'
+    'releases>=1.5, <2',
+    'mock>=3, <4',
+    'Sphinx>=1.7, <1.8',
+    'sphinx_rtd_theme>=0.4, <1'
 ]
 
 # Extra module dependencies
 jupyter_deps = [
-    'pandas==0.*'
+    'pandas>=0.23,<1'
 ]
 
 analysis_deps = [
-    'pandas==0.*',
-    'matplotlib==1.*',
-    'scipy==0.*',
-    'numpy==1.*',
+    'pandas>=0.23,<1',
+    'matplotlib>=1.4, <2',
+    'scipy>=0.14, <1',
+    'numpy>=1.14, <2',
     'plotly==1.9.6',
-    'pillow==3.*'
+    'pillow>=3, <4'
 ]
 
 
@@ -69,10 +69,10 @@ setup(
     tests_require=test_deps,
     python_requires='>=3.5',
     install_requires=[
-        'Click==7.*',
-        'requests==2.*',
-        'python-magic==0.*',
-        'Jinja2==2.*',
+        'Click>=7.0,<8',
+        'requests>=2.0,<3',
+        'python-magic>=0.4,<1',
+        'Jinja2>=2.0,<3',
     ],
     extras_require={
         'jupyter': jupyter_deps,
