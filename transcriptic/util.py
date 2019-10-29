@@ -2,6 +2,8 @@ import click
 import itertools
 import re
 import sys
+from collections import defaultdict
+from transcriptic.jupyter.objects import Container
 
 
 def natural_sort(l):
@@ -146,3 +148,85 @@ def makedirs(name, mode=None, exist_ok=False):
     from os import makedirs
     mode = mode if mode is not None else 0o777
     makedirs(name, mode, exist_ok)
+
+
+class PreviewParameters:
+    """This class will modify the input parameters used by the web application, into usable preview parameters for
+    protocol debugging.
+    """
+    def __init__(self, params):
+        self.params = params
+        self.selected_aliquots = defaultdict(list)
+        self.modified_params = self.modify_preview_parameters()
+        self.refs = self.generate_refs()
+        self.preview = self.build_preview()
+
+    def modify_preview_parameters(self):
+        return self.traverse_modify(self.params, self.create_container_string)
+
+    def traverse_modify(self, obj, action):
+        return self.traverse(obj, callback=action)
+
+    def traverse(self, obj, callback=None):
+        if isinstance(obj, dict):
+            if list(obj.keys()) == ['containerId', 'wellIndex']:
+                value = obj
+            else:
+                value = {k: self.traverse(v, callback) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.traverse(elem, callback) for elem in obj]
+        else:
+            value = obj
+
+        if callback is None:
+            return value
+        else:
+            return callback(value)
+
+    def create_container_string(self, aliquot):
+        if isinstance(aliquot, dict):
+            container_id = aliquot.get('containerId', None)
+        elif isinstance(aliquot, str):
+            container_id = None
+        else:
+            raise ValueError('This {} {} is not supported by this action method'.format(type(aliquot), aliquot))
+
+        if container_id:
+            well_idx = aliquot['wellIndex']
+            container = Container(container_id)
+            self.selected_aliquots[container.id].append(well_idx)
+            return '{}/{}'.format(container.name.replace(' ', '_'), well_idx)
+        else:
+            return aliquot
+
+    def build_preview(self):
+        preview = {'preview': dict()}
+        preview['preview'].update(self.refs)
+        preview['preview'].update(self.modified_params)
+        return preview
+
+    def generate_refs(self):
+        ref_dict = dict()
+        for cid, well_arr in self.selected_aliquots.items():
+            container = Container(cid)
+            cont_name = container.name.replace(' ', '_')
+            ref_aliquots = PreviewParameters.container_aliquots(container)
+            ref_dict[cont_name] = {
+                'label': container.name,
+                'type': container.attributes['container_type_id'],
+                'store': container.storage,
+                'seal': container.cover,
+                'aliquots': {well_idx: ref_aliquots[well_idx] for well_idx in well_arr}
+            }
+        return {'refs': ref_dict}
+
+    @classmethod
+    def container_aliquots(cls, container):
+        ref_aliquots = dict()
+        for ali in container.attributes['aliquots']:
+            ref_aliquots[ali['well_idx']] = {
+                'name': ali['name'],
+                'properties': ali['properties'],
+                'volume': '0.0:microliters'
+            }
+        return ref_aliquots
