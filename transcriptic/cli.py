@@ -452,11 +452,11 @@ def compile_cmd(protocol_name, args):
          'useful for debugging a protocol.'
 )
 @click.option(
-    '--debug_inputs',
+    '--test_inputs',
     is_flag=True,
     required=False,
     help='Adding this flag to "--save_inputs" will modify the saved inputs file to return '
-         'debugging parameters, refs, and aliquots with properties for protocol debugging.'
+         'testing parameters, refs, and aliquots with properties for protocol testing and debugging.'
 )
 @click.option(
     '--local',
@@ -485,11 +485,11 @@ def compile_cmd(protocol_name, args):
     help='Package ID for discriminating between protocols with identical names'
 )
 @click.pass_context
-def launch_cmd(ctx, protocol, project, save_input, local, accept_quote, params, debug_inputs, pm=None, test=None, pkg=None):
+def launch_cmd(ctx, protocol, project, save_input, local, accept_quote, params, test_inputs, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     api = ctx.obj.api
-    commands.launch(api, protocol, project, save_input, local, accept_quote, params, debug_inputs, pm=None, test=None, pkg=None)
+    commands.launch(api, protocol, project, save_input, local, accept_quote, params, test_inputs, pm=None, test=None, pkg=None)
 
 
 @cli.command('select_org')

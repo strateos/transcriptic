@@ -150,11 +150,38 @@ def makedirs(name, mode=None, exist_ok=False):
     makedirs(name, mode, exist_ok)
 
 
-class PreviewParameters:
-    """This class will modify the input parameters used by the web application, into usable preview parameters for
-    protocol debugging.
+class TestParameters:
+    """
+    A TestParameters object modifies web browser quick launch parameters and modifies them for application
+    protocol testing and debugging.
+
+    Attributes
+    ------
+    params: dict
+        web browser generated inputs for quick launch
+
+    selected_aliquots: defaultdict
+        all aliquots selected through the web quick launch manifest
+
+    modified_params: dict
+        the modified quick launch launch parameters, converts quick launch aliquot objects into strings for debugging
+
+    refs: dict
+        all unique refs seen in the quick launch parameters
+
+    preview: dict
+        the combination of refs and modified_params for scientific application debugging
+
     """
     def __init__(self, params):
+        """
+        Initialize TestParameter by providing a web generated params dict.
+
+        Parameters
+        ----------
+        params: dict
+            web browser generated inputs for quick launch
+        """
         self.params = params
         self.selected_aliquots = defaultdict(list)
         self.modified_params = self.modify_preview_parameters()
@@ -210,7 +237,7 @@ class PreviewParameters:
         for cid, well_arr in self.selected_aliquots.items():
             container = Container(cid)
             cont_name = container.name.replace(' ', '_')
-            ref_aliquots = PreviewParameters.container_aliquots(container)
+            ref_aliquots = TestParameters.container_aliquots(container)
             ref_dict[cont_name] = {
                 'label': container.name,
                 'type': container.attributes['container_type_id'],

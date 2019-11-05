@@ -14,7 +14,7 @@ from jinja2 import Environment, PackageLoader
 from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs, PreviewParameters
+from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs, TestParameters
 from transcriptic import routes
 
 import sys
@@ -704,7 +704,7 @@ def compile(protocol_name, args):
     call(["bash", "-c", command + " " + ' '.join(args)])
 
 
-def launch(api, protocol, project, save_input, local, accept_quote, params, debug_inputs, pm=None, test=None, pkg=None):
+def launch(api, protocol, project, save_input, local, accept_quote, params, test_inputs, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
@@ -756,8 +756,8 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, debu
         if save_input:
             try:
                 with click.open_file(save_input, 'w') as f:
-                    if debug_inputs:
-                        pp = PreviewParameters({'parameters': quick_launch["raw_inputs"]})
+                    if test_inputs:
+                        pp = TestParameters({'parameters': quick_launch["raw_inputs"]})
                         f.write(json.dumps(pp.preview, indent=2))
                     else:
                         f.write(
@@ -774,8 +774,8 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, debu
             if save_input:
                 try:
                     with click.open_file(save_input, 'w') as f:
-                        if debug_inputs:
-                            pp = PreviewParameters(params)
+                        if test_inputs:
+                            pp = TestParameters(params)
                             f.write(json.dumps(pp.preview, indent=2))
                         else:
                             f.write(json.dumps(params, indent=2))
