@@ -139,7 +139,7 @@ class Connection(object):
             self.token = token
 
         # Initialize feature groups
-        feature_groups = set(['can_submit_autoprotocol', 'can_upload_packages'])
+        feature_groups = set(['can_upload_packages'])
         self.feature_groups = list(feature_groups.intersection(feature_groups))
 
         # Initialize CLI parameters
