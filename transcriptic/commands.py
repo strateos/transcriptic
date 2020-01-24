@@ -769,24 +769,6 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, test
                     f.write(json.dumps(pp.preview, indent=2))
             except Exception as e:
                 print_stderr("\nUnable to save inputs: %s" % str(e))
-
-
-
-
-        # # Save the protocol input locally if the user specified the save_input option
-        # if save_input:
-        #     try:
-        #         with click.open_file(save_input, 'w') as f:
-        #             if test_inputs:
-        #                 pp = TestParameters({'parameters': quick_launch["raw_inputs"]})
-        #                 f.write(json.dumps(pp.preview, indent=2))
-        #             else:
-        #                 f.write(
-        #                     json.dumps(dict(parameters=quick_launch["raw_inputs"]), indent=2)
-        #                 )
-        #     except Exception as e:
-        #         print_stderr("\nUnable to save inputs: %s" % str(e))
-        #
     if not local:
         # For remote execution, use input params file if specified, else use quick_launch inputs
         if not params:
