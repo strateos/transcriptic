@@ -453,10 +453,11 @@ def compile_cmd(protocol_name, args):
 )
 @click.option(
     '--test_inputs',
-    is_flag=True,
+    metavar='FILE',
     required=False,
-    help='Adding this flag to "--save_inputs" will modify the saved inputs file to return '
-         'testing parameters, refs, and aliquots with properties for protocol testing and debugging.'
+    help='This will modify the saved inputs file to return '
+         'testing parameters, refs, and aliquots with properties for protocol '
+         'testing and debugging.'
 )
 @click.option(
     '--local',
