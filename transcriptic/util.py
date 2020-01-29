@@ -196,6 +196,7 @@ class TestParameters:
 
     def traverse(self, obj, callback=None):
         if isinstance(obj, dict):
+            # If object has 'containerId' and 'wellIndex', then it is an aliquot
             if list(obj.keys()) == ['containerId', 'wellIndex']:
                 value = obj
             else:
@@ -210,30 +211,29 @@ class TestParameters:
         else:
             return callback(value)
 
-    def create_container_string(self, aliquot):
-        if isinstance(aliquot, dict):
-            container_id = aliquot.get('containerId', None)
-            well_idx = aliquot.get('wellIndex', None)
-        elif isinstance(aliquot, str):
-            well_idx = None
-            if aliquot[:2] == 'ct':
-                container_id = aliquot
-            else:
-                container_id = None
+    def create_container_string(self, value):
+        container_id = None
+        well_idx = None
+        if isinstance(value, dict):
+            container_id = value.get('containerId', None)
+            well_idx = value.get('wellIndex', None)
+        elif isinstance(value, str):
+            if value[:2] == 'ct':
+                container_id = value
         else:
-            raise ValueError('This {} {} is not supported by this action method'.format(type(aliquot), aliquot))
+            container_id = None
 
         if container_id:
             container = Container(container_id)
             cont_name = container.name.replace(' ', '_')
-            var = self.selected_aliquots[container.id]
+            arr = self.selected_aliquots[container.id]
             if well_idx:
-                var.append(well_idx)
+                arr.append(well_idx)
                 return '{}/{}'.format(cont_name, well_idx)
             else:
                 return cont_name
         else:
-            return aliquot
+            return value
 
     def build_preview(self):
         preview = {'preview': dict()}
