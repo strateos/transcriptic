@@ -213,16 +213,25 @@ class TestParameters:
     def create_container_string(self, aliquot):
         if isinstance(aliquot, dict):
             container_id = aliquot.get('containerId', None)
+            well_idx = aliquot.get('wellIndex', None)
         elif isinstance(aliquot, str):
-            container_id = None
+            well_idx = None
+            if aliquot[:2] == 'ct':
+                container_id = aliquot
+            else:
+                container_id = None
         else:
             raise ValueError('This {} {} is not supported by this action method'.format(type(aliquot), aliquot))
 
         if container_id:
-            well_idx = aliquot['wellIndex']
             container = Container(container_id)
-            self.selected_aliquots[container.id].append(well_idx)
-            return '{}/{}'.format(container.name.replace(' ', '_'), well_idx)
+            cont_name = container.name.replace(' ', '_')
+            var = self.selected_aliquots[container.id]
+            if well_idx:
+                var.append(well_idx)
+                return '{}/{}'.format(cont_name, well_idx)
+            else:
+                return cont_name
         else:
             return aliquot
 
