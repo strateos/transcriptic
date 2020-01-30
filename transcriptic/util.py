@@ -189,7 +189,6 @@ class PreviewParameters:
         self.selected_aliquots = defaultdict(list)
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
-
         self.preview = self.build_preview()
 
     def modify_preview_parameters(self):
@@ -235,6 +234,7 @@ class PreviewParameters:
                 container_id = value
                 container = Container(container_id)
                 cont_name = container.name.replace(' ', '_')
+                self.selected_aliquots[container_id]
                 return cont_name
             else:
                 return value
