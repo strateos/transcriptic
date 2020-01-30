@@ -206,7 +206,7 @@ class PreviewParameters:
         """
         if isinstance(obj, dict):
             # If object has 'containerId' and 'wellIndex', then it is an aliquot
-            if list(obj.keys()) == ['containerId', 'wellIndex']:
+            if 'containerId' and 'wellIndex' in obj.keys():
                 return self.create_string_from_aliquot(value=obj)
             else:
                 value = {k: self.traverse(v, callback) for k, v in obj.items()}
