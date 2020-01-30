@@ -19,7 +19,8 @@ def flatmap(func, items):
 def ascii_encode(non_compatible_string):
     """Primarily used for ensuring terminal display compatibility"""
     if non_compatible_string:
-        return non_compatible_string.encode('ascii', errors='ignore').decode("ascii")
+        return non_compatible_string.encode('ascii', errors='ignore').decode(
+            "ascii")
     else:
         return ""
 
@@ -125,7 +126,8 @@ def humanize(well_ref, well_count, col_count):
         try:
             well_ref = int(well_ref)
         except:
-            raise ValueError("Well reference (%s) given has to be parseable into int." % well_ref)
+            raise ValueError(
+                "Well reference (%s) given has to be parseable into int." % well_ref)
     if not isinstance(well_ref, int):
         raise TypeError("Well reference (%s) given "
                         "is not of type 'int'." % well_ref)
@@ -150,7 +152,7 @@ def makedirs(name, mode=None, exist_ok=False):
     makedirs(name, mode, exist_ok)
 
 
-class TestParameters:
+class PreviewParameters:
     """
     A TestParameters object modifies web browser quick launch parameters and modifies them for application
     protocol testing and debugging.
@@ -173,6 +175,7 @@ class TestParameters:
         the combination of refs and modified_params for scientific application debugging
 
     """
+
     def __init__(self, params):
         """
         Initialize TestParameter by providing a web generated params dict.
@@ -186,19 +189,26 @@ class TestParameters:
         self.selected_aliquots = defaultdict(list)
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
+
         self.preview = self.build_preview()
 
     def modify_preview_parameters(self):
-        return self.traverse_modify(self.params, self.create_container_string)
-
-    def traverse_modify(self, obj, action):
-        return self.traverse(obj, callback=action)
+        """
+        This method will traverse the quick launch 'raw_inputs' and modify
+        container ids and aliquot dicts into a preview parameter container
+        string for autoprotocol generation debugging.
+        """
+        return self.traverse(self.params, self.create_preview_string)
 
     def traverse(self, obj, callback=None):
+        """
+        Will traverse quick launch object and send value to a callback
+        action method.
+        """
         if isinstance(obj, dict):
             # If object has 'containerId' and 'wellIndex', then it is an aliquot
             if list(obj.keys()) == ['containerId', 'wellIndex']:
-                value = obj
+                return self.create_string_from_aliquot(value=obj)
             else:
                 value = {k: self.traverse(v, callback) for k, v in obj.items()}
         elif isinstance(obj, list):
@@ -211,50 +221,48 @@ class TestParameters:
         else:
             return callback(value)
 
-    def create_container_string(self, value):
-        container_id = None
-        well_idx = None
-        if isinstance(value, dict):
-            container_id = value.get('containerId', None)
-            well_idx = value.get('wellIndex', None)
-        elif isinstance(value, str):
+    def create_string_from_aliquot(self, value):
+        container_id = value.get("containerId", None)
+        well_idx = value.get("wellIndex", None)
+        container = Container(container_id)
+        cont_name = container.name.replace(' ', '_')
+        self.selected_aliquots[container_id].append(well_idx)
+        return '{}/{}'.format(cont_name, well_idx)
+
+    def create_preview_string(self, value):
+        if isinstance(value, str):
             if value[:2] == 'ct':
                 container_id = value
-        else:
-            container_id = None
-
-        if container_id:
-            container = Container(container_id)
-            cont_name = container.name.replace(' ', '_')
-            arr = self.selected_aliquots[container.id]
-            if well_idx:
-                arr.append(well_idx)
-                return '{}/{}'.format(cont_name, well_idx)
-            else:
+                container = Container(container_id)
+                cont_name = container.name.replace(' ', '_')
                 return cont_name
+            else:
+                return value
         else:
             return value
+
+    def generate_refs(self):
+        """
+        This method takes the aggregated containers and aliquots to produce
+        """
+        ref_dict = dict()
+        for cid, well_arr in self.selected_aliquots.items():
+            container = Container(cid)
+            cont_name = container.name.replace(' ', '_')
+            ref_dict[cont_name] = {
+                'label': container.name,
+                'type': container.attributes['container_type_id'],
+                'store': container.storage,
+                'seal': container.cover,
+                'aliquots': PreviewParameters.container_aliquots(container)
+            }
+        return {'refs': ref_dict}
 
     def build_preview(self):
         preview = {'preview': dict()}
         preview['preview'].update(self.refs)
         preview['preview'].update(self.modified_params)
         return preview
-
-    def generate_refs(self):
-        ref_dict = dict()
-        for cid, well_arr in self.selected_aliquots.items():
-            container = Container(cid)
-            cont_name = container.name.replace(' ', '_')
-            ref_aliquots = TestParameters.container_aliquots(container)
-            ref_dict[cont_name] = {
-                'label': container.name,
-                'type': container.attributes['container_type_id'],
-                'store': container.storage,
-                'seal': container.cover,
-                'aliquots': {well_idx: ref_aliquots[well_idx] for well_idx in well_arr}
-            }
-        return {'refs': ref_dict}
 
     @classmethod
     def container_aliquots(cls, container):
@@ -263,6 +271,6 @@ class TestParameters:
             ref_aliquots[ali['well_idx']] = {
                 'name': ali['name'],
                 'properties': ali['properties'],
-                'volume': '0.0:microliters'
+                'volume': ali['volume_ul']
             }
         return ref_aliquots

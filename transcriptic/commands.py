@@ -14,7 +14,7 @@ from jinja2 import Environment, PackageLoader
 from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs, TestParameters
+from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs, PreviewParameters
 from transcriptic import routes
 
 import sys
@@ -874,10 +874,11 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, test
     if test_inputs:
         try:
             with click.open_file(test_inputs, 'w') as f:
-                pp = TestParameters({'parameters': quick_launch["raw_inputs"]})
+                pp = PreviewParameters({'parameters': quick_launch["raw_inputs"]})
                 f.write(json.dumps(pp.preview, indent=2))
         except Exception as e:
-            print_stderr("\nUnable to save inputs: %s" % str(e))
+            print_stderr("\nUnable to save preview inputs: %s" % str(e))
+        return None
 
 
 def select_org(api, config, organization=None):
