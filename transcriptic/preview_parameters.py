@@ -36,7 +36,7 @@ class PreviewParameters:
             web browser generated inputs for quick launch
         """
         self.params = params
-        self.selected_aliquots = defaultdict(list)
+        self.selected_aliquots = []  # defaultdict(list)
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
         self.preview = self.build_preview()
@@ -71,20 +71,22 @@ class PreviewParameters:
             return callback(value)
 
     def create_string_from_aliquot(self, value):
+        """Creates preview aliquot representation"""
         container_id = value.get("containerId", None)
         well_idx = value.get("wellIndex", None)
         container = Container(container_id)
         cont_name = container.name.replace(' ', '_')
-        self.selected_aliquots[container_id].append(well_idx)
+        self.selected_aliquots.append((container, well_idx))
         return '{}/{}'.format(cont_name, well_idx)
 
     def create_preview_string(self, value):
+        """Creates preview parameters string reprsentation"""
         if isinstance(value, str):
             if value[:2] == 'ct':
                 container_id = value
                 container = Container(container_id)
                 cont_name = container.name.replace(' ', '_')
-                self.selected_aliquots[container_id]
+                self.selected_aliquots.append((container, None))
                 return cont_name
             else:
                 return value
@@ -94,10 +96,10 @@ class PreviewParameters:
     def generate_refs(self):
         """
         This method takes the aggregated containers and aliquots to produce
+        the refs aliquot values
         """
         ref_dict = dict()
-        for cid, well_arr in self.selected_aliquots.items():
-            container = Container(cid)
+        for container, idx in self.selected_aliquots:
             cont_name = container.name.replace(' ', '_')
             ref_dict[cont_name] = {
                 'label': container.name,
