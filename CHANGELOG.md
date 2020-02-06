@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+## v7.0.1
+Fixed
+- Removal of `can_submit_autoprotocol` feature group in the default `.transcriptic`
+
 ## v7.0.0
 Added
 - zsh auto-completion support
