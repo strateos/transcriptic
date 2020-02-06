@@ -15,9 +15,11 @@ from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
+from transcriptic.preview_parameters import PreviewParameters
 from transcriptic import routes
 
 import sys
+
 
 
 def submit(api, file, project, title=None, test=None, pm=None):
@@ -703,7 +705,7 @@ def compile(protocol_name, args):
     call(["bash", "-c", command + " " + ' '.join(args)])
 
 
-def launch(api, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
+def launch(api, protocol, project, save_input, local, accept_quote, params, test_inputs, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
@@ -864,6 +866,14 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, pm=N
             run_protocol(
                 api, manifest, protocol_obj, inputs
             )
+    if test_inputs:
+        try:
+            with click.open_file(test_inputs, 'w') as f:
+                pp = PreviewParameters({'parameters': quick_launch["raw_inputs"]})
+                f.write(json.dumps(pp.preview, indent=2))
+        except Exception as e:
+            print_stderr("\nUnable to save preview inputs due to not being able "
+                         "to process: %s %s" % type(e), str(e))
 
 
 def select_org(api, config, organization=None):
