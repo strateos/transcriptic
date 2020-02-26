@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+## v7.1.2
+Fixed
+- py27 tox validation
+
 ## v7.1.1
 Added 
 - "--test_inputs" flag added to the transcriptic cli "launch" command. Adding new flag will modify the quick launch inputs into usable preview parameters for protocol debugging.

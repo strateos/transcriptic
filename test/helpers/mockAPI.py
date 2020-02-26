@@ -1,4 +1,6 @@
-from builtins import object
+import sys
+if sys.version_info.major == 3:
+    from builtins import object
 from collections import deque
 
 """Keys in mockDB correspond to (method, route) calls"""

@@ -67,7 +67,7 @@ setup(
     packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     include_package_data=True,
     tests_require=test_deps,
-    python_requires='>=3.5',
+    python_requidres='>=3.5',
     install_requires=[
         'Click>=7.0,<8',
         'requests>=2.0,<3',
