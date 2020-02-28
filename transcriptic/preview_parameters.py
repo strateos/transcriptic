@@ -4,8 +4,8 @@ from transcriptic.jupyter.objects import Container
 
 class PreviewParameters:
     """
-    A PreviewParameters object modifies web browser quick launch parameters and modifies them for application
-    protocol testing and debugging.
+    A PreviewParameters object modifies web browser quick launch parameters and
+    modifies them for application protocol testing and debugging.
 
     Attributes
     ------
@@ -16,14 +16,15 @@ class PreviewParameters:
         all aliquots selected through the web quick launch manifest
 
     modified_params: dict
-        the modified quick launch launch parameters, converts quick launch aliquot objects into strings for debugging
+        the modified quick launch launch parameters, converts quick launch
+        aliquot objects into strings for debugging
 
     refs: dict
         all unique refs seen in the quick launch parameters
 
     preview: dict
-        the combination of refs and modified_params for scientific application debugging
-
+        the combination of refs and modified_params for scientific
+        application debugging
     """
 
     def __init__(self, params):
