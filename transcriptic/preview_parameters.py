@@ -123,6 +123,6 @@ class PreviewParameters:
             ref_aliquots[ali['well_idx']] = {
                 'name': ali['name'],
                 'properties': ali['properties'],
-                'volume': ali['volume_ul']
+                'volume': '{}:microliter'.format(ali['volume_ul'])
             }
         return ref_aliquots
