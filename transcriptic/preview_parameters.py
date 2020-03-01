@@ -1,6 +1,5 @@
 from collections import defaultdict
-from transcriptic.jupyter.objects import Container
-
+from transcriptic import Connection
 
 class PreviewParameters:
     """
@@ -27,20 +26,29 @@ class PreviewParameters:
         application debugging
     """
 
-    def __init__(self, params):
+    def __init__(self, api, quick_launch_params):
         """
         Initialize TestParameter by providing a web generated params dict.
 
         Parameters
         ----------
-        params: dict
+        quick_launch_params: dict
             web browser generated inputs for quick launch
         """
-        self.params = params
-        self.selected_aliquots = []  # defaultdict(list)
+        self.api = api
+        self.quick_launch_params = quick_launch_params
+        self.container_cache = {}
+        self.selected_samples = {}
+        self.preview = self.build_preview()
+
+    def build_preview(self):
+        """Builds preview parameters"""
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
-        self.preview = self.build_preview()
+        preview = defaultdict(dict)
+        preview['preview'].update(self.refs)
+        preview['preview'].update(self.modified_params)
+        return preview
 
     def modify_preview_parameters(self):
         """
@@ -48,7 +56,26 @@ class PreviewParameters:
         container ids and aliquot dicts into a preview parameter container
         string for autoprotocol generation debugging.
         """
-        return self.traverse(self.params, self.create_preview_string)
+        return self.traverse(self.quick_launch_params, self.create_preview_string)
+
+    def generate_refs(self):
+        """
+        This method takes the aggregated containers and aliquots to produce
+        the refs aliquot values
+        """
+        ref_dict = defaultdict(dict)
+        for cid, index_arr in self.selected_samples.items():
+            container = self.container_cache.get(cid)
+            cont_name = container.get('label')
+            ref_dict['refs'][cont_name] = {
+                'label': cont_name,
+                'type': container.get('type'),
+                'store': container.get('storage_condition'),
+                'seal': container.get('cover'),
+                'properties': container.get('properties'),
+                'aliquots': self.get_selected_aliquots(container, index_arr)
+            }
+        return ref_dict
 
     def traverse(self, obj, callback=None):
         """
@@ -71,13 +98,22 @@ class PreviewParameters:
         else:
             return callback(value)
 
+    def add_to_cache(self, container_id):
+        """Adds requested container to cache for later use"""
+        if container_id in self.container_cache:
+            container = self.container_cache[container_id]
+        else:
+            container = self.api.get_container(container_id)
+            self.container_cache[container_id] = container
+        return container
+
     def create_string_from_aliquot(self, value):
         """Creates preview aliquot representation"""
-        container_id = value.get("containerId", None)
-        well_idx = value.get("wellIndex", None)
-        container = Container(container_id)
-        cont_name = container.name.replace(' ', '_')
-        self.selected_aliquots.append((container, well_idx))
+        well_idx = value.get("wellIndex")
+        container_id = value.get("containerId")
+        container = self.add_to_cache(container_id)
+        cont_name = container.get('label').replace(' ', '_')
+        self.add_to_selected(container_id, well_idx)
         return '{}/{}'.format(cont_name, well_idx)
 
     def create_preview_string(self, value):
@@ -85,45 +121,31 @@ class PreviewParameters:
         if isinstance(value, str):
             if value[:2] == 'ct':
                 container_id = value
-                container = Container(container_id)
-                cont_name = container.name.replace(' ', '_')
-                self.selected_aliquots.append((container, None))
+                container = self.add_to_cache(container_id)
+                cont_name = container.get('label').replace(' ', '_')
+                self.add_to_selected(container_id)
                 return cont_name
             else:
                 return value
         else:
             return value
 
-    def generate_refs(self):
-        """
-        This method takes the aggregated containers and aliquots to produce
-        the refs aliquot values
-        """
-        ref_dict = dict()
-        for container, idx in self.selected_aliquots:
-            cont_name = container.name.replace(' ', '_')
-            ref_dict[cont_name] = {
-                'label': container.name,
-                'type': container.attributes['container_type_id'],
-                'store': container.storage,
-                'seal': container.cover,
-                'aliquots': PreviewParameters.container_aliquots(container)
-            }
-        return {'refs': ref_dict}
+    def add_to_selected(self, container_id, well_idx=None):
+        """Saves which containers were selected."""
+        if container_id in self.selected_samples:
+            self.selected_samples[container_id].append(well_idx)
+        else:
+            self.selected_samples[container_id] = [well_idx]
 
-    def build_preview(self):
-        preview = {'preview': dict()}
-        preview['preview'].update(self.refs)
-        preview['preview'].update(self.modified_params)
-        return preview
-
-    @classmethod
-    def container_aliquots(cls, container):
+    def get_selected_aliquots(self, container, index_arr):
+        """Grabs the properties from the selected aliquots"""
         ref_aliquots = dict()
-        for ali in container.attributes['aliquots']:
-            ref_aliquots[ali['well_idx']] = {
-                'name': ali['name'],
-                'properties': ali['properties'],
-                'volume': '{}:microliter'.format(ali['volume_ul'])
+        container_aliquots = container.get('aliquots')
+        for i in index_arr:
+            ali = container_aliquots[-int(i)]
+            ref_aliquots[i] = {
+                'name': ali.get('name'),
+                'volume': '{}:microliter'.format(ali.get('volume_ul')),
+                'properties': ali.get('properties')
             }
         return ref_aliquots
