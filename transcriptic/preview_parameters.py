@@ -36,9 +36,9 @@ class PreviewParameters:
             web browser generated inputs for quick launch
         """
         self.api = api
-        self.quick_launch_params = quick_launch_params
         self.container_cache = {}
         self.selected_samples = {}
+        self.quick_launch_params = quick_launch_params
         self.preview = self.build_preview()
 
     def build_preview(self):
@@ -46,8 +46,8 @@ class PreviewParameters:
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
         preview = defaultdict(dict)
-        preview['preview'].update(self.refs)
         preview['preview'].update(self.modified_params)
+        preview['preview'].update(self.refs)
         return preview
 
     def modify_preview_parameters(self):
@@ -56,7 +56,9 @@ class PreviewParameters:
         container ids and aliquot dicts into a preview parameter container
         string for autoprotocol generation debugging.
         """
-        return self.traverse(self.quick_launch_params, self.create_preview_string)
+        return self.traverse(
+            obj=self.quick_launch_params, callback=self.create_preview_string
+        )
 
     def generate_refs(self):
         """
@@ -66,12 +68,12 @@ class PreviewParameters:
         ref_dict = defaultdict(dict)
         for cid, index_arr in self.selected_samples.items():
             container = self.container_cache.get(cid)
-            cont_name = container.get('label')
+            cont_name = PreviewParameters.format_container_name(container)
             ref_dict['refs'][cont_name] = {
                 'label': cont_name,
-                'type': container.get('type'),
+                'type': container.get('container_type').get('id'),
                 'store': container.get('storage_condition'),
-                'seal': container.get('cover'),
+                'cover': container.get('cover', None),
                 'properties': container.get('properties'),
                 'aliquots': self.get_selected_aliquots(container, index_arr)
             }
@@ -112,12 +114,12 @@ class PreviewParameters:
         well_idx = value.get("wellIndex")
         container_id = value.get("containerId")
         container = self.add_to_cache(container_id)
-        cont_name = container.get('label').replace(' ', '_')
+        cont_name = PreviewParameters.format_container_name(container)
         self.add_to_selected(container_id, well_idx)
         return '{}/{}'.format(cont_name, well_idx)
 
     def create_preview_string(self, value):
-        """Creates preview parameters string reprsentation"""
+        """Creates preview parameters string representation"""
         if isinstance(value, str):
             if value[:2] == 'ct':
                 container_id = value
@@ -149,3 +151,7 @@ class PreviewParameters:
                 'properties': ali.get('properties')
             }
         return ref_aliquots
+
+    @classmethod
+    def format_container_name(cls, container):
+        return container.get('label').replace(' ', '_')
