@@ -124,7 +124,7 @@ class PreviewParameters:
             if value[:2] == 'ct':
                 container_id = value
                 container = self.add_to_cache(container_id)
-                cont_name = container.get('label').replace(' ', '_')
+                cont_name = PreviewParameters.format_container_name(container)
                 self.add_to_selected(container_id)
                 return cont_name
             else:
