@@ -221,9 +221,11 @@ class PreviewParameters:
                 'type': container.get('container_type').get('id'),
                 'store': container.get('storage_condition'),
                 'cover': container.get('cover', None),
-                'properties': container.get('properties'),
-                'aliquots': self.get_selected_aliquots(container, index_arr)
+                'properties': container.get('properties')
             }
+            if None not in index_arr:
+                ref_dict['refs'][cont_name]['aliquots'] = self.\
+                    get_selected_aliquots(container, index_arr)
         return ref_dict
 
     def traverse(self, obj, callback=None):
