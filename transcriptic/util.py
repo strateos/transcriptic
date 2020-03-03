@@ -290,9 +290,11 @@ class PreviewParameters:
     def get_selected_aliquots(self, container, index_arr):
         """Grabs the properties from the selected aliquots"""
         ref_aliquots = dict()
-        container_aliquots = container.get('aliquots')
+        container_aliquots = {
+            ali['well_idx']: ali for ali in container['aliquots']
+        }
         for i in index_arr:
-            ali = container_aliquots[-int(i)]
+            ali = container_aliquots[i]
             ref_aliquots[i] = {
                 'name': ali.get('name'),
                 'volume': '{}:microliter'.format(ali.get('volume_ul')),
