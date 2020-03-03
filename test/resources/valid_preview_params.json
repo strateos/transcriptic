@@ -1,0 +1,24 @@
+{
+  "preview": {
+    "parameters": {
+      "glycerol_stock_well": "Yeast_Growth_Plate/89",
+      "cell_type": "s_cerevisiae"
+    },
+    "refs": {
+      "Yeast_Growth_Plate": {
+        "label": "Yeast_Growth_Plate",
+        "type": "96-deep",
+        "store": "ambient",
+        "cover": null,
+        "properties": {},
+        "aliquots": {
+          "89": {
+            "name": "UWBF_6390: pMOD4G-dcas9-mxi1|pMOD6-pGRR-W17W20-eGFP__X__pMOD8A-RGR-W10 (NOR00)",
+            "volume": "200.0:microliter",
+            "properties": {}
+          }
+        }
+      }
+    }
+  }
+}
