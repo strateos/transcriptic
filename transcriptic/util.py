@@ -172,7 +172,7 @@ class PreviewParameters:
         the combination of refs and modified_params for scientific
         application debugging
     """
-
+    # TODO: Add
     def __init__(self, api, quick_launch_params):
         """
         Initialize TestParameter by providing a web generated params dict.
@@ -192,8 +192,8 @@ class PreviewParameters:
         """Builds preview parameters"""
         self.modified_params = self.modify_preview_parameters()
         self.refs = self.generate_refs()
-        preview = defaultdict(dict)
-        preview['preview'].update(self.modified_params)
+        preview = defaultdict(lambda: defaultdict(dict))
+        preview['preview']["parameters"].update(self.modified_params)
         preview['preview'].update(self.refs)
         return preview
 
@@ -212,7 +212,7 @@ class PreviewParameters:
         This method takes the aggregated containers and aliquots to produce
         the refs aliquot values
         """
-        ref_dict = defaultdict(dict)
+        ref_dict = defaultdict(lambda: defaultdict(dict))
         for cid, index_arr in self.selected_samples.items():
             container = self.container_cache.get(cid)
             cont_name = PreviewParameters.format_container_name(container)
