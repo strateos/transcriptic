@@ -172,7 +172,6 @@ class PreviewParameters:
         the combination of refs and modified_params for scientific
         application debugging
     """
-    # TODO: Add
     def __init__(self, api, quick_launch_params):
         """
         Initialize TestParameter by providing a web generated params dict.
