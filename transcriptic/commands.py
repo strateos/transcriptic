@@ -14,8 +14,8 @@ from jinja2 import Environment, PackageLoader
 from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
-from transcriptic.preview_parameters import PreviewParameters
+from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs,\
+    PreviewParameters
 from transcriptic import routes
 
 import sys
