@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+## 
+Added 
+- "--test_inputs" flag added to the transcriptic cli "launch" command. Adding new flag will modify the quick launch inputs into usable preview parameters for protocol debugging.
+
 ## v7.0.0
 Added
 - zsh auto-completion support
