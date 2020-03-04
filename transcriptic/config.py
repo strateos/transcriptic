@@ -251,6 +251,13 @@ class Connection(object):
             self.update_headers(**{'X-User-Email': None, 'X-User-Token': None})
         self.update_headers(**{'Cookie': value})
 
+    def get_container(self, container_id):
+        route = self.get_route('get_container',
+                               org_id=self.organization_id,
+                               container_id=container_id
+                               )
+        return self.get(route)
+
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
         with open(os.path.expanduser(path), 'w') as f:
