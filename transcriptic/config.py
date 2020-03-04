@@ -139,8 +139,7 @@ class Connection(object):
             self.token = token
 
         # Initialize feature groups
-        feature_groups = set(['can_submit_autoprotocol', 'can_upload_packages'])
-        self.feature_groups = list(feature_groups.intersection(feature_groups))
+        self.feature_groups = feature_groups
 
         # Initialize CLI parameters
         self.verbose = verbose
@@ -251,6 +250,13 @@ class Connection(object):
                           "exclusive. Clearing email and token from headers")
             self.update_headers(**{'X-User-Email': None, 'X-User-Token': None})
         self.update_headers(**{'Cookie': value})
+
+    def get_container(self, container_id):
+        route = self.get_route('get_container',
+                               org_id=self.organization_id,
+                               container_id=container_id
+                               )
+        return self.get(route)
 
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
