@@ -869,7 +869,7 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, test
     if test_inputs:
         try:
             with click.open_file(test_inputs, 'w') as f:
-                pp = PreviewParameters({'parameters': quick_launch["raw_inputs"]})
+                pp = PreviewParameters(api, quick_launch["raw_inputs"])
                 f.write(json.dumps(pp.preview, indent=2))
         except Exception as e:
             print_stderr("\nUnable to save preview inputs due to not being able "
