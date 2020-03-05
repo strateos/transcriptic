@@ -484,6 +484,46 @@ def launch_cmd(ctx, protocol, project, save_input, local, accept_quote, params, 
     api = ctx.obj.api
     commands.launch(api, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None)
 
+@cli.command('preview-params')
+@click.argument('protocol')
+@click.option(
+    '--project', '-p',
+    metavar='PROJECT_ID',
+    required=True,
+    help='Project id or name context for configuring the protocol. Use '
+         '`transcriptic projects` command to list existing projects.'
+)
+@click.option(
+    '--local',
+    is_flag=True,
+    required=False,
+    help='If include, the specified protocol will launch a from the local manifest file.'
+)
+@click.option(
+    '--filename', '-f',
+    metavar='FILE',
+    is_flag=True,
+    required=False,
+    help='If specified, will output generated preview params to file with '
+         'specified filename. The default will be "preview_parameters.json".'
+)
+@click.option(
+    '--merge', '-m',
+    is_flag=True,
+    required=False,
+    help='If specified, will merge the preview parameters generated into manifest used.'
+)
+@click.option(
+    '--pkg',
+    metavar='PACKAGE_ID',
+    required=False,
+    help='Package ID for discriminating between protocols with identical names'
+)
+@click.pass_context
+def generate_preview_parameters_cmd(ctx, protocol, project, local, filename, merge, pkg=None):
+    api = ctx.obj.api
+    commands.generate_preview_parameters(api, protocol, project, local, filename, merge, pkg=None)
+
 
 @cli.command('select_org')
 @click.argument(
