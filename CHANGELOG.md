@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+## 
+Added
+- Add optional Run title to Launch command
+
 ## v7.0.0
 Added
 - zsh auto-completion support
