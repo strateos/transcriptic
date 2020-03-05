@@ -705,7 +705,7 @@ def compile(protocol_name, args):
     call(["bash", "-c", command + " " + ' '.join(args)])
 
 
-def launch(api, protocol, project, save_input, local, accept_quote, params, test_inputs, pm=None, test=None, pkg=None):
+def launch(api, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
@@ -913,8 +913,8 @@ def generate_preview_parameters(api, protocol, project, local, filename, merge, 
                 f.write(json.dumps(pp.preview, indent=2))
                 f.close()
         except Exception as e:
-            print_stderr("\nUnable to save preview inputs due to not being able "
-                         "to process: %s %s" % type(e), str(e))
+            print_stderr("\nUnable to save preview inputs due to not being"
+                         " able to process: %s %s" % type(e), str(e))
     else:
         # Read manifest.json
         with click.open_file('manifest.json', 'r') as f:
@@ -948,8 +948,8 @@ def generate_preview_parameters(api, protocol, project, local, filename, merge, 
                 f.write(json.dumps(merged_manifest, indent=2))
                 f.close()
         except Exception as e:
-            print_stderr("\nUnable to save preview inputs due to not being able "
-                         "to process: %s %s" % type(e), str(e))
+            print_stderr("\nUnable to save preview inputs due to not being"
+                         " able to process: %s %s" % type(e), str(e))
 
 
 def select_org(api, config, organization=None):
