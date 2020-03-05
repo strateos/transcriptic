@@ -914,7 +914,7 @@ def generate_preview_parameters(api, protocol, project, local, filename, merge, 
                 f.close()
         except Exception as e:
             print_stderr("\nUnable to save preview inputs due to not being"
-                         " able to process: %s %s" % type(e), str(e))
+                         " able to process: {} {}".format(type(e), str(e)))
     else:
         # Read manifest.json
         with click.open_file('manifest.json', 'r') as f:
@@ -949,7 +949,7 @@ def generate_preview_parameters(api, protocol, project, local, filename, merge, 
                 f.close()
         except Exception as e:
             print_stderr("\nUnable to save preview inputs due to not being"
-                         " able to process: %s %s" % type(e), str(e))
+                         " able to process: {} {}".format(type(e), str(e)))
 
 
 def select_org(api, config, organization=None):
