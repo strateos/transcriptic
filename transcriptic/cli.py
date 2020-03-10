@@ -449,7 +449,7 @@ def compile_cmd(protocol_name, args):
     metavar='RUN_TITLE',
     required=False,
     help='If specified, will apply custom title to run created, default run title'
-         'will be the "display_name" of the protocol selected with today\'s date.'
+         'will be the DISPLAY-NAME_MM_DD_YYYY of the protocol selected.'
 )
 @click.option(
     '--save_input',
