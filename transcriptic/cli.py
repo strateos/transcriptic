@@ -445,6 +445,13 @@ def compile_cmd(protocol_name, args):
          '`transcriptic projects` command to list existing projects.'
 )
 @click.option(
+    '--title', '-t',
+    metavar='RUN_TITLE',
+    required=False,
+    help='If specified, will apply custom title to run created, default run title'
+         'will be the DISPLAY-NAME_MM_DD_YYYY of the protocol selected.'
+)
+@click.option(
     '--save_input',
     metavar='FILE',
     required=False,
@@ -478,11 +485,11 @@ def compile_cmd(protocol_name, args):
     help='Package ID for discriminating between protocols with identical names'
 )
 @click.pass_context
-def launch_cmd(ctx, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
+def launch_cmd(ctx, protocol, project, title, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     api = ctx.obj.api
-    commands.launch(api, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None)
+    commands.launch(api, protocol, project, title, save_input, local, accept_quote, params, pm=None, test=None, pkg=None)
 
 
 @cli.command('select_org')

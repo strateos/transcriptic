@@ -703,7 +703,7 @@ def compile(protocol_name, args):
     call(["bash", "-c", command + " " + ' '.join(args)])
 
 
-def launch(api, protocol, project, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
+def launch(api, protocol, project, title, save_input, local, accept_quote, params, pm=None, test=None, pkg=None):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
     # Validate payment method
@@ -815,7 +815,10 @@ def launch(api, protocol, project, save_input, local, accept_quote, params, pm=N
             return
 
         from time import strftime, gmtime
-        default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
+        if title:
+            default_title = "{}_{}".format(title, strftime("%b_%d_%Y", gmtime()))
+        else:
+            default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
 
         try:
             req_json = api.submit_launch_request(
