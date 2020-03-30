@@ -1,6 +1,11 @@
 ## `transcriptic` Changelog
 
-## v7.0.1
+Removed
+- References to Phabricator
+
+## 7.1.0
+Added
+- Add optional Run title to Launch command
 Fixed
 - Removal of `can_submit_autoprotocol` feature group in the default `.transcriptic`
 
