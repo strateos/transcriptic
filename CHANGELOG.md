@@ -1,5 +1,8 @@
 ## `transcriptic` Changelog
 
+Removed
+- References to Phabricator
+
 ## 7.1.0
 Added
 - Add optional Run title to Launch command
