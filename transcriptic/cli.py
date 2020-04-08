@@ -276,7 +276,7 @@ def delete_package_cmd(ctx, name, force):
     commands.delete_package(api, name, force)
 
 
-@cli.command('generate_protocol')
+@cli.command('generate-protocol')
 @click.pass_context
 @click.argument('name')
 def generate_protocol_cmd(ctx, name):
@@ -492,7 +492,7 @@ def launch_cmd(ctx, protocol, project, title, save_input, local, accept_quote, p
     commands.launch(api, protocol, project, title, save_input, local, accept_quote, params, pm=None, test=None, pkg=None)
 
 
-@cli.command('select_org')
+@cli.command('select-org')
 @click.argument(
     'organization',
     metavar='ORGANIZATION_NAME',
