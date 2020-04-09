@@ -4,6 +4,8 @@ Added
 - Fish completions
 Updated
 - Made adding autocomplete functionality more explicit
+- Base CLI test framework
+- Standardize on kebab-case for cli commands
 Removed
 - References to Phabricator
 
