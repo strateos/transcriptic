@@ -58,9 +58,18 @@ Password:
 Logged in as me@example.com (example-lab)
 ```
 
-To enable auto tab-completion for the Transcriptic CLI, enter `source transcriptic_bash_complete.sh` into your terminal.
-To enable this for every single session automatically, add `. path/to/transcriptic_bash_complete.sh` to your `.bashrc` file.
-For zsh users, use `transcriptic_zsh_complete.sh` instead and add that to your `.zshrc` file.
+### Tab Completion
+To enable auto-completion for the Transcriptic CLI, you'll need to download an appropriate auto-complete file and add it your shell configuration.
+
+Here's an example script for installing it on a bash shell in your `~/.config` directory.
+```
+$ export INSTALL_DIR=~/.config && mkdir -p $INSTALL_DIR
+$ curl -L https://raw.githubusercontent.com/strateos/transcriptic/master/autocomplete/bash.sh > $INSTALL_DIR/tx_complete.sh && chmod +x $INSTALL_DIR/tx_complete.sh
+$ echo ". $INSTALL_DIR/tx_complete.sh" >> ~/.bash_profile
+```
+- Ubuntu and Fedora note: Modify your `~/.bashrc` instead of `~/.bash_profile`
+- Zsh note: Use `autocomplete/zsh.sh` instead of `bash.sh`. Modify your `~/.zshrc` instead of `~/.bash_profile`
+- Fish note: Use `autocomplete/fish.sh` instead of `bash.sh`. Change `$INSTALL_DIR` to `~/.config/fish/completions` and rename `tx-complete.sh` to `tx-complete.fish`. Skip the last step.
 
 ## Documentation
 

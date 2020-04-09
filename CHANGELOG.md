@@ -1,5 +1,9 @@
 ## `transcriptic` Changelog
 
+Added
+- Fish completions
+Updated
+- Made adding autocomplete functionality more explicit
 Removed
 - References to Phabricator
 
