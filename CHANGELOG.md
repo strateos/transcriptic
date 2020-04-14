@@ -10,6 +10,7 @@ Updated
 - Plotly dependency to 1.13
 - Matplotlib dependency to 3.0.3
 - Spectrophotometry plots now render offline 
+- Dataset object html representation increased
 Fixed
 - Kinetics.Spectrophotometry.plot() function now works again
 - Spectrophotometry.Absorbance/Fluorescence/Luminescence plot() works again
