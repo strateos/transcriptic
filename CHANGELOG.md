@@ -1,5 +1,15 @@
 ## `transcriptic` Changelog
 
+Added
+- Fish completions
+- Autoprotocol dependency for `analysis` package
+Updated
+- Made adding autocomplete functionality more explicit
+- Base CLI test framework
+- Standardize on kebab-case for cli commands
+- Plotly dependency
+Fixed
+- Spectrophotometry.plot() function now works again
 Removed
 - References to Phabricator
 
