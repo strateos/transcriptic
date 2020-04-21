@@ -51,7 +51,7 @@ jupyter_deps = [
 
 analysis_deps = [
     'autoprotocol>=6,<7',
-    'matplotlib>=1.4,<2',
+    'matplotlib>=3,<4',
     'numpy>=1.14,<2',
     'pandas>=0.23,<1',
     'pillow>=3,<4',
