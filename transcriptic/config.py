@@ -77,7 +77,7 @@ class StrateosSign(AuthBase):
         if request.method.upper() in ("PUT", "POST", "PATCH"):
             digest = SHA256.new(request.body).digest()
             sha = base64.b64encode(digest).decode('ascii')
-            request.headers["Digest"] = f"SHA-256={sha}"
+            request.headers["Digest"] = "SHA-256={sha}".format(sha=sha)
             return self.body_auth(request)
 
         return self.auth(request)
@@ -86,7 +86,7 @@ class Connection(object):
     """
     A Connection object is the object used for communicating with Transcriptic.
 
-    Local usage: This is most easily instantiated by using the `from_file` 
+    Local usage: This is most easily instantiated by using the `from_file`
     function after calling `transcriptic login` from the command line.
 
     .. code-block:: shell
@@ -103,7 +103,7 @@ class Connection(object):
         from transcriptic.config import Connection
         api = Connection.from_file("~/.transcriptic")
 
-    For those using Jupyter notebooks on secure.transcriptic.com (beta), a 
+    For those using Jupyter notebooks on secure.transcriptic.com (beta), a
     Connection object is automatically instantiated as api.
 
     .. code-block:: python
@@ -111,8 +111,8 @@ class Connection(object):
 
         from transcriptic import api
 
-    The `api` object can then be used for making any api calls. It is 
-    recommended to use the objects in `transcriptic.objects` since that wraps 
+    The `api` object can then be used for making any api calls. It is
+    recommended to use the objects in `transcriptic.objects` since that wraps
     the response in a more friendly format.
 
     Example Usage:
@@ -123,7 +123,7 @@ class Connection(object):
         api.projects()
         api.runs(project_id="p123456789")
 
-    If you have multiple organizations and would like to switch to a specific 
+    If you have multiple organizations and would like to switch to a specific
     organization, or if you would like to auto-load certain projects, you can
     set it directly by assigning to the corresponding variable.
 
@@ -159,6 +159,8 @@ class Connection(object):
             session = initialize_default_session()
         self.session = session
 
+        self.rsa_key_path = None
+
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
@@ -176,7 +178,7 @@ class Connection(object):
             self.email = email
             self.token = token
             self.rsa_key_path = rsa_key_path
-            self.session.auth = StrateosSign(self.email, self.rsa_key_path)
+            self.session.auth = StrateosSign(self.email, self.rsa_key_path) if self.rsa_key_path else None
 
         # Initialize feature groups
         self.feature_groups = feature_groups
@@ -260,7 +262,7 @@ class Connection(object):
                           "exclusive. Clearing cookie from headers")
             self.update_headers(**{'Cookie': None})
         self.update_headers(**{'X-User-Email': value})
-        self.session.auth = StrateosSign(self.email, self.rsa_key_path)
+        self.session.auth = StrateosSign(self.email, self.rsa_key_path) if self.rsa_key_path else None
 
     @property
     def token(self):
@@ -304,7 +306,8 @@ class Connection(object):
                         'api_root': self.api_root,
                         'analytics': self.analytics,
                         'user_id': self.user_id,
-                        'feature_groups': self.feature_groups
+                        'feature_groups': self.feature_groups,
+                        'rsa_key_path': self.rsa_key_path
                     },
                     indent=2
                 )
@@ -312,7 +315,7 @@ class Connection(object):
 
     def update_environment(self, **kwargs):
         """
-        Updates environment variables used for computing routes. 
+        Updates environment variables used for computing routes.
         To remove an existing variable, set value to None.
         """
         self.env_args = dict(self.env_args, **kwargs)
@@ -976,7 +979,7 @@ class Connection(object):
         data_id: data_id
             Data id of file to download
         file_path: Optional[str]
-            Path to file which to save the response to. If specified, will not 
+            Path to file which to save the response to. If specified, will not
             return ZipFile explicitly.
 
         Returns
