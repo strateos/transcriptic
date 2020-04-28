@@ -7,9 +7,13 @@ Updated
 - Made adding autocomplete functionality more explicit
 - Base CLI test framework
 - Standardize on kebab-case for cli commands
-- Plotly dependency
+- Plotly dependency to 1.13
+- Matplotlib dependency to 3.0.3
+- Spectrophotometry plots now render offline 
+- Dataset object html representation increased
 Fixed
-- Spectrophotometry.plot() function now works again
+- Kinetics.Spectrophotometry.plot() function now works again
+- Spectrophotometry.Absorbance/Fluorescence/Luminescence plot() works again
 Removed
 - References to Phabricator
 

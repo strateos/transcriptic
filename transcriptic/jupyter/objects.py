@@ -504,7 +504,7 @@ class Dataset(_BaseObject):
 
     def _repr_html_(self):
         return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-            style="height:400px; width:450px" seamless></iframe>""" % \
+            style="height:400px; width:600px" seamless></iframe>""" % \
                self.connection.get_route('view_data', data_id=self.id)
 
 

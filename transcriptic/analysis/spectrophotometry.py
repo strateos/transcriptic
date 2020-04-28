@@ -2,7 +2,7 @@ from transcriptic.util import humanize
 from transcriptic import dataset as get_dataset
 
 try:
-    import plotly.plotly as py
+    import plotly as py
     import pandas
     import matplotlib.pyplot as plt
     import plotly.tools as tls
@@ -142,6 +142,8 @@ class _PlateRead(object):
         \**plot_kwargs : dict, optional
             Optional dictionary of specifications for your plot type of choice
         """
+        py.offline.init_notebook_mode()
+
         mpl_fig, ax = plt.subplots()
         nl = "\n" if mpl else "<br>"
         ax.set_ylabel(self.op_type + nl + self.params["wavelength"])
@@ -166,7 +168,7 @@ class _PlateRead(object):
                 }
             pyfig = tls.mpl_to_plotly(mpl_fig)
             pyfig.update(plt_kwargs)
-            return py.iplot(pyfig)
+            return py.offline.iplot(pyfig)
 
 
 class Absorbance(_PlateRead):

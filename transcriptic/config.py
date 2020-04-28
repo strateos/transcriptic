@@ -980,7 +980,6 @@ class Connection(object):
             else:
                 raise Exception("For route: {0}, argument {1} needs to be "
                                 "provided.".format(method, arg))
-
         return route_method(*tuple(input_args))
 
     def get(self, route, **kwargs):
