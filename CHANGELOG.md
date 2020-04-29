@@ -1,6 +1,7 @@
 ## `transcriptic` Changelog
 
 Added
+- auto-deploy functionality
 - Fish completions
 - Autoprotocol dependency for `analysis` package
 Updated
