@@ -14,6 +14,7 @@ from jinja2 import Environment, PackageLoader
 from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
+from transcriptic.signing import StrateosSign
 from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
 from transcriptic import routes
 
@@ -887,7 +888,7 @@ def select_org(api, config, organization=None):
     click.echo('Logged in with organization: {}'.format(organization))
 
 
-def login(api, config, api_root=None, analytics=True):
+def login(api, config, api_root=None, analytics=True, enable_signing=False):
     """Authenticate to your Transcriptic account."""
     if api_root is None:
         # Always default to the pre-defined api-root if possible, else use
@@ -899,6 +900,14 @@ def login(api, config, api_root=None, analytics=True):
 
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
+
+    rsa_auth = None
+    rsa_key_path = None
+    if enable_signing:
+        rsa_key_path = click.prompt('RSA Private Key Path')
+        with open(rsa_key_path, "rb") as key_file:
+            rsa_auth = StrateosSign(email, key_file.read())
+
     try:
         r = api.post(
             routes.login(api_root=api_root),
@@ -916,7 +925,8 @@ def login(api, config, api_root=None, analytics=True):
                 '200': lambda resp: resp,
                 '401': lambda resp: resp,
                 'default': lambda resp: resp
-            }
+            },
+            auth=rsa_auth
         )
 
     except requests.exceptions.RequestException:
@@ -951,7 +961,7 @@ def login(api, config, api_root=None, analytics=True):
     api = Connection(email=email, token=token,
                      organization_id=organization, api_root=api_root,
                      user_id=user_id, analytics=analytics,
-                     feature_groups=feature_groups)
+                     feature_groups=feature_groups, rsa_key=rsa_key_path)
     api.save(config)
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 

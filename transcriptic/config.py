@@ -3,20 +3,16 @@ import io
 import json
 import os
 import platform
-import base64
-from email.utils import formatdate
 import requests
-from requests.auth import AuthBase
 import time
-from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from pathlib import Path
-from httpsig.requests_auth import HTTPSignatureAuth
 import transcriptic
 import warnings
 import zipfile
 
 from . import routes
+from .signing import StrateosSign
 from .version import __version__
 
 try:
@@ -50,39 +46,6 @@ def initialize_default_session():
         )
     }
     return session
-
-class StrateosSign(AuthBase):
-    """Signs requests"""
-    def __init__(self, email, secret=None):
-        self.email = email
-        self.secret = secret
-        headers = ["(request-target)", "Date", "Host"]
-        body_headers = ["Digest", "Content-Length"]
-        self.auth = HTTPSignatureAuth(
-            key_id=self.email,
-            algorithm="rsa-sha256",
-            headers=headers, secret=self.secret
-        )
-        self.body_auth = HTTPSignatureAuth(
-            key_id=self.email,
-            algorithm="rsa-sha256",
-            headers=headers+body_headers,
-            secret=self.secret
-        )
-
-    def __call__(self, request):
-        if "Date" not in request.headers:
-            request.headers["Date"] = formatdate(
-                timeval=None, localtime=False, usegmt=True
-            )
-
-        if request.method.upper() in ("PUT", "POST", "PATCH"):
-            digest = SHA256.new(request.body).digest()
-            sha = base64.b64encode(digest).decode('ascii')
-            request.headers["Digest"] = "SHA-256={sha}".format(sha=sha)
-            return self.body_auth(request)
-
-        return self.auth(request)
 
 class Connection(object):
     """
@@ -352,7 +315,9 @@ class Connection(object):
         self.update_session_auth()
 
     def update_session_auth(self, use_signature=True):
-        if  use_signature and self._rsa_secret:
+        if use_signature \
+                and self._rsa_secret \
+                and "X-User-Email" in self.session.headers:
             self.session.auth = StrateosSign(
                 self.email,
                 self._rsa_secret

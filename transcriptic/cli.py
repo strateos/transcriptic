@@ -510,12 +510,13 @@ def select_org_cmd(ctx, organization=None):
 
 
 @cli.command('login')
+@click.option('--enable-signing', is_flag=True, help='Enable RSA request signing')
 @click.pass_context
-def login_cmd(ctx, api_root=None, analytics=True):
+def login_cmd(ctx, api_root=None, analytics=True, enable_signing=False):
     """Authenticate to your Transcriptic account."""
     api = ctx.obj.api
     config = ctx.parent.params['config']
-    commands.login(api, config, api_root, analytics)
+    commands.login(api, config, api_root, analytics, enable_signing)
 
 
 @cli.command('format', cls=FeatureCommand, feature='can_upload_packages')
