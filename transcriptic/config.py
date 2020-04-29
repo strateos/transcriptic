@@ -9,6 +9,8 @@ import requests
 from requests.auth import AuthBase
 import time
 from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
+from pathlib import Path
 from httpsig.requests_auth import HTTPSignatureAuth
 import transcriptic
 import warnings
@@ -51,9 +53,9 @@ def initialize_default_session():
 
 class StrateosSign(AuthBase):
     """Signs requests"""
-    def __init__(self, email, key_path, secret=None):
+    def __init__(self, email, secret=None):
         self.email = email
-        self.secret = secret or open(key_path, 'rb').read()
+        self.secret = secret
         headers = ["(request-target)", "Date", "Host"]
         body_headers = ["Digest", "Content-Length"]
         self.auth = HTTPSignatureAuth(
@@ -147,7 +149,7 @@ class Connection(object):
             analytics=True,
             user_id="default",
             feature_groups=[],
-            rsa_key_path=None,
+            rsa_key=None,
             session=None):
         # Initialize environment args used for computing routes
         self.env_args = dict()
@@ -159,7 +161,12 @@ class Connection(object):
             session = initialize_default_session()
         self.session = session
 
-        self.rsa_key_path = None
+        # Intirialize RSA props
+        self._rsa_key = None
+        self._rsa_key_path = None
+        self._rsa_secret = None
+        # Set/Load rsa_key from arguement as string or Path
+        self.rsa_key = rsa_key
 
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
@@ -170,6 +177,7 @@ class Connection(object):
             self.session.headers["X-User-Email"] = None
             self.session.headers["X-User-Token"] = None
             self.cookie = cookie
+            self.update_session_auth(use_signature=False)
         else:
             if cookie is not None:
                 warnings.warn("Cookie and token authentication is mutually "
@@ -177,8 +185,7 @@ class Connection(object):
             self.session.headers["Cookie"] = None
             self.email = email
             self.token = token
-            self.rsa_key_path = rsa_key_path
-            self.session.auth = StrateosSign(self.email, self.rsa_key_path) if self.rsa_key_path else None
+            self.update_session_auth()
 
         # Initialize feature groups
         self.feature_groups = feature_groups
@@ -262,7 +269,7 @@ class Connection(object):
                           "exclusive. Clearing cookie from headers")
             self.update_headers(**{'Cookie': None})
         self.update_headers(**{'X-User-Email': value})
-        self.session.auth = StrateosSign(self.email, self.rsa_key_path) if self.rsa_key_path else None
+        self.update_session_auth()
 
     @property
     def token(self):
@@ -294,6 +301,15 @@ class Connection(object):
             self.update_headers(**{'X-User-Email': None, 'X-User-Token': None})
         self.update_headers(**{'Cookie': value})
 
+    @property
+    def rsa_key(self):
+        return self._rsa_key
+
+    @rsa_key.setter
+    def rsa_key(self, value):
+        self._rsa_key = value
+        self.load_rsa_secret()
+
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
         with open(os.path.expanduser(path), 'w') as f:
@@ -307,11 +323,42 @@ class Connection(object):
                         'analytics': self.analytics,
                         'user_id': self.user_id,
                         'feature_groups': self.feature_groups,
-                        'rsa_key_path': self.rsa_key_path
+                        # We dont want to save a srting key, only a path
+                        'rsa_key': self._rsa_key_path
                     },
                     indent=2
                 )
             )
+
+    def load_rsa_secret(self):
+        key_string_or_path = self._rsa_key
+
+        if key_string_or_path is None:
+            self._rsa_key_path = None
+            self._rsa_secret = None
+        else:
+            try: # First try loading it as a key
+                key = RSA.import_key(key_string_or_path)
+                self._rsa_key_path = None
+                self._rsa_secret = key.export_key()
+
+            except ValueError: # Then try as a Path
+                key_path = Path(key_string_or_path).resolve()
+                with key_path.open('rb') as key_file:
+                    key = RSA.import_key(key_file.read())
+                self._rsa_key_path = str(key_path)
+                self._rsa_secret = key.export_key()
+
+        self.update_session_auth()
+
+    def update_session_auth(self, use_signature=True):
+        if  use_signature and self._rsa_secret:
+            self.session.auth = StrateosSign(
+                self.email,
+                self._rsa_secret
+            )
+        else:
+            self.session.auth = None
 
     def update_environment(self, **kwargs):
         """
