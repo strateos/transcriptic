@@ -31,7 +31,6 @@ class StrateosSign(AuthBase):
             )
 
         if request.method.upper() in ("PUT", "POST", "PATCH"):
-            print(request.body)
             digest = SHA256.new(request.body.encode()).digest()
             sha = base64.b64encode(digest).decode('ascii')
             request.headers["Digest"] = "SHA-256={sha}".format(sha=sha)

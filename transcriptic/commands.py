@@ -11,7 +11,7 @@ import requests
 from collections import OrderedDict
 from contextlib import contextmanager
 from jinja2 import Environment, PackageLoader
-from os.path import isfile
+from os.path import isfile, expanduser, abspath
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
 from transcriptic.signing import StrateosSign
@@ -888,7 +888,7 @@ def select_org(api, config, organization=None):
     click.echo('Logged in with organization: {}'.format(organization))
 
 
-def login(api, config, api_root=None, analytics=True, enable_signing=False):
+def login(api, config, api_root=None, analytics=True, rsa_key=None):
     """Authenticate to your Transcriptic account."""
     if api_root is None:
         # Always default to the pre-defined api-root if possible, else use
@@ -898,16 +898,18 @@ def login(api, config, api_root=None, analytics=True, enable_signing=False):
         except ValueError:
             api_root = "https://secure.transcriptic.com"
 
+    rsa_secret = None
+    rsa_key_path = None
+    if rsa_key is not None:
+        try:
+            rsa_key_path = abspath(expanduser(rsa_key))
+            with open(rsa_key_path, "rb") as key_file:
+                rsa_secret = key_file.read()
+        except:
+            raise ValueError("Could not load RSA key from file provided")
+
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-
-    rsa_auth = None
-    rsa_key_path = None
-    if enable_signing:
-        rsa_key_path = click.prompt('RSA Private Key Path')
-        with open(rsa_key_path, "rb") as key_file:
-            rsa_auth = StrateosSign(email, key_file.read())
-
     try:
         r = api.post(
             routes.login(api_root=api_root),
@@ -926,7 +928,7 @@ def login(api, config, api_root=None, analytics=True, enable_signing=False):
                 '401': lambda resp: resp,
                 'default': lambda resp: resp
             },
-            auth=rsa_auth
+            auth=StrateosSign(email, rsa_secret)
         )
 
     except requests.exceptions.RequestException:

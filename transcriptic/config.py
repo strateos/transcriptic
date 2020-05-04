@@ -124,7 +124,7 @@ class Connection(object):
             session = initialize_default_session()
         self.session = session
 
-        # Intirialize RSA props
+        # Initialize RSA props
         self._rsa_key = None
         self._rsa_key_path = None
         self._rsa_secret = None
@@ -286,7 +286,7 @@ class Connection(object):
                         'analytics': self.analytics,
                         'user_id': self.user_id,
                         'feature_groups': self.feature_groups,
-                        # We dont want to save a srting key, only a path
+                        # We dont want to save a string key, only a path
                         'rsa_key': self._rsa_key_path
                     },
                     indent=2
