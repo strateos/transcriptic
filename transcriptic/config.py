@@ -6,7 +6,6 @@ import platform
 import requests
 import time
 from Crypto.PublicKey import RSA
-from pathlib import Path
 import transcriptic
 import warnings
 import zipfile
@@ -306,8 +305,8 @@ class Connection(object):
                 self._rsa_secret = key.export_key()
 
             except ValueError: # Then try as a Path
-                key_path = Path(key_string_or_path).resolve()
-                with key_path.open('rb') as key_file:
+                key_path = os.path.abspath(os.path.expanduser(key_string_or_path))
+                with open(key_path, 'rb') as key_file:
                     key = RSA.import_key(key_file.read())
                 self._rsa_key_path = str(key_path)
                 self._rsa_secret = key.export_key()
