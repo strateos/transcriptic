@@ -898,7 +898,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         except ValueError:
             api_root = "https://secure.transcriptic.com"
 
-    rsa_secret = None
+    rsa_auth = None
     rsa_key_path = None
     if rsa_key is not None:
         try:
@@ -907,9 +907,16 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
                 rsa_secret = key_file.read()
         except:
             raise ValueError("Could not load RSA key from file provided")
+        # Try making an auth handler with a dummy email so that the command fails early
+        rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
 
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
+
+    # replace the dummy rsa_auth with a handler using the given email
+    if rsa_auth is not None:
+        rsa_auth = StrateosSign(email, rsa_auth.secret)
+
     try:
         r = api.post(
             routes.login(api_root=api_root),
@@ -928,7 +935,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
                 '401': lambda resp: resp,
                 'default': lambda resp: resp
             },
-            auth=StrateosSign(email, rsa_secret)
+            auth=rsa_auth
         )
 
     except requests.exceptions.RequestException:
@@ -952,6 +959,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
             'X-User-Email': email,
             'X-User-Token': token,
             'Accept': 'application/json'},
+        auth=rsa_auth,
         status_response={
             '200': lambda resp: resp,
             'default': lambda resp: resp}

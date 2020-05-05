@@ -12,17 +12,20 @@ class StrateosSign(AuthBase):
         self.secret = secret
         headers = ["(request-target)", "Date", "Host"]
         body_headers = ["Digest", "Content-Length"]
-        self.auth = HTTPSignatureAuth(
-            key_id=self.email,
-            algorithm="rsa-sha256",
-            headers=headers, secret=self.secret
-        )
-        self.body_auth = HTTPSignatureAuth(
-            key_id=self.email,
-            algorithm="rsa-sha256",
-            headers=headers+body_headers,
-            secret=self.secret
-        )
+        try:
+            self.auth = HTTPSignatureAuth(
+                key_id=self.email,
+                algorithm="rsa-sha256",
+                headers=headers, secret=self.secret
+            )
+            self.body_auth = HTTPSignatureAuth(
+                key_id=self.email,
+                algorithm="rsa-sha256",
+                headers=headers+body_headers,
+                secret=self.secret
+            )
+        except:
+            raise ValueError("Could not use the provided RSA Key, ensure it is a PRIVATE key in PEM format")
 
     def __call__(self, request):
         if "Date" not in request.headers:

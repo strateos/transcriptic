@@ -513,7 +513,7 @@ def select_org_cmd(ctx, organization=None):
 @click.option(
     '--rsa-key',
     type=click.Path(exists=True, file_okay=True, dir_okay=False),
-    help='RSA key path with which to sign requests'
+    help='Path to RSA key used for signing requests'
 )
 @click.pass_context
 def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None):
