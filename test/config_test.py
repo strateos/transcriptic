@@ -116,8 +116,6 @@ class ConnectionInitTests(unittest.TestCase):
             connection = transcriptic.config.Connection.from_file(
                 config_file.name)
 
-        auth_regex = r'Signature keyId="(.+)",algorithm="(.+)",signature="(.+)",headers="(.+)"'
-
         # Test that GET signature matches the above key (given a hardcoded date header)
         get_request = requests.Request(
             'GET',
@@ -132,17 +130,23 @@ class ConnectionInitTests(unittest.TestCase):
         )
         prepared_get = connection.session.prepare_request(get_request)
 
-        get_sig = re.match(auth_regex, prepared_get.headers['authorization'])
-        self.assertTrue(get_sig is not None)
-        self.assertEqual(get_sig.group(1), "somebody@transcriptic.com")
-        self.assertEqual(get_sig.group(2), "rsa-sha256")
-        self.assertEqual(get_sig.group(3), "GfcAtyV0+CKDkxjsREXYAm6RP0WdIYaN5RamlNfIYZ7e847KAydQf2ylYIcsj9CS5BIOiBi5JBoC6n51NSbxU+kQcSv2nzSsq3rBpTFFMHUhTPdrfeHsH4IBvgMWZZHmHvyE7UXVqhLssVzMIm/oGTnprPMWiTcsKjEhe+DsQT4=")
+        get_sig = prepared_get.headers['authorization']
         self.assertEqual(
-            set(get_sig.group(4).split(" ")),
+            re.search(r'keyId="(.+?)"', get_sig).group(1),
+            "somebody@transcriptic.com"
+        )
+        self.assertEqual(
+            re.search(r'algorithm="(.+?)"', get_sig).group(1),
+            "rsa-sha256"
+        )
+        self.assertEqual(
+            re.search(r'signature="(.+?)"', get_sig).group(1),
+            "GfcAtyV0+CKDkxjsREXYAm6RP0WdIYaN5RamlNfIYZ7e847KAydQf2ylYIcsj9CS5BIOiBi5JBoC6n51NSbxU+kQcSv2nzSsq3rBpTFFMHUhTPdrfeHsH4IBvgMWZZHmHvyE7UXVqhLssVzMIm/oGTnprPMWiTcsKjEhe+DsQT4="
+        )
+        self.assertEqual(
+            set(re.search(r'headers="(.+?)"', get_sig).group(1).split(" ")),
             {"(request-target)", "date", "host"}
         )
-
-        # 'Signature keyId="somebody@transcriptic.com",algorithm="rsa-sha256",signature="GfcAtyV0+CKDkxjsREXYAm6RP0WdIYaN5RamlNfIYZ7e847KAydQf2ylYIcsj9CS5BIOiBi5JBoC6n51NSbxU+kQcSv2nzSsq3rBpTFFMHUhTPdrfeHsH4IBvgMWZZHmHvyE7UXVqhLssVzMIm/oGTnprPMWiTcsKjEhe+DsQT4=",headers="(request-target) date host"'
 
         # Test that POST signature matches the above key (given a hardcoded body & date header)
         post_request = requests.Request(
@@ -159,12 +163,20 @@ class ConnectionInitTests(unittest.TestCase):
         )
         prepared_post = connection.session.prepare_request(post_request)
 
-        post_sig = re.match(auth_regex, prepared_post.headers['authorization'])
-        self.assertTrue(post_sig is not None)
-        self.assertEqual(post_sig.group(1), "somebody@transcriptic.com")
-        self.assertEqual(post_sig.group(2), "rsa-sha256")
-        self.assertEqual(post_sig.group(3), "TnixnCg4eT7nQhYQP1PNZHv5MVhHnWKf6MQb+cyS2tfw6++yuSaZS/4kz9nuvAbjZ1CsLWBKBDDIQWZqQXEjGUH/mXQ3KYDXhREyl0aDv2NgxKBcAsSooDa9nfA9zI7OeFa2dYzF81oOB4L4PDkbV3Bojw4mQYJf0eLW6FL1yTI=")
+        post_sig = prepared_post.headers['authorization']
         self.assertEqual(
-            set(post_sig.group(4).split(" ")),
+            re.search(r'keyId="(.+?)"', post_sig).group(1),
+            "somebody@transcriptic.com"
+        )
+        self.assertEqual(
+            re.search(r'algorithm="(.+?)"', post_sig).group(1),
+            "rsa-sha256"
+        )
+        self.assertEqual(
+            re.search(r'signature="(.+?)"', post_sig).group(1),
+            "TnixnCg4eT7nQhYQP1PNZHv5MVhHnWKf6MQb+cyS2tfw6++yuSaZS/4kz9nuvAbjZ1CsLWBKBDDIQWZqQXEjGUH/mXQ3KYDXhREyl0aDv2NgxKBcAsSooDa9nfA9zI7OeFa2dYzF81oOB4L4PDkbV3Bojw4mQYJf0eLW6FL1yTI="
+        )
+        self.assertEqual(
+            set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
             {"(request-target)", "date", "host", "content-length", "digest"}
         )
