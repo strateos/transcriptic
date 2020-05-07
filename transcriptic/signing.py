@@ -25,7 +25,7 @@ class StrateosSign(AuthBase):
                 secret=self.secret
             )
         except:
-            raise ValueError("Could not use the provided RSA Key, ensure it is a PRIVATE key in PEM format")
+            raise ValueError("Could not parse the specified RSA Key, ensure it is a PRIVATE key in PEM format")
 
     def __call__(self, request):
         if "Date" not in request.headers:

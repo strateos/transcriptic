@@ -906,9 +906,15 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
             with open(rsa_key_path, "rb") as key_file:
                 rsa_secret = key_file.read()
         except:
-            raise ValueError("Could not load RSA key from file provided")
+            click.echo("Error loading RSA key. Please check that the file {} is accessible".format(rsa_key))
+            sys.exit(1)
+
         # Try making an auth handler with a dummy email so that the command fails early
-        rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
+        try:
+            rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
+        except Exception as e:
+            click.echo("Error loading RSA key: " + e.message)
+            sys.exit(1)
 
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
