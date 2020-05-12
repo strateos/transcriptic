@@ -1,6 +1,7 @@
 import base64
 from email.utils import formatdate
 from Crypto.Hash import SHA256
+from httpsig.utils import HttpSigException
 from requests.auth import AuthBase
 from httpsig.requests_auth import HTTPSignatureAuth
 
@@ -24,8 +25,9 @@ class StrateosSign(AuthBase):
                 headers=headers+body_headers,
                 secret=self.secret
             )
-        except:
-            raise ValueError("Could not parse the specified RSA Key, ensure it is a PRIVATE key in PEM format")
+        except HttpSigException:
+            raise ValueError("Could not parse the specified RSA Key, ensure it "
+                             "is a PRIVATE key in PEM format")
 
     def __call__(self, request):
         if "Date" not in request.headers:

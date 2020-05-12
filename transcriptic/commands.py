@@ -905,15 +905,17 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
             rsa_key_path = abspath(expanduser(rsa_key))
             with open(rsa_key_path, "rb") as key_file:
                 rsa_secret = key_file.read()
-        except:
-            click.echo("Error loading RSA key. Please check that the file {} is accessible".format(rsa_key))
+        except Exception:
+            click.echo("Error loading RSA key. Please check that the file {} "
+                       "is accessible".format(rsa_key))
             sys.exit(1)
 
-        # Try making an auth handler with a dummy email so that the command fails early
+        # Try making an auth handler with a dummy email so that the command
+        # fails early
         try:
             rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
         except Exception as e:
-            click.echo("Error loading RSA key: " + e.message)
+            click.echo("Error loading RSA key: {}".format(e))
             sys.exit(1)
 
     email = click.prompt('Email')
@@ -949,6 +951,10 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
                    "internet connection and host name".format(api_root))
         sys.exit(1)
 
+    except Exception as e:
+        click.echo("Error connecting to host: {}".format(e))
+        sys.exit(1)
+
     if r.status_code != 200:
         click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
         sys.exit(1)
@@ -959,17 +965,23 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
     feature_groups = user.get('feature_groups')
     organization = org_prompt(user['organizations'])
 
-    r = api.get(
-        routes.get_organization(api_root=api_root, org_id=organization),
-        headers={
-            'X-User-Email': email,
-            'X-User-Token': token,
-            'Accept': 'application/json'},
-        auth=rsa_auth,
-        status_response={
-            '200': lambda resp: resp,
-            'default': lambda resp: resp}
-    )
+    try:
+        r = api.get(
+            routes.get_organization(api_root=api_root, org_id=organization),
+            headers={
+                'X-User-Email': email,
+                'X-User-Token': token,
+                'Accept': 'application/json'},
+            auth=rsa_auth,
+            status_response={
+                '200': lambda resp: resp,
+                'default': lambda resp: resp}
+        )
+    except PermissionError as e:
+        click.echo(e)
+        if rsa_key is not None:
+            click.echo("Are you sure you require the `--rsa-key` option?")
+        sys.exit(1)
 
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
