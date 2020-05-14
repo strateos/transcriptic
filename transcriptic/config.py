@@ -5,11 +5,13 @@ import os
 import platform
 import requests
 import time
+from Crypto.PublicKey import RSA
 import transcriptic
 import warnings
 import zipfile
 
 from . import routes
+from .signing import StrateosSign
 from .version import __version__
 
 try:
@@ -44,12 +46,11 @@ def initialize_default_session():
     }
     return session
 
-
 class Connection(object):
     """
     A Connection object is the object used for communicating with Transcriptic.
 
-    Local usage: This is most easily instantiated by using the `from_file` 
+    Local usage: This is most easily instantiated by using the `from_file`
     function after calling `transcriptic login` from the command line.
 
     .. code-block:: shell
@@ -66,7 +67,7 @@ class Connection(object):
         from transcriptic.config import Connection
         api = Connection.from_file("~/.transcriptic")
 
-    For those using Jupyter notebooks on secure.transcriptic.com (beta), a 
+    For those using Jupyter notebooks on secure.transcriptic.com (beta), a
     Connection object is automatically instantiated as api.
 
     .. code-block:: python
@@ -74,8 +75,8 @@ class Connection(object):
 
         from transcriptic import api
 
-    The `api` object can then be used for making any api calls. It is 
-    recommended to use the objects in `transcriptic.objects` since that wraps 
+    The `api` object can then be used for making any api calls. It is
+    recommended to use the objects in `transcriptic.objects` since that wraps
     the response in a more friendly format.
 
     Example Usage:
@@ -86,7 +87,7 @@ class Connection(object):
         api.projects()
         api.runs(project_id="p123456789")
 
-    If you have multiple organizations and would like to switch to a specific 
+    If you have multiple organizations and would like to switch to a specific
     organization, or if you would like to auto-load certain projects, you can
     set it directly by assigning to the corresponding variable.
 
@@ -110,6 +111,7 @@ class Connection(object):
             analytics=True,
             user_id="default",
             feature_groups=[],
+            rsa_key=None,
             session=None):
         # Initialize environment args used for computing routes
         self.env_args = dict()
@@ -121,6 +123,13 @@ class Connection(object):
             session = initialize_default_session()
         self.session = session
 
+        # Initialize RSA props
+        self._rsa_key = None
+        self._rsa_key_path = None
+        self._rsa_secret = None
+        # Set/Load rsa_key from arguement as string or Path
+        self.rsa_key = rsa_key
+
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
@@ -130,6 +139,7 @@ class Connection(object):
             self.session.headers["X-User-Email"] = None
             self.session.headers["X-User-Token"] = None
             self.cookie = cookie
+            self.update_session_auth(use_signature=False)
         else:
             if cookie is not None:
                 warnings.warn("Cookie and token authentication is mutually "
@@ -137,6 +147,7 @@ class Connection(object):
             self.session.headers["Cookie"] = None
             self.email = email
             self.token = token
+            self.update_session_auth()
 
         # Initialize feature groups
         self.feature_groups = feature_groups
@@ -220,6 +231,7 @@ class Connection(object):
                           "exclusive. Clearing cookie from headers")
             self.update_headers(**{'Cookie': None})
         self.update_headers(**{'X-User-Email': value})
+        self.update_session_auth()
 
     @property
     def token(self):
@@ -251,6 +263,15 @@ class Connection(object):
             self.update_headers(**{'X-User-Email': None, 'X-User-Token': None})
         self.update_headers(**{'Cookie': value})
 
+    @property
+    def rsa_key(self):
+        return self._rsa_key
+
+    @rsa_key.setter
+    def rsa_key(self, value):
+        self._rsa_key = value
+        self.load_rsa_secret()
+
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
         with open(os.path.expanduser(path), 'w') as f:
@@ -263,15 +284,49 @@ class Connection(object):
                         'api_root': self.api_root,
                         'analytics': self.analytics,
                         'user_id': self.user_id,
-                        'feature_groups': self.feature_groups
+                        'feature_groups': self.feature_groups,
+                        # We dont want to save a string key, only a path
+                        'rsa_key': self._rsa_key_path
                     },
                     indent=2
                 )
             )
 
+    def load_rsa_secret(self):
+        key_string_or_path = self._rsa_key
+
+        if key_string_or_path is None:
+            self._rsa_key_path = None
+            self._rsa_secret = None
+        else:
+            try: # First try loading it as a key
+                key = RSA.import_key(key_string_or_path)
+                self._rsa_key_path = None
+                self._rsa_secret = key.export_key()
+
+            except ValueError: # Then try as a Path
+                key_path = os.path.abspath(os.path.expanduser(key_string_or_path))
+                with open(key_path, 'rb') as key_file:
+                    key = RSA.import_key(key_file.read())
+                self._rsa_key_path = str(key_path)
+                self._rsa_secret = key.export_key()
+
+        self.update_session_auth()
+
+    def update_session_auth(self, use_signature=True):
+        if use_signature \
+                and self._rsa_secret \
+                and "X-User-Email" in self.session.headers:
+            self.session.auth = StrateosSign(
+                self.email,
+                self._rsa_secret
+            )
+        else:
+            self.session.auth = None
+
     def update_environment(self, **kwargs):
         """
-        Updates environment variables used for computing routes. 
+        Updates environment variables used for computing routes.
         To remove an existing variable, set value to None.
         """
         self.env_args = dict(self.env_args, **kwargs)
@@ -935,7 +990,7 @@ class Connection(object):
         data_id: data_id
             Data id of file to download
         file_path: Optional[str]
-            Path to file which to save the response to. If specified, will not 
+            Path to file which to save the response to. If specified, will not
             return ZipFile explicitly.
 
         Returns
