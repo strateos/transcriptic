@@ -11,10 +11,9 @@ import requests
 from collections import OrderedDict
 from contextlib import contextmanager
 from jinja2 import Environment, PackageLoader
-from os.path import isfile, expanduser, abspath
+from os.path import isfile
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.signing import StrateosSign
 from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
 from transcriptic import routes
 
@@ -888,7 +887,7 @@ def select_org(api, config, organization=None):
     click.echo('Logged in with organization: {}'.format(organization))
 
 
-def login(api, config, api_root=None, analytics=True, rsa_key=None):
+def login(api, config, api_root=None, analytics=True):
     """Authenticate to your Transcriptic account."""
     if api_root is None:
         # Always default to the pre-defined api-root if possible, else use
@@ -898,33 +897,8 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         except ValueError:
             api_root = "https://secure.transcriptic.com"
 
-    rsa_auth = None
-    rsa_key_path = None
-    if rsa_key is not None:
-        try:
-            rsa_key_path = abspath(expanduser(rsa_key))
-            with open(rsa_key_path, "rb") as key_file:
-                rsa_secret = key_file.read()
-        except Exception:
-            click.echo("Error loading RSA key. Please check that the file {} "
-                       "is accessible".format(rsa_key))
-            sys.exit(1)
-
-        # Try making an auth handler with a dummy email so that the command
-        # fails early
-        try:
-            rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
-        except Exception as e:
-            click.echo("Error loading RSA key: {}".format(e))
-            sys.exit(1)
-
     email = click.prompt('Email')
     password = click.prompt('Password', hide_input=True)
-
-    # replace the dummy rsa_auth with a handler using the given email
-    if rsa_auth is not None:
-        rsa_auth = StrateosSign(email, rsa_auth.secret)
-
     try:
         r = api.post(
             routes.login(api_root=api_root),
@@ -942,17 +916,12 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
                 '200': lambda resp: resp,
                 '401': lambda resp: resp,
                 'default': lambda resp: resp
-            },
-            auth=rsa_auth
+            }
         )
 
     except requests.exceptions.RequestException:
         click.echo("Error logging into specified host: {}. Please check your "
                    "internet connection and host name".format(api_root))
-        sys.exit(1)
-
-    except Exception as e:
-        click.echo("Error connecting to host: {}".format(e))
         sys.exit(1)
 
     if r.status_code != 200:
@@ -965,23 +934,16 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
     feature_groups = user.get('feature_groups')
     organization = org_prompt(user['organizations'])
 
-    try:
-        r = api.get(
-            routes.get_organization(api_root=api_root, org_id=organization),
-            headers={
-                'X-User-Email': email,
-                'X-User-Token': token,
-                'Accept': 'application/json'},
-            auth=rsa_auth,
-            status_response={
-                '200': lambda resp: resp,
-                'default': lambda resp: resp}
-        )
-    except PermissionError as e:
-        click.echo(e)
-        if rsa_key is not None:
-            click.echo("Are you sure you require the `--rsa-key` option?")
-        sys.exit(1)
+    r = api.get(
+        routes.get_organization(api_root=api_root, org_id=organization),
+        headers={
+            'X-User-Email': email,
+            'X-User-Token': token,
+            'Accept': 'application/json'},
+        status_response={
+            '200': lambda resp: resp,
+            'default': lambda resp: resp}
+    )
 
     if r.status_code != 200:
         click.echo("Error accessing organization: %s" % r.text)
@@ -989,7 +951,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
     api = Connection(email=email, token=token,
                      organization_id=organization, api_root=api_root,
                      user_id=user_id, analytics=analytics,
-                     feature_groups=feature_groups, rsa_key=rsa_key_path)
+                     feature_groups=feature_groups)
     api.save(config)
     click.echo('Logged in as %s (%s)' % (user['email'], organization))
 
