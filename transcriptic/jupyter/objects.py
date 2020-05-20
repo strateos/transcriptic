@@ -16,7 +16,7 @@ except ImportError:
 def _check_api(obj_type):
     from transcriptic import api
     if not api:
-        raise RuntimeError("You have to be logged in to be able to create %s objects" % obj_type)
+        raise RuntimeError(f"You have to be logged in to be able to create {obj_type} objects")
     return api
 
 
@@ -58,11 +58,11 @@ class _BaseObject(object):
                 if obj_id == obj['title'] or obj_id == obj['id']:
                     matched_objects.append((obj['id'], obj['title']))
         if len(matched_objects) == 0:
-            raise TypeError("%s is not found in your %ss." % (obj_id, obj_type))
+            raise TypeError(f"{obj_id} is not found in your {obj_type}s.")
         elif len(matched_objects) == 1:
             return matched_objects[0]
         else:
-            print("More than 1 match found. Defaulting to the first match: %s" % (matched_objects[0]))
+            print(f"More than 1 match found. Defaulting to the first match: {matched_objects[0]}")
             return matched_objects[0]
 
 
@@ -430,7 +430,7 @@ class Dataset(_BaseObject):
                                        connection=connection)
         except KeyError as e:
             if 'instruction' in self.attributes:
-                warnings.warn("Missing key {} when initializing dataset".format(e))
+                warnings.warn(f"Missing key {e} when initializing dataset")
             self.container = None
 
         self.analysis_tool = self.attributes["analysis_tool"]

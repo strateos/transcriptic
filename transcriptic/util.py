@@ -123,10 +123,10 @@ def humanize(well_ref, well_count, col_count):
         try:
             well_ref = int(well_ref)
         except:
-            raise ValueError("Well reference (%s) given has to be parseable into int." % well_ref)
+            raise ValueError(f"Well reference ({well_ref}) given has to be "
+                             f"parseable into int.")
     if not isinstance(well_ref, int):
-        raise TypeError("Well reference (%s) given "
-                        "is not of type 'int'." % well_ref)
+        raise TypeError(f"Well reference ({well_ref}) given is not of type 'int'.")
     idx = robotize(well_ref, well_count, col_count)
     row, col = (idx // col_count, idx % col_count)
     # Check bounds

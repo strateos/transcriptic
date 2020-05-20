@@ -54,13 +54,13 @@ def submit(api, file, project, title=None, test=None, pm=None):
 def release(api, name=None, package=None):
     deflated = zipfile.ZIP_DEFLATED
     if name:
-        filename = 'release_%s' % name
+        filename = f'release_{name}'
     else:
         filename = 'release'
     if os.path.isfile(filename + ".zip"):
-        new = click.prompt("You already have a release named %s "
-                           "in this directory, make "
-                           "another one? [y/n]" % filename, default="y")
+        new = click.prompt(f"You already have a release named {filename} in "
+                           f"this directory, make another one? [y/n]",
+                           default="y")
         if new == "y":
             num_existing = sum([1 for x in os.listdir('.') if filename in x])
             filename = filename + "_" + str(num_existing)
@@ -83,12 +83,8 @@ def upload_release(api, archive, package):
     """Upload a release archive to a package."""
     try:
         package_id = get_package_id(api, package.lower()) or get_package_name(api, package.lower())
-        click.echo("Uploading %s to %s" %
-                   (archive,
-                    (get_package_name(api, package_id.lower()) or
-                     get_package_id(api, package_id.lower()))
-                    )
-                   )
+        package_name = get_package_name(api, package_id.lower()) or get_package_id(api, package_id.lower())
+        click.echo(f"Uploading {archive} to {package_name}")
     except AttributeError:
         click.echo("Error: Invalid package id or name.")
         return
@@ -154,13 +150,13 @@ def protocols(api, local, json_flag):
         click.echo(json.dumps(protocol_objs))
     else:
         click.echo('\n{:^60}'.format("Protocols within this {}:".format("organization" if not local else "manifest")))
-        click.echo('{:-^60}'.format(''))
+        click.echo(f"{'':-^60}")
         for p in protocol_objs:
             if p.get('display_name'):
-                display_str = u"{} ({})".format(p[u'name'], p.get(u'display_name'))
+                display_str = f"{p['name']} ({p.get('display_name')})"
             else:
                 display_str = p[u'name']
-            click.echo(u"{}\n{}".format(display_str, u'{:-^60}'.format("")))
+            click.echo(f"{display_str}\n{'':-^60}")
 
 
 def packages(api, i):
@@ -173,7 +169,7 @@ def packages(api, i):
     )
 
     for pack in response:
-        n = str(pack['name']).lower().replace("com.%s." % api.organization_id, "")
+        n = str(pack['name']).lower().replace(f"com.{api.organization_id}.", "")
 
         latest = str(pack['latest_version']) if pack['latest_version'] else "-"
 
@@ -192,21 +188,21 @@ def packages(api, i):
         for category, packages in list(package_names.items()):
             if category == "yours":
                 click.echo('\n{:^90}'.format("YOUR PACKAGES:\n"))
-                click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
-                           '{:^30}'.format("PACKAGE ID") +
-                           "|" + '{:^30}'.format("LATEST PUBLISHED RELEASE"))
-                click.echo('{:-^90}'.format(''))
+                click.echo(f"{'PACKAGE NAME':^30}" + "|" +
+                           f"{'PACKAGE ID':^30}" +
+                           "|" + f"{'LATEST PUBLISHED RELEASE':^30}")
+                click.echo(f"{'':-^90}")
             elif category == "theirs" and list(packages.values()):
                 click.echo('\n{:^90}'.format("OTHER PACKAGES IN YOUR ORG:\n"))
-                click.echo('{:^30}'.format("PACKAGE NAME") + "|" +
-                           '{:^30}'.format("PACKAGE ID") + "|" +
-                           '{:^30}'.format("LATEST PUBLISHED RELEASE"))
-                click.echo('{:-^90}'.format(''))
+                click.echo(f"{'PACKAGE NAME':^30}" + "|" +
+                           f"{'PACKAGE ID':^30}" + "|" +
+                           f"{'LATEST PUBLISHED RELEASE':^30}")
+                click.echo(f"{'':-^90}")
             for name, p in list(packages.items()):
-                click.echo('{:<30}'.format(name) + "|" +
-                           '{:^30}'.format(p['id']) + "|" +
-                           '{:^30}'.format(p['latest']))
-                click.echo('{:-^90}'.format(''))
+                click.echo(f'{name:<30}' + "|" +
+                           f"{p['id']:^30}" + "|" +
+                           f"{p['latest']:^30}")
+                click.echo(f"{'':-^90}")
 
 
 def create_package(api, description, name):
@@ -214,9 +210,8 @@ def create_package(api, description, name):
     existing = api.packages()
     for p in existing:
         if name == p['name'].split('.')[-1]:
-            click.echo("You already have an existing package with the name "
-                       "\"%s\". Please choose a different package name." %
-                       name)
+            click.echo(f"You already have an existing package with the name "
+                       f"\"{name}\". Please choose a different package name.")
             return
     try:
         new_pack = api.create_package(name, description)
@@ -263,7 +258,7 @@ def generate_protocol(name):
     env = Environment(loader=PackageLoader('transcriptic', 'templates'))
     template_infos = [
         {"template_name": 'manifest.json.jinja',    "file_name": "manifest.json"},
-        {"template_name": 'protocol.py.jinja',      "file_name": "{}.py".format(name)},
+        {"template_name": 'protocol.py.jinja',      "file_name": f"{name}.py"},
         {"template_name": 'requirements.txt.jinja', "file_name": "requirements.txt"}
     ]
 
@@ -272,23 +267,23 @@ def generate_protocol(name):
     makedirs(dirname, exist_ok=True)
 
     # write __init__ package file
-    open('{}/{}'.format(dirname, '__init__.py'), 'w').write('')
+    open(f"{dirname}/{'__init__.py'}", 'w').write('')
 
     for template_info in template_infos:
         template_name = template_info["template_name"]
         file_name     = template_info["file_name"]
         template      = env.get_template(template_name)
-        file          = open('{}/{}'.format(dirname, file_name), 'w')
+        file          = open(f'{dirname}/{file_name}', 'w')
         output        = template.render(name=name)
         file.write(output)
 
-    click.echo("Successfully generated protocol '{}'!".format(name))
+    click.echo(f"Successfully generated protocol '{name}'!")
     click.echo("Testing the protocol is as easy as:")
     click.echo("")
-    click.echo("\tcd {}".format(name))
+    click.echo(f"\tcd {name}")
     click.echo("\tpip install -r requirements.txt")
-    click.echo("\ttranscriptic preview {}".format(name))
-    click.echo("\ttranscriptic launch --local {} -p SOME_PROJECT_ID".format(name))
+    click.echo(f"\ttranscriptic preview {name}")
+    click.echo(f"\ttranscriptic launch --local {name} -p SOME_PROJECT_ID")
 
 
 def upload_dataset(api, file_path, title, run_id, tool, version):
@@ -303,19 +298,13 @@ def upload_dataset(api, file_path, title, run_id, tool, version):
     try:
         data_id = resp['data']['id']
         run_route = api.url(
-            "/api/runs/{}?fields[runs]=project_id".format(run_id)
+            f"/api/runs/{run_id}?fields[runs]=project_id"
         )
         run_resp = api.get(run_route)
         project = run_resp['data']['attributes']['project_id']
-        data_url = "{}/analysis/{}".format(
-            api.get_route(
-                'datasets',
-                project_id=project,
-                run_id=run_id
-            ),
-            data_id
-        )
-        click.echo("Dataset uploaded to {}".format(data_url))
+        datasets_route = api.get_route('datasets', project_id=project, run_id=run_id)
+        data_url = f"{datasets_route}/analysis/{data_id}"
+        click.echo(f"Dataset uploaded to {data_url}")
     except KeyError:
         click.echo("An unexpected response was returned from the server. ")
 
@@ -336,13 +325,13 @@ def projects(api, i, json_flag):
             return click.echo(json.dumps(projects))
         else:
             click.echo('\n{:^80}'.format("PROJECTS:\n"))
-            click.echo('{:^40}'.format("PROJECT NAME") + "|" +
-                       '{:^40}'.format("PROJECT ID"))
-            click.echo('{:-^80}'.format(''))
+            click.echo(f"{'PROJECT NAME':^40}" + "|" +
+                       f"{'PROJECT ID':^40}")
+            click.echo(f"{'':-^80}")
             for proj_id, name in list(all_proj.items()):
-                click.echo('{:<40}'.format(name) + "|" +
-                           '{:^40}'.format(proj_id))
-                click.echo('{:-^80}'.format(''))
+                click.echo(f'{name:<40}' + "|" +
+                           f'{proj_id:^40}')
+                click.echo(f"{'':-^80}")
     except RuntimeError:
         click.echo("There was an error listing the projects in your "
                    "organization.  Make sure your login details are correct.")
@@ -355,7 +344,7 @@ def runs(api, project_name, json_flag):
     if project_id:
         req = api.runs(project_id=project_id)
         if not req:
-            click.echo("Project '%s' is empty." % project_name)
+            click.echo(f"Project '{project_name}' is empty.")
             return
         for r in req:
             run_list.append([r['title'] or "(Untitled)",
@@ -378,17 +367,17 @@ def runs(api, project_name, json_flag):
                 '\n{:^120}'.format("Runs in Project '%s':\n" %
                                    get_project_name(api, project_id))
             )
-            click.echo('{:^30}'.format("RUN TITLE") + "|" +
-                       '{:^30}'.format("RUN ID") + "|" +
-                       '{:^30}'.format("RUN DATE") + "|" +
-                       '{:^30}'.format('RUN STATUS'))
-            click.echo('{:-^120}'.format(''))
+            click.echo(f"{'RUN TITLE':^30}" + "|" +
+                       f"{'RUN ID':^30}" + "|" +
+                       f"{'RUN DATE':^30}" + "|" +
+                       f"{'RUN STATUS':^30}")
+            click.echo(f"{'':-^120}")
             for run in run_list:
-                click.echo(u'{:^30}'.format(run[0]) + "|" +
-                           u'{:^30}'.format(run[1]) + "|" +
-                           u'{:^30}'.format(run[2]) + "|" +
-                           u'{:^30}'.format(run[3]))
-                click.echo(u'{:-^120}'.format(''))
+                click.echo(f'{run[0]:^30}' + "|" +
+                           f'{run[1]:^30}' + "|" +
+                           f'{run[2]:^30}' + "|" +
+                           f'{run[3]:^30}')
+                click.echo(f"{'':-^120}")
 
 
 def create_project(api, name, dev):
@@ -397,8 +386,8 @@ def create_project(api, name, dev):
     for p in existing:
         if name == p['name'].split('.')[-1]:
             click.confirm(
-                "You already have an existing project with the name '{}'. "
-                "Are you sure you want to create another one?".format(name),
+                f"You already have an existing project with the name '{name}'. "
+                f"Are you sure you want to create another one?",
                 default=False,
                 abort=True
             )
@@ -463,20 +452,20 @@ def resources(api, query):
                 matched_resources.append(item)
 
         if matched_resources:
-            click.echo("Results for '%s':" % query)
-            click.echo('{:^40}'.format("Resource Name") + '|' +
-                       '{:^40}'.format("Vendor") + '|' +
-                       '{:^40}'.format("Resource ID"))
-            click.echo('{:-^120}'.format(''))
+            click.echo(f"Results for '{query}':")
+            click.echo(f"{'Resource Name':^40}" + '|' +
+                       f"{'Vendor':^40}" + '|' +
+                       f"{'Resource ID':^40}")
+            click.echo(f"{'':-^120}")
             for resource in matched_resources:
-                click.echo('{:^40}'.format(ascii_encode(resource["name"])) + '|' +
-                           '{:^40}'.format(ascii_encode(resource["vendor"])) + '|' +
-                           '{:^40}'.format(ascii_encode(resource["id"])))
-            click.echo('{:-^120}'.format(''))
+                click.echo(f"{ascii_encode(resource['name']):^40}" + '|' +
+                           f"{ascii_encode(resource['vendor']):^40}" + '|' +
+                           f"{ascii_encode(resource['id']):^40}")
+            click.echo(f"{'':-^120}")
         else:
-            click.echo("No usable resource for '{}'.".format(query))
+            click.echo(f"No usable resource for '{query}'.")
     else:
-        click.echo("No results for '{}'.".format(query))
+        click.echo(f"No results for '{query}'.")
 
 
 def inventory(api, include_aliquots, show_status, retrieve_all, query):
@@ -491,10 +480,9 @@ def inventory(api, include_aliquots, show_status, retrieve_all, query):
 
     if retrieve_all:
         for i in range(1, num_pages):
-            click.echo("Retrieved {} records"
-                       " out of {} total for '{}'...\r".
-                       format(i * per_page,
-                              max_results_bound, query), nl=False)
+            click.echo(f"Retrieved {i * per_page} records out of "
+                       f"{max_results_bound} total for '{query}'...\r",
+                       nl=False)
             inventory_req = api.inventory(query, page=i)
             results.extend(inventory_req["results"])
         click.echo()
@@ -525,7 +513,7 @@ def inventory(api, include_aliquots, show_status, retrieve_all, query):
         sum_spacing = sum(spacing.values()) + (len(keys) - 1) * 3 + 1
         spacing = {k: "{:^%s}" % v for k, v in spacing.items()}
         sum_spacing = "{:-^%s}" % sum_spacing
-        click.echo("Results for '%s':" % query)
+        click.echo(f"Results for '{query}':")
         click.echo(' | '.join([spacing[k].
                               format(friendly_keys[k]) for k in keys]))
         click.echo(sum_spacing.format(''))
@@ -535,20 +523,18 @@ def inventory(api, include_aliquots, show_status, retrieve_all, query):
             click.echo(sum_spacing.format(''))
         if not retrieve_all:
             if num_pages > 1:
-                click.echo("Retrieved {} records out of "
-                           "{} total (use the --retrieve_all flag "
-                           "to request all records).".
-                           format(num_prefiltered, max_results_bound))
+                click.echo(f"Retrieved {num_prefiltered} records out of "
+                           f"{max_results_bound} total (use the --retrieve_all "
+                           f"flag to request all records).")
     else:
         if retrieve_all:
-            click.echo("No results for '{}'.".format(query))
+            click.echo(f"No results for '{query}'.")
         else:
             if num_pages > 1:
-                click.echo("Retrieved {} records out of "
-                           "{} total but all were filtered out. "
-                           "Use the --retrieve_all flag "
-                           "to request all records.".
-                           format(num_prefiltered, max_results_bound))
+                click.echo(f"Retrieved {num_prefiltered} records out of "
+                           f"{max_results_bound} total but all were filtered "
+                           f"out. Use the --retrieve_all flag to request all "
+                           f"records.")
             else:
                 click.echo("All records were filtered out. "
                            "Use flags to modify your search")
@@ -557,31 +543,28 @@ def inventory(api, include_aliquots, show_status, retrieve_all, query):
 def payments(api):
     """Lists available payment methods"""
     methods = api.payment_methods()
-    click.echo('{:^50}'.format("Method") + '|' +
-               '{:^20}'.format("Expiry") + '|' +
-               '{:^20}'.format("Id"))
-    click.echo('{:-^90}'.format(''))
+    click.echo(f"{'Method':^50}" + '|' +
+               f"{'Expiry':^20}" + '|' +
+               f"{'Id':^20}")
+    click.echo(f"{'':-^90}")
     if len(methods) == 0:
         print_stderr("No payment methods found.")
         return
     for method in methods:
         if method['type'] == "CreditCard":
-            description = "{} ending with {}".format(
-                method["credit_card_type"], method["credit_card_last_4"]
-            )
+            description = f"{method['credit_card_type']} ending with " \
+                          f"{method['credit_card_last_4']}"
         elif method['type'] == "PurchaseOrder":
-            description = "Purchase Order \"{}\"".format(
-                method["description"]
-            )
+            description = f"Purchase Order \"{method['description']}\""
         else:
             description = method["description"]
         if method['is_default?']:
             description += " (Default)"
         if not method['is_valid']:
             description += " (Invalid)"
-        click.echo('{:^50}'.format(ascii_encode(description)) + '|' +
-                   '{:^20}'.format(ascii_encode(method['expiry'])) + '|' +
-                   '{:^20}'.format(ascii_encode(method['id'])))
+        click.echo(f'{ascii_encode(description):^50}' + '|' +
+                   f"{ascii_encode(method['expiry']):^20}" + '|' +
+                   f"{ascii_encode(method['id']):^20}")
 
 
 def init(path):
@@ -603,12 +586,12 @@ def init(path):
         os.makedirs(path)
     except OSError:
         click.echo("Specified directory already exists.")
-    if isfile('%s/manifest.json' % path):
+    if isfile(f'{path}/manifest.json'):
         click.confirm("This directory already contains a manifest.json file, "
                       "would you like to overwrite it with an empty one? ",
                       default=False,
                       abort=True)
-    with open('%s/manifest.json' % path, 'w+') as f:
+    with open(f'{path}/manifest.json', 'w+') as f:
         click.echo('Creating empty manifest.json...')
         f.write(json.dumps(dict(manifest_data), indent=2))
         click.echo("manifest.json created")
@@ -660,7 +643,7 @@ def summarize(api, file, html, tree, lookup, runtime):
 
     if html:
         url = ProtocolPreview(protocol, api).preview_url
-        click.echo("View your protocol here {}".format(url))
+        click.echo(f"View your protocol here {url}")
         return
 
     parser = AutoprotocolParser(protocol, api=api)
@@ -717,7 +700,7 @@ def launch(api, protocol, project, title, save_input, local, accept_quote, param
     if local:
         manifest, protocol_obj = load_manifest_and_protocol(protocol)
     else:
-        print_stderr("Searching for {}...".format(protocol))
+        print_stderr(f"Searching for {protocol}...")
         protocol_list = api.get_protocols()
 
         matched_protocols = [p for p in protocol_list if (
@@ -726,11 +709,9 @@ def launch(api, protocol, project, title, save_input, local, accept_quote, param
 
         if len(matched_protocols) == 0:
             print_stderr(
-                "Protocol {} in {} was not found."
-                "".format(
-                    protocol,
-                    "package {}".format(pkg) if pkg else "unspecified package"
-                )
+                f"Protocol {protocol} in "
+                f"{f'package {pkg}' if pkg else 'unspecified package'} "
+                f"was not found."
             )
             return
         elif len(matched_protocols) > 1:
@@ -817,9 +798,9 @@ def launch(api, protocol, project, title, save_input, local, accept_quote, param
 
         from time import strftime, gmtime
         if title:
-            default_title = "{}_{}".format(title, strftime("%b_%d_%Y", gmtime()))
+            default_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
         else:
-            default_title = "{}_{}".format(protocol, strftime("%b_%d_%Y", gmtime()))
+            default_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
 
         try:
             req_json = api.submit_launch_request(
@@ -880,12 +861,12 @@ def select_org(api, config, organization=None):
 
     r = api.get_organization(org_id=organization)
     if r.status_code != 200:
-        click.echo("Error accessing organization: %s" % r.text)
+        click.echo(f"Error accessing organization: {r.text}")
         sys.exit(1)
 
     api.organization_id = organization
     api.save(config)
-    click.echo('Logged in with organization: {}'.format(organization))
+    click.echo(f'Logged in with organization: {organization}')
 
 
 def login(api, config, api_root=None, analytics=True, rsa_key=None):
@@ -906,8 +887,8 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
             with open(rsa_key_path, "rb") as key_file:
                 rsa_secret = key_file.read()
         except Exception:
-            click.echo("Error loading RSA key. Please check that the file {} "
-                       "is accessible".format(rsa_key))
+            click.echo(f"Error loading RSA key. Please check that the file "
+                       f"{rsa_key} is accessible")
             sys.exit(1)
 
         # Try making an auth handler with a dummy email so that the command
@@ -915,7 +896,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         try:
             rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
         except Exception as e:
-            click.echo("Error loading RSA key: {}".format(e))
+            click.echo(f"Error loading RSA key: {e}")
             sys.exit(1)
 
     email = click.prompt('Email')
@@ -947,16 +928,16 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         )
 
     except requests.exceptions.RequestException:
-        click.echo("Error logging into specified host: {}. Please check your "
-                   "internet connection and host name".format(api_root))
+        click.echo(f"Error logging into specified host: {api_root}. "
+                   f"Please check your internet connection and host name")
         sys.exit(1)
 
     except Exception as e:
-        click.echo("Error connecting to host: {}".format(e))
+        click.echo(f"Error connecting to host: {e}")
         sys.exit(1)
 
     if r.status_code != 200:
-        click.echo("Error logging into Transcriptic: %s" % r.json()['error'])
+        click.echo(f"Error logging into Transcriptic: {r.json()['error']}")
         sys.exit(1)
     user = r.json()
     token = (user.get('authentication_token') or
@@ -984,14 +965,14 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         sys.exit(1)
 
     if r.status_code != 200:
-        click.echo("Error accessing organization: %s" % r.text)
+        click.echo(f"Error accessing organization: {r.text}")
         sys.exit(1)
     api = Connection(email=email, token=token,
                      organization_id=organization, api_root=api_root,
                      user_id=user_id, analytics=analytics,
                      feature_groups=feature_groups, rsa_key=rsa_key_path)
     api.save(config)
-    click.echo('Logged in as %s (%s)' % (user['email'], organization))
+    click.echo(f"Logged in as {user['email']} ({organization})")
 
 
 def format(manifest):
@@ -1017,7 +998,7 @@ def is_valid_payment_method(api, id):
 
 def format_analysis(response):
     def count(thing, things, num):
-        click.echo("  %s %s" % (num, thing if num == 1 else things))
+        click.echo(f"  {num} {thing if num == 1 else things}")
 
     count("instruction", "instructions", len(response['instructions']))
     count("container", "containers", len(response['refs']))
@@ -1025,10 +1006,10 @@ def format_analysis(response):
     for w in response['warnings']:
         message = w['message']
         if 'instruction' in w['context']:
-            context = "instruction %s" % w['context']['instruction']
+            context = f"instruction {w['context']['instruction']}"
         else:
             context = json.dumps(w['context'])
-        click.echo("WARNING (%s): %s" % (context, message))
+        click.echo(f"WARNING ({context}): {message}")
 
 
 def price(response):
@@ -1042,9 +1023,8 @@ def price(response):
     separator_len = 24
 
     for quote_item in response['quote']['items']:
-        quote_str = "  %s: %s" % (
-            quote_item["title"],
-            locale.currency(float(quote_item["cost"]), grouping=True))
+        locale_cost = locale.currency(float(quote_item['cost']), grouping=True)
+        quote_str = f"  {quote_item['title']}: {locale_cost}"
         click.echo(quote_str)
         separator_len = max(separator_len, len(quote_str))
 
@@ -1126,8 +1106,9 @@ def _get_quick_launch(api, protocol, project):
 def org_prompt(org_list):
     """Organization prompt for helping with selecting organization"""
     if len(org_list) < 1:
-        click.echo("Error: You don't appear to belong to any organizations. \n"
-                   "Visit {} and create an organization.".format('https://secure.transcriptic.com'))
+        click.echo(f"Error: You don't appear to belong to any organizations. \n"
+                   f"Visit {'https://secure.transcriptic.com'} and create an "
+                   f"organization.")
         sys.exit(1)
     if len(org_list) == 1:
         organization = org_list[0]['subdomain']
@@ -1135,7 +1116,7 @@ def org_prompt(org_list):
         click.echo("You belong to %s organizations:" %
                    len(org_list))
         for indx, o in enumerate(org_list):
-            click.echo("{}.  {} ({})".format(indx + 1, o['name'], o['subdomain']))
+            click.echo(f"{indx + 1}.  {o['name']} ({o['subdomain']})")
 
         def parse_valid_org(indx):
             from click.exceptions import BadParameter
@@ -1168,12 +1149,11 @@ def get_project_id(api, name):
         project_ids = [k for k, v in projs.items() if v == name]
         if not project_ids:
             click.echo(
-                "The project '%s' was not found in your organization." % name)
+                f"The project '{name}' was not found in your organization.")
             return
         elif len(project_ids) > 1:
             click.echo(
-                "Found multiple projects: {} that match '{}'.".format(
-                    project_ids, name))
+                f"Found multiple projects: {project_ids} that match '{name}'.")
             # TODO: Add project selector with dates and number of runs
             return
         else:
@@ -1187,7 +1167,7 @@ def get_project_name(api, id):
         name = id if id in projs.values() else None
         if not name:
             click.echo(
-                "The project '%s' was not found in your organization." % name)
+                f"The project '{name}' was not found in your organization.")
             return
     return name
 
@@ -1201,7 +1181,7 @@ def get_package_id(api, name):
         package_id = name if name in list(package_names.values()) else None
     if not package_id:
         click.echo(
-            "The package '%s' does not exist in your organization." % name)
+            f"The package '{name}' does not exist in your organization.")
         return
     return package_id
 
@@ -1215,8 +1195,8 @@ def get_package_name(api, package_id):
         package_name = package_id if package_id in list(
             package_names.values()) else None
     if not package_name:
-        click.echo("The id '%s' does not match any package in your \
-                    organization." % package_id)
+        click.echo(f"The id '{package_id}' does not match any package in your "
+                   f"organization.")
         return
     return package_name
 
@@ -1246,11 +1226,11 @@ def load_protocol(manifest, protocol_name):
              key.")
         sys.exit(1)
     except StopIteration:
-        click.echo("Error: The protocol name '%s' does not match any "
-                   "protocols that can be previewed from within this "
-                   "directory.  \nCheck either your protocol's spelling or "
-                   "your manifest.json file "
-                   "and try again." % protocol_name)
+        click.echo(f"Error: The protocol name '{protocol_name}' does not match "
+                   f"any protocols that can be previewed from within this "
+                   f"directory.  \n"
+                   f"Check either your protocol's spelling or your "
+                   f"manifest.json file and try again.")
         sys.exit(1)
     return p
 
@@ -1282,9 +1262,9 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
                 protocol = check_output(["bash", "-c", command + " " + fp.name])
             click.echo(protocol)
             if view:
-                click.echo("View your protocol's raw JSON above or see the "
-                           "instructions rendered at the following link: \n%s" %
-                           ProtocolPreview(protocol, api).preview_url)
+                click.echo(f"View your protocol's raw JSON above or see the "
+                           f"instructions rendered at the following link: \n"
+                           f"{ProtocolPreview(protocol, api).preview_url}")
         except CalledProcessError as e:
             click.echo(e.output)
             return
@@ -1294,7 +1274,7 @@ def parse_json(json_file):
     try:
         return json.load(open(json_file))
     except ValueError as e:
-        click.echo('Invalid json: %s' % e)
+        click.echo(f'Invalid json: {e}')
         return None
 
 
@@ -1339,5 +1319,5 @@ class ProtocolPreview(object):
         self.preview_url = api.get_route('preview_protocol_embed', preview_id=preview_id)
 
     def _repr_html_(self):
-        return """<iframe src="%s" frameborder="0" allowtransparency="true" \
-        style="height:500px" seamless></iframe>""" % self.preview_url
+        return f"""<iframe src="{self.preview_url}" frameborder="0" 
+        allowtransparency="true" style="height:500px" seamless></iframe>"""

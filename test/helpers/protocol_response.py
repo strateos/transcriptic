@@ -42,14 +42,14 @@ if __name__ == "__main__":
     if not options.protocol_path:
         raise RuntimeError("The input path to the protocol is required")
     if not os.path.isfile(options.protocol_path):
-        raise RuntimeError("%s is an invalid protocol path" % options.protocol_path)
+        raise RuntimeError(f"{options.protocol_path} is an invalid protocol path")
 
     if not options.response_path:
         options.response_path = options.protocol_path.split(".json")[0] + '_response.json'
     try:
         protocol_response(args[0], options.protocol_path, options.response_path)
-        print ("File succesfully generated: %s" % options.response_path)
+        print (f"File succesfully generated: {options.response_path}")
     except Exception as e:
-        print ("Ran into %s when generating file." % e)
+        print (f"Ran into {e} when generating file.")
 
 

@@ -5,6 +5,7 @@ Added
 - Fish completions
 - Autoprotocol dependency for `analysis` package
 Updated
+- Support for Python 3.8
 - Made adding autocomplete functionality more explicit
 - Base CLI test framework
 - Standardize on kebab-case for cli commands
@@ -17,6 +18,7 @@ Fixed
 - Spectrophotometry.Absorbance/Fluorescence/Luminescence plot() works again
 Removed
 - References to Phabricator
+- Support for Python 3.5
 
 ## 7.1.0
 Added

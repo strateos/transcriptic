@@ -381,16 +381,14 @@ class AutoprotocolParser(object):
 
     def absorbance(self, opts):
         self.object_list.append([opts['object']])
-        return ("Measure absorbance at %s for %s of plate %s" %
-                (self.unit(opts['wavelength']),
-                 self.well_list(opts['wells']),
-                 opts['object']))
+        return (f"Measure absorbance at {self.unit(opts['wavelength'])} for "
+                f"{self.well_list(opts['wells'])} of plate {opts['object']}")
 
     def acoustic_transfer(self, opts):
         transfers = []
         for t in opts['groups'][0]['transfer']:
-            transfers.append("Acoustic transfer %s from %s to %s" %
-                             (self.unit(t["volume"]), t["from"], t["to"]))
+            transfers.append(f"Acoustic transfer {self.unit(t['volume'])} "
+                             f"from {t['from']} to {t['to']}")
             self.object_list.append([t["from"], t["to"]])
         return transfers
 
@@ -402,14 +400,14 @@ class AutoprotocolParser(object):
                            ("well" if len(g['from']) is 1 else "wells"),
                            self.well_list(g['from']),
                            self.well_list(g['to']),
-                           ("data saved at '%s'" % opts["dataref"]
+                           (f"data saved at '{opts['dataref']}'"
                             if i is 0 else "analyzed with previous"))])
             self.object_list.append([g["from"], g["to"]])
         return picks
 
     def cover(self, opts):
         self.object_list.append([opts['object']])
-        return "Cover %s with a %s lid" % (opts['object'], opts['lid'])
+        return f"Cover {opts['object']} with a {opts['lid']} lid"
 
     def dispense(self, opts):
         self.object_list.append([opts['object']])
@@ -430,38 +428,35 @@ class AutoprotocolParser(object):
                     reagent = resource["results"][0]["name"].lower()
                     self.resource[resource_id] = reagent
                 else:
-                    reagent = "resource with resource ID %s" % resource_id
+                    reagent = f"resource with resource ID {resource_id}"
             else:
-                reagent = "resource with resource ID %s" % resource_id
+                reagent = f"resource with resource ID {resource_id}"
         else:
             reagent = "unknown"
 
         if len(opts['columns']) == 12 and len(unique_vol) == 1:
-            return "Dispense %s of %s to the full plate of %s" % (
-                unique_vol[0], reagent, opts['object'])
+            return f"Dispense {unique_vol[0]} of {reagent} to the full plate " \
+                   f"of {opts['object']}"
         else:
             return "Dispense corresponding amounts of %s to %d column(s) of %s" % (
                 reagent, len(opts['columns']), opts['object'])
 
     def flash_freeze(self, opts):
         self.object_list.append([opts['object']])
-        return ("Flash freeze %s for %s" %
-                (opts['object'], self.unit(opts['duration'])))
+        return (f"Flash freeze {opts['object']} for {self.unit(opts['duration'])}")
 
     def fluorescence(self, opts):
         self.object_list.append([opts['object']])
-        return ("Read fluorescence of %s of plate %s at excitation wavelength "
-                "%s and emission wavelength %s" %
-                (self.well_list(opts['wells']),
-                 opts['object'],
-                 self.unit(opts['excitation']),
-                 self.unit(opts['emission'])))
+        return (f"Read fluorescence of {self.well_list(opts['wells'])} of "
+                f"plate {opts['object']} at excitation wavelength "
+                f"{self.unit(opts['excitation'])} and emission wavelength "
+                f"{self.unit(opts['emission'])}")
 
     def gel_separate(self, opts):
         self.object_list.append([opts['matrix']])
-        return ("Perform gel electrophoresis using "
-                "a %s agarose gel for %s" % (opts['matrix'].split(',')[1][:-1],
-                                             self.unit(opts['duration'])))
+        return (f"Perform gel electrophoresis using a "
+                f"{opts['matrix'].split(',')[1][:-1]} agarose gel for "
+                f"{self.unit(opts['duration'])}")
 
     def gel_purify(self, opts):
         self.object_list.append([opts['matrix']])
@@ -475,33 +470,34 @@ class AutoprotocolParser(object):
                 "-" + str(unique_bl[i]['max_bp'])
 
         if len(unique_bl) <= 3:
-            return "Perform gel purification on the %s agarose gel with band range(s) %s" % (
-                opts['matrix'].split(',')[1][:-1], ', '.join(unique_bl))
+            return f"Perform gel purification on the " \
+                   f"{opts['matrix'].split(',')[1][:-1]} agarose gel with " \
+                   f"band range(s) {', '.join(unique_bl)}"
         else:
-            return "Perform gel purification on the %s agarose gel with %s band ranges" % (
-                opts['matrix'].split(',')[1][:-1], len(unique_bl))
+            return f"Perform gel purification on the " \
+                   f"{opts['matrix'].split(',')[1][:-1]} agarose gel with " \
+                   f"{len(unique_bl)} band ranges"
 
     def incubate(self, opts):
         self.object_list.append([opts['object']])
         shaking = " (shaking)" if opts['shaking'] else ""
-        return "Incubate %s at %s for %s%s" % (opts['object'],
-                                               TEMP_DICT[opts['where']],
-                                               self.unit(opts['duration']),
-                                               shaking)
+        return f"Incubate {opts['object']} at " \
+               f"{TEMP_DICT[opts['where']]} for " \
+               f"{self.unit(opts['duration'])}{shaking}"
 
     def image_plate(self, opts):
         self.object_list.append([opts['object']])
-        return "Take an image of %s" % opts['object']
+        return f"Take an image of {opts['object']}"
 
     def luminescence(self, opts):
         self.object_list.append([opts['object']])
-        return ("Read luminescence of %s of plate %s" %
-                (self.well_list(opts['wells']), opts['object']))
+        return (f"Read luminescence of {self.well_list(opts['wells'])} of "
+                f"plate {opts['object']}")
 
     def oligosynthesize(self, opts):
         self.object_list.append([o['destination'] for o in opts['oligos']])
-        return (["Oligosynthesize sequence '%s' into '%s'" %
-                 (o['sequence'], o['destination']) for o in opts['oligos']])
+        return ([f"Oligosynthesize sequence '{o['sequence']}' into "
+                 f"'{o['destination']}'" for o in opts['oligos']])
 
     def provision(self, opts):
         self.object_list.append([self.platename(t['well'])
@@ -515,21 +511,20 @@ class AutoprotocolParser(object):
                 reagent = resource["results"][0]["name"].lower()
                 self.resource[resource_id] = reagent
             else:
-                reagent = "resource with resource ID %s" % resource_id
+                reagent = f"resource with resource ID {resource_id}"
         else:
-            reagent = "resource with resource ID %s" % resource_id
+            reagent = f"resource with resource ID {resource_id}"
         provisions = []
         for t in opts['to']:
-            provisions.append("Provision %s of %s to well %s of container %s" %
-                              (self.unit(t['volume']), reagent,
-                               self.well(t['well']), self.platename(t['well'])
-                               ))
+            provisions.append(f"Provision {self.unit(t['volume'])} of "
+                              f"{reagent} to well {self.well(t['well'])} of "
+                              f"container {self.platename(t['well'])}")
         return provisions
 
     def sanger_sequence(self, opts):
         self.object_list.append([opts['object']])
-        seq = "Sanger sequence %s of plate %s" % (
-            self.well_list(opts['wells']), opts['object'])
+        seq = f"Sanger sequence {self.well_list(opts['wells'])} of plate " \
+              f"{opts['object']}"
         if opts['type'] == "standard":
             return seq
         elif opts['type'] == "rca":
@@ -549,7 +544,7 @@ class AutoprotocolParser(object):
             seq = "Illumina sequence the corresponding wells of %s plates" % len(
                 unique_wells)
 
-        return seq + " with library size %s" % opts['library_size']
+        return seq + f" with library size {opts['library_size']}"
 
     def flow_analyze(self, opts):
         wells = []
@@ -562,22 +557,20 @@ class AutoprotocolParser(object):
 
     def seal(self, opts):
         self.object_list.append([opts["object"]])
-        return "Seal %s (%s)" % (opts['object'], opts['type'])
+        return f"Seal {opts['object']} ({opts['type']})"
 
     def spin(self, opts):
         self.object_list.append([opts["object"]])
-        return ("Spin %s for %s at %s" %
-                (opts['object'], self.unit(opts['duration']),
-                 self.unit(opts['acceleration'])))
+        return (f"Spin {opts['object']} for {self.unit(opts['duration'])} at "
+                f"{self.unit(opts['acceleration'])}")
 
     def spread(self, opts):
         self.object_list.append(
             [self.well(opts['from']), self.well(opts['to'])])
-        return ["Spread %s of bacteria from well %s of %s "
-                "to well %s of agar plate %s" %
-                (opts['volume'], self.well(opts['from']),
-                 self.platename(opts['from']), self.well(opts['to']),
-                 self.platename(opts['to']))]
+        return [f"Spread {opts['volume']} of bacteria from well "
+                f"{self.well(opts['from'])} of {self.platename(opts['from'])} "
+                f"to well {self.well(opts['to'])} of agar plate "
+                f"{self.platename(opts['to'])}"]
 
     def stamp(self, opts):
         stamps = []
@@ -605,7 +598,7 @@ class AutoprotocolParser(object):
 
     def thermocycle(self, opts):
         self.object_list.append([opts["object"]])
-        return "Thermocycle %s" % opts['object']
+        return f"Thermocycle {opts['object']}"
 
     def pipette(self, opts):
         pipettes = []
@@ -639,17 +632,18 @@ class AutoprotocolParser(object):
                                    for i, p in enumerate(g[pip])])
                     self.object_list.append([from_objs, to_objs])
                 elif pip == "distribute":
-                    pipettes.append("Distribute from %s into %s" %
-                                    (g[pip]['from'],
-                                     self.well_list([d['well'] for
-                                                     d in g[pip]['to']], 20)))
+                    pipettes.append(
+                        f"Distribute from {g[pip]['from']} into "
+                        f"{self.well_list([d['well'] for d in g[pip]['to']], 20)}"
+                    )
                     self.object_list.append(
                         [g[pip]['from'], g[pip]['to'][0]['well']])
                 elif pip == "consolidate":
-                    pipettes.append("Consolidate %s into %s" %
-                                    (self.well_list([c['well'] for c in
-                                                     g[pip]['from']], 20),
-                                     g[pip]['to']))
+                    pipettes.append(
+                        f"Consolidate "
+                        f"{self.well_list([c['well'] for c in g[pip]['from']], 20)} "
+                        f"into {g[pip]['to']}"
+                    )
                     self.object_list.append(
                         [g[pip]['from'][0]['well'], g[pip]['to']])
         return pipettes
@@ -658,30 +652,28 @@ class AutoprotocolParser(object):
         specific_op = list(opts['groups'][0][0].keys())[0]
         specs_dict = opts['groups'][0][0][specific_op]
         self.object_list.append([specs_dict["object"]])
-        seq = "Magnetically %s %s" % (specific_op, specs_dict["object"])
+        seq = f"Magnetically {specific_op} {specs_dict['object']}"
 
         if specific_op == "dry":
             return seq + " for %s" % self.unit(specs_dict["duration"])
         elif specific_op == "incubate":
-            return seq + " for %s with a tip position of %s" % (
-                self.unit(specs_dict["duration"]), specs_dict["tip_position"])
+            return seq + f" for {self.unit(specs_dict['duration'])} with a " \
+                         f"tip position of {specs_dict['tip_position']}"
         elif specific_op == "collect":
-            return seq + " beads for %s cycles with a pause duration of %s" % (
-                specs_dict["cycles"], self.unit(specs_dict["pause_duration"]))
+            return seq + f" beads for {specs_dict['cycles']} cycles with a " \
+                         f"pause duration of {self.unit(specs_dict['pause_duration'])}"
         elif specific_op == "release" or "mix":
-            return seq + " beads for %s at an amplitude of %s" % (
-                self.unit(specs_dict["duration"]), specs_dict["amplitude"])
+            return seq + f" beads for {self.unit(specs_dict['duration'])} at " \
+                         f"an amplitude of {specs_dict['amplitude']}"
 
     def measure_volume(self, opts):
         unique_plates = self.get_unique_plates(opts['object'])
         self.object_list.append(unique_plates)
 
         if len(unique_plates) <= 3:
-            return "Measure volume of %s wells from %s" % (
-                len(opts['object']), ", ".join(unique_plates))
+            return f"Measure volume of {len(opts['object'])} wells from {', '.join(unique_plates)}"
         else:
-            return "Measure volume of %s wells from the %s plates" % (
-                len(opts['object']), len(unique_plates))
+            return f"Measure volume of {len(opts['object'])} wells from the {len(unique_plates)} plates"
 
     def measure_mass(self, opts):
         unique_plates = self.get_unique_plates(opts['object'])
@@ -691,16 +683,16 @@ class AutoprotocolParser(object):
     def measure_concentration(self, opts):
         unique_plates = self.get_unique_plates(opts['object'])
         self.object_list.append(unique_plates)
-        return "Measure concentration of %s %s source aliquots of %s" % (
-            self.unit(opts['volume']), opts['measurement'], self.platename(opts['object'][0]))
+        return f"Measure concentration of {self.unit(opts['volume'])} " \
+               f"{opts['measurement']} source aliquots of {self.platename(opts['object'][0])}"
 
     def uncover(self, opts):
         self.object_list.append([opts["object"]])
-        return "Uncover %s" % opts['object']
+        return f"Uncover {opts['object']}"
 
     def unseal(self, opts):
         self.object_list.append([opts["object"]])
-        return "Unseal %s" % opts['object']
+        return f"Unseal {opts['object']}"
 
     @staticmethod
     def platename(ref):
@@ -744,10 +736,8 @@ class AutoprotocolParser(object):
     def unit(u):
         value = u.split(':')[0]
         unit = u.split(':')[1]
-        return ("%s %s" % (value,
-                           (unit + "s" if (float(value) > 1 and
-                                           unit in PLURAL_UNITS) else unit))
-                )
+        return (f"{value} "
+                f"{unit + 's' if float(value) > 1 and unit in PLURAL_UNITS else unit}")
 
 
 class Node(object):
