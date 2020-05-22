@@ -44,6 +44,7 @@ def run(run_id):
         Transcriptic representation of a Run object
     """
     from .jupyter import Run
+
     return Run(run_id)
 
 
@@ -61,6 +62,7 @@ def project(project_id):
         Transcriptic representation of a Project object
     """
     from .jupyter import Project
+
     return Project(project_id)
 
 
@@ -78,6 +80,7 @@ def container(container_id):
         Transcriptic representation of a Container object
     """
     from .jupyter import Container
+
     return Container(container_id)
 
 
@@ -95,6 +98,7 @@ def preview(protocol):
         Transcriptic representation of a Protocol object
     """
     from .commands import ProtocolPreview
+
     return ProtocolPreview(protocol, api=api)
 
 
@@ -135,8 +139,9 @@ def submit(protocol, project_id, title=None, test_mode=False):
     Submission result: dict
         Raw result of the submission
     """
-    return api.submit_run(protocol, project_id=project_id, title=title,
-                          test_mode=test_mode)
+    return api.submit_run(
+        protocol, project_id=project_id, title=title, test_mode=test_mode
+    )
 
 
 def dataset(data_id, key="*"):
@@ -172,5 +177,7 @@ def connect(transcriptic_path="~/.transcriptic"):
     try:
         api = Connection.from_file(transcriptic_path)
     except (OSError, IOError):
-        print("Unable to find .transcriptic file, please ensure the right path"
-              " is provided")
+        print(
+            "Unable to find .transcriptic file, please ensure the right path"
+            " is provided"
+        )
