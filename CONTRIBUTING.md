@@ -31,8 +31,7 @@ All code written should follow the [PEP8 standard](https://www.python.org/dev/pe
 
 For documentation purposes, we follow [NumPy style doc strings](https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt)
 
-We use [pre-commit](https://pre-commit.com) as our linting and auto-formatting framework. This is automatically executed as part of the `git commit` and `git push` workflows. You may also execute it manually using the snippet below.
-
+We use [pre-commit](https://pre-commit.com) as our linting and auto-formatting framework. Lint is checked with [pylint](https://www.pylint.org) and auto-formatting is done with [black](https://black.readthedocs.io/en/stable/). This is automatically executed as part of the `git commit` and `git push` workflows. You may also execute it manually using the snippet below.
 ```
 pre-commit run
 ```
