@@ -1319,5 +1319,5 @@ class ProtocolPreview(object):
         self.preview_url = api.get_route('preview_protocol_embed', preview_id=preview_id)
 
     def _repr_html_(self):
-        return f"""<iframe src="{self.preview_url}" frameborder="0" 
+        return f"""<iframe src="{self.preview_url}" frameborder="0"
         allowtransparency="true" style="height:500px" seamless></iframe>"""

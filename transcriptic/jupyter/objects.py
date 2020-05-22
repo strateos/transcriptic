@@ -742,7 +742,7 @@ class Instruction(object):
     @property
     def warp_events(self):
         """
-        Warp events include discrete monitoring events such as liquid sensing 
+        Warp events include discrete monitoring events such as liquid sensing
         events for a particular instruction.
         """
         # Note: We may consider adding special classes for specific warp

@@ -37,7 +37,7 @@ class ConnectionInitTests(unittest.TestCase):
             transcriptic.config.Connection.from_file(config_file.name)
 
     def test_inits_invalid(self):
-        with tempfile.NamedTemporaryFile() as config_file:    
+        with tempfile.NamedTemporaryFile() as config_file:
             with open(config_file.name, 'w') as f:
                 json.dump(
                     {
