@@ -1,17 +1,19 @@
 ## `transcriptic` Changelog
 
 Added
+- pre-commit framework and linting
 - auto-deploy functionality
 - Fish completions
 - Autoprotocol dependency for `analysis` package
 Updated
+- Travis build reorganized to distinct jobs
 - Support for Python 3.8
 - Made adding autocomplete functionality more explicit
 - Base CLI test framework
 - Standardize on kebab-case for cli commands
 - Plotly dependency to 1.13
 - Matplotlib dependency to 3.0.3
-- Spectrophotometry plots now render offline 
+- Spectrophotometry plots now render offline
 - Dataset object html representation increased
 Fixed
 - Kinetics.Spectrophotometry.plot() function now works again

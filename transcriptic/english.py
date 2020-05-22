@@ -16,7 +16,7 @@ TEMP_DICT = {"cold_20": "-20 degrees celsius",
 class AutoprotocolParser(object):
 
     def __init__(self, protocol_obj, api=None, parsed_output=None):
-        self.api = api 
+        self.api = api
         self.resource = dict()
         self.parse(protocol_obj)
 
@@ -42,7 +42,7 @@ class AutoprotocolParser(object):
         A Job Tree visualizes the instructions of a protocol in a hierarchical
         structure based on container dependency to help human readers with manual
         execution. Its construction utilizes the algorithm below, as well as the
-        Node object class (to store relational information) at the bottom of this 
+        Node object class (to store relational information) at the bottom of this
         script.
 
         Example Usage:
@@ -82,7 +82,7 @@ class AutoprotocolParser(object):
                 +---12
 
 
-        Variables 
+        Variables
         ---------
         steps: list
             deep list of objects per instruction/step;
@@ -94,7 +94,7 @@ class AutoprotocolParser(object):
         forest: list
             list of nested dictionaries, depicting parent-children relations
         forest_list: list
-            list of nested lists, depticting parent-children relations 
+            list of nested lists, depticting parent-children relations
         """
 
         # 1. Enforce depth of 1 for steps
@@ -742,9 +742,9 @@ class AutoprotocolParser(object):
 
 class Node(object):
     """
-    A Node represents a Job Tree element that fulfils a broader child-parent 
+    A Node represents a Job Tree element that fulfils a broader child-parent
     relational structure. It contains relevant information on its relationships
-    in the form of edges. The job_tree algorithm above then constructs the 
+    in the form of edges. The job_tree algorithm above then constructs the
     actual hierachy of the aforementioned relational structure.
 
     Example Usage:

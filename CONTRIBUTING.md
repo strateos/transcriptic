@@ -14,18 +14,32 @@ For analysis purposes, we prefer using Pandas DataFrames and NumPy arrays for re
 
 
 ## Version Compatibility
-TxPy is written with Python 3.5+ compatibility in mind. Python 2 is no longer officialy supported.
+TxPy is written with Python 3.6+ compatibility in mind. Python 2 is no longer officialy supported.
 
+
+## General Setup
+Use of virtual environment to isolate the development environment is highly recommended. There are several tools available such as [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) and [pyenv](https://github.com/pyenv/pyenv#installation).
+
+After activating your desired virtualenv, install the dependencies using the snippet below
+```
+pip install -e '.[test, docs]'
+pre-commit install
+```
 
 ## Styling and Documentation
 All code written should follow the [PEP8 standard](https://www.python.org/dev/peps/pep-0008/)
 
 For documentation purposes, we follow [NumPy style doc strings](https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt)
 
+We use [pre-commit](https://pre-commit.com) as our linting and auto-formatting framework. This is automatically executed as part of the `git commit` and `git push` workflows. You may also execute it manually using the snippet below.
+
+```
+pre-commit run
+```
 
 ## Testing
 For testing purposes, we write tests in the `test` folder in the [pytest](http://pytest.org/latest/getting-started.html)
-format. We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests. 
+format. We also use [tox](https://tox.readthedocs.org/en/latest/) for automating tests.
 
 The `tox` command is run by Jenkins and is currently configured to run the main module tests, generate a coverage report and build documentation.
 

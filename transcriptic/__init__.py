@@ -33,7 +33,7 @@ except ImportError as e:
 def run(run_id):
     """
     Creates a Run object for the specified run-id
-    
+
     Parameters
     ----------
     run_id: str
@@ -83,7 +83,7 @@ def container(container_id):
 
 def preview(protocol):
     """
-    Creates a protocol preview object for the specified protocol 
+    Creates a protocol preview object for the specified protocol
 
     Parameters
     ----------
@@ -100,18 +100,18 @@ def preview(protocol):
 
 def analyze(protocol, test_mode=False):
     """
-    Analyze a given protocol 
+    Analyze a given protocol
 
     Parameters
     ----------
     protocol: dict
         Autoprotocol JSON in dictionary format
     test_mode: boolean
-        whether protocol should be analyzed under test mode 
+        whether protocol should be analyzed under test mode
     Returns
     ------
     Analysis result: dict
-        Raw result of the analysis    
+        Raw result of the analysis
     """
     return api.analyze_run(protocol, test_mode)
 
@@ -119,7 +119,7 @@ def analyze(protocol, test_mode=False):
 def submit(protocol, project_id, title=None, test_mode=False):
     """
     Submit a given protocol
-    
+
     Parameters
     ----------
     protocol: dict
@@ -129,11 +129,11 @@ def submit(protocol, project_id, title=None, test_mode=False):
     title: str
         Name of Run
     test_mode: boolean
-        whether protocol should be submitted as a test run 
+        whether protocol should be submitted as a test run
     Returns
     ------
     Submission result: dict
-        Raw result of the submission    
+        Raw result of the submission
     """
     return api.submit_run(protocol, project_id=project_id, title=title,
                           test_mode=test_mode)
@@ -149,20 +149,20 @@ def dataset(data_id, key="*"):
         Id of desired dataset, e.g. d123456789
     key
         Key of desired sub-fields of dataset
-    
+
     Returns
     ------
     Data: dict
-        Data in JSON form   
+        Data in JSON form
     """
     return api.dataset(data_id=data_id, key=key)
 
 
 def connect(transcriptic_path="~/.transcriptic"):
     """
-    Instantiates a Connection based on the specified path, and overwrites the 
+    Instantiates a Connection based on the specified path, and overwrites the
     existing `api` object with this Connection
-    
+
     Parameters
     ----------
     transcriptic_path:

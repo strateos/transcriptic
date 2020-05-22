@@ -51,5 +51,3 @@ if __name__ == "__main__":
         print (f"File succesfully generated: {options.response_path}")
     except Exception as e:
         print (f"Ran into {e} when generating file.")
-
-

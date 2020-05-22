@@ -31,6 +31,7 @@ test_deps = [
     'coverage>=4.5, <5',
     'jsonschema>=2.6, <3',
     'mock>=3, <4',
+    'pre-commit>=2.4, <3',
     'pylint>=1.9, <2',
     'pytest>=4, <5',
     'pytest-cov>=2, <3',
@@ -64,7 +65,7 @@ setup(
     name='transcriptic',
     description='Transcriptic CLI & Python Client Library',
     url='https://github.com/transcriptic/transcriptic',
-    version=__version__,
+    version=__version__,  # pylint: disable=undefined-variable
     packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     include_package_data=True,
     tests_require=test_deps,
