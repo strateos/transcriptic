@@ -6,6 +6,7 @@ Added
 - Fish completions
 - Autoprotocol dependency for `analysis` package
 Updated
+- Test dependencies, pytest to 5.4, pylint to 2.5.2, tox to 3.15
 - Travis build reorganized to distinct jobs
 - Support for Python 3.8
 - Made adding autocomplete functionality more explicit

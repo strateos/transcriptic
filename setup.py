@@ -32,10 +32,10 @@ test_deps = [
     "jsonschema>=2.6, <3",
     "mock>=3, <4",
     "pre-commit>=2.4, <3",
-    "pylint>=1.9, <2",
-    "pytest>=4, <5",
+    "pylint==2.5.2",  # should be consistent with .pre-commit-config.yaml
+    "pytest>=5.4, <6",
     "pytest-cov>=2, <3",
-    "tox>=3.7, <4",
+    "tox>=3.15, <4",
 ]
 
 doc_deps = [
