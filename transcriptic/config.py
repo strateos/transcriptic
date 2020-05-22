@@ -34,15 +34,11 @@ def initialize_default_session():
     session.headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "txpy/{} ({}/{}; {}/{}; {}; {})".format(
-            __version__,
-            platform.python_implementation(),
-            platform.python_version(),
-            platform.system(),
-            platform.release(),
-            platform.machine(),
-            platform.architecture()[0]
-        )
+        "User-Agent": f"txpy/{__version__} "
+                      f"({platform.python_implementation()}/"
+                      f"{platform.python_version()}; "
+                      f"{platform.system()}/{platform.release()}; "
+                      f"{platform.machine()}; {platform.architecture()[0]})"
     }
     return session
 
@@ -172,8 +168,9 @@ class Connection(object):
 
         if not keys.issuperset(expected_keys):
             raise OSError(
-                "Key(s) not found in configuration file ({}) Missing {}".format(
-                    config_path, repr(expected_keys - keys)))
+                f"Key(s) not found in configuration file ({config_path}) "
+                f"Missing {repr(expected_keys - keys)}"
+            )
         return Connection(**cfg)
 
     @staticmethod
@@ -341,9 +338,9 @@ class Connection(object):
     def url(self, path):
         """url format helper"""
         if path.startswith("/"):
-            return "%s%s" % (self.api_root, path)
+            return f"{self.api_root}{path}"
         else:
-            return "%s/%s/%s" % (self.api_root, self.organization_id, path)
+            return f"{self.api_root}/{self.organization_id}/{path}"
 
     def preview_protocol(self, protocol):
         """Post protocol preview"""
@@ -368,8 +365,7 @@ class Connection(object):
     def get_organization(self, org_id=None):
         """Get particular organization"""
         route = self.get_route('get_organization', org_id=org_id)
-        err_404 = "There was an error fetching the organization " \
-                  "{}".format(org_id)
+        err_404 = f"There was an error fetching the organization {org_id}"
         resp = self.get(
             route,
             status_response={
@@ -396,8 +392,7 @@ class Connection(object):
     def project(self, project_id=None):
         """Get particular project"""
         route = self.get_route('get_project', project_id=project_id)
-        err_default = "There was an error fetching project " \
-                      "{}".format(project_id)
+        err_default = f"There was an error fetching project {project_id}"
         return self.get(
             route,
             status_response={'default': lambda resp: RuntimeError(err_default)}
@@ -406,8 +401,8 @@ class Connection(object):
     def runs(self, project_id=None):
         """Get list of runs in project"""
         route = self.get_route('get_project_runs', project_id=project_id)
-        err_default = "There was an error fetching the runs in project " \
-                      "{}".format(project_id)
+        err_default = f"There was an error fetching the runs in project " \
+                      f"{project_id}"
         return self.get(
             route,
             status_response={
@@ -577,7 +572,7 @@ class Connection(object):
             route = self.get_route('dataset_short', data_id=obj_id)
         else:
             route = self.get_route('deref_route', obj_id=obj_id)
-        err_404 = "[404] No object found for ID {}".format(obj_id)
+        err_404 = f"[404] No object found for ID {obj_id}"
         return self.get(
             route,
             status_response={'404': lambda resp: Exception(err_404)}
@@ -619,12 +614,12 @@ class Connection(object):
         }
         data = {k: v for k, v in payload.items() if v is not None}
         route = self.get_route('submit_run', project_id=project_id)
-        err_404 = "Error: Couldn't create run (404).\n Are you sure the " \
-                  "project {} exists, and that you have access " \
-                  "to it?".format(self.url(project_id))
+        err_404 = f"Error: Couldn't create run (404).\n Are you sure the " \
+                  f"project {self.url(project_id)} exists, and that you have " \
+                  f"access to it?"
 
         def err_422(resp):
-            "Error creating run: {}".format(resp.text)
+            f"Error creating run: {resp.text}"
 
         return self.post(
             route,
@@ -666,7 +661,7 @@ class Connection(object):
                     "exists, and that you have access to it?" %
                     self.url(project_id)),
                 '422': lambda resp: AnalysisException(
-                    "Error creating run: %s" % resp.text)
+                    f"Error creating run: {resp.text}")
             }
         )
 
@@ -722,8 +717,8 @@ class Connection(object):
     def datasets(self, project_id=None, run_id=None, timeout=30.0):
         """Get datasets belonging to run"""
         route = self.get_route('datasets', project_id=project_id, run_id=run_id)
-        err_404 = "[404] No run found for ID {}. Please ensure you have the " \
-                  "right permissions.".format(run_id)
+        err_404 = f"[404] No run found for ID {run_id}. Please ensure you " \
+                  f"have the right permissions."
         return self.get(
             route,
             status_response={'404': lambda resp: Exception(err_404)},
@@ -770,8 +765,8 @@ class Connection(object):
         results = []
 
         while has_more:
-            route = "{}&page[limit]={}&page[offset]={}".format(
-                route_base, limit, page * limit)
+            route = f"{route_base}&page[limit]={limit}&page[offset]=" \
+                    f"{page * limit}"
             response = self.get(route)
             entities = response.get("data")
 
@@ -955,7 +950,7 @@ class Connection(object):
                 raise ValueError("Unable to convert read buffer to bytes")
 
         headers = {
-            "Content-Disposition": "attachment; filename={}".format(name),
+            "Content-Disposition": f"attachment; filename={name}",
             "Content-Type": content_type
         }
         headers = {k: v for k, v in headers.items() if v}
@@ -1013,7 +1008,7 @@ class Connection(object):
                 for chunk in req.iter_content(chunk_sz):
                     if chunk:
                         f.write(chunk)
-            print("Zip file downloaded locally to {}.".format(file_path))
+            print(f"Zip file downloaded locally to {file_path}.")
         else:
             return zipfile.ZipFile(io.BytesIO(req.content))
 
@@ -1033,8 +1028,8 @@ class Connection(object):
             if arg_dict[arg]:
                 input_args.append(arg_dict[arg])
             else:
-                raise Exception("For route: {0}, argument {1} needs to be "
-                                "provided.".format(method, arg))
+                raise Exception(f"For route: {method}, argument {arg} needs "
+                                f"to be provided.")
         return route_method(*tuple(input_args))
 
     def get(self, route, **kwargs):
@@ -1055,7 +1050,7 @@ class Connection(object):
     def _call(self, method, route, status_response={}, **kwargs):
         """Base function for handling all requests"""
         if self.verbose:
-            print("{0}: {1}".format(method.upper(), route))
+            print(f"{method.upper()}: {route}")
 
         return self._handle_response(
             self._req_call(method, route, **kwargs),
@@ -1105,8 +1100,8 @@ class Connection(object):
         route = "https://www.google-analytics.com/collect"
         if not client_id:
             client_id = self.user_id
-        packet = 'v=1&tid=UA-28937242-7&cid={}&t=event&ea={}&ec={}'.format(
-            client_id, event_action, event_category)
+        packet = f'v=1&tid=UA-28937242-7&cid={client_id}&t=event&' \
+                 f'ea={event_action}&ec={event_category}'
         requests.post(route, packet)
 
 

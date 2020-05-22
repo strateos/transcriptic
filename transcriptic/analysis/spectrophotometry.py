@@ -34,7 +34,7 @@ class _PlateRead(object):
                 "Data given is not from a spectrophotometry operation.")
         if self.op_type != (self.dataset.attributes["instruction"]["operation"]
                             ["op"]):
-            raise RuntimeError("Data given is not a %s operation." % op_type)
+            raise RuntimeError(f"Data given is not a {op_type} operation.")
 
         # Populate measurement params
         measure_params_dict = dict()
@@ -46,9 +46,8 @@ class _PlateRead(object):
                 ":")[0] + "nm"
         if self.op_type == "fluorescence":
             measure_params_dict["wavelength"] = (
-                "excitation: %s emission: %s" %
-                (dataset_op["excitation"].split(":")[0] + "nm",
-                 dataset_op["emission"].split(":")[0] + "nm")
+                f"excitation: {dataset_op['excitation'].split(':')[0] + 'nm'} "
+                f"emission: {dataset_op['emission'].split(':')[0] + 'nm'}"
             )
         if self.op_type == "luminescence":
             measure_params_dict["wavelength"] = ""
@@ -88,8 +87,7 @@ class _PlateRead(object):
             ]
             if not all(_ in data_dict for _ in wells):
                 raise ValueError(
-                    "Not all wells {} are in dataset {}."
-                    "".format(wells, data_dict)
+                    f"Not all wells {wells} are in dataset {data_dict}."
                 )
 
             self.df = pandas.DataFrame(
@@ -108,8 +106,7 @@ class _PlateRead(object):
                 ]
                 if not all(_ in data_dict for _ in wells):
                     raise ValueError(
-                        "Not all wells {} are in dataset {}."
-                        "".format(wells, data_dict)
+                        f"Not all wells {wells} are in dataset {data_dict}."
                     )
                 col = pandas.DataFrame(
                     [data_dict[_][0] for _ in wells],
@@ -219,7 +216,7 @@ class Absorbance(_PlateRead):
         """
         if "title" not in kwargs:
             if self.name:
-                kwargs["title"] = "Beer's Law (%s)" % self.name
+                kwargs["title"] = f"Beer's Law ({self.name})"
             else:
                 kwargs["title"] = "Beer's Law"
         if "yerr" not in kwargs:
@@ -252,7 +249,7 @@ class Absorbance(_PlateRead):
             ss_res = result[1]
             ss_tot = np.sum(
                 np.square((plot_obj["values"] - plot_obj["values"].mean())))
-            print("%s R^2: %s" % (self.name, (1-(ss_res // ss_tot))))
+            print(f"{self.name} R^2: {1 - ss_res // ss_tot}")
 
 
 class Fluorescence(_PlateRead):
@@ -335,9 +332,8 @@ def compare_standards(pr_obj, std_pr_obj):
     for indx in range(len(pr_obj.cv)):
         cv_ratio = pr_obj.cv.iloc[indx] // std_pr_obj.cv.iloc[indx]
         if cv_ratio < 2:
-            print("Warning for %s: Sample CV is only %s times that of Standard \
-                CV. RMSE may be inaccurate." % (
-                pr_obj.cv.index[indx], cv_ratio))
+            print(f"Warning for {pr_obj.cv.index[indx]}: Sample CV is only "
+                  f"{cv_ratio} times that of Standard CV. RMSE may be inaccurate.")
     # RMSE (normalized wrt to standard mean)
     RMSE = (np.sqrt(np.square(pr_obj.df - std_pr_obj.df.mean()).mean()) /
             std_pr_obj.df.mean() * 100)
@@ -352,7 +348,7 @@ def compare_standards(pr_obj, std_pr_obj):
         # pylint: disable=import-error
         from IPython.display import HTML, display
         if pr_obj.name:
-            display(HTML("<b>Standards Comparison (%s)</b>" % pr_obj.name))
+            display(HTML(f"<b>Standards Comparison ({pr_obj.name})</b>"))
         display(sampleVariance)
         display(sampleCV)
         display(RMSE)

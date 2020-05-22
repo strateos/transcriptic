@@ -49,7 +49,8 @@ class Spectrophotometry(_Kinetics):
             raise RuntimeError("Input Datasets must all be of the same type.")
         self.operation = operation_set.pop()
         if self.operation not in ["absorbance", "fluorescence", "luminescence"]:
-            raise RuntimeError("%s has to be of type absorbance, fluorescence or luminescence" % self.operation)
+            raise RuntimeError(f"{self.operation} has to be of type absorbance, "
+                               f"fluorescence or luminescence")
         super(Spectrophotometry, self).__init__(datasets)
         # Assume that well names are consistent across all runs
         ref_dataset = datasets[0]
@@ -123,8 +124,8 @@ class Spectrophotometry(_Kinetics):
                                  name=self.properties["name"].loc[well]) for well in wells]
         else:
             if groupby not in self.properties.columns:
-                raise ValueError("\'%s\' not found in the properties table. Please specify a column which exists" %
-                                 groupby)
+                raise ValueError(f"'{groupby}' not found in the properties table. "
+                                 f"Please specify a column which exists")
             grouped = self.properties.groupby(groupby)
             index_list = [grouped.get_group(group).index for group in grouped.groups]
             reading_map = []
@@ -141,19 +142,19 @@ class Spectrophotometry(_Kinetics):
                                      )
                           for reading in reading_map]
             else:
-                raise ValueError("No common groups found for specified groupby: %s" % groupby)
+                raise ValueError(f"No common groups found for specified groupby: {groupby}")
 
         # Assume all data is generated from the same run-id for now
         if not title:
-            title = "Kinetics Curve (%s)" % self.datasets[0].attributes["instruction"]["run"]["id"]
+            title = f"Kinetics Curve ({self.datasets[0].attributes['instruction']['run']['id']})"
         if not xlabel:
             xlabel = 'Time'
         if not ylabel:
             if self.operation == "absorbance":
-                ylabel = "RAU (%s)" % self.datasets[0].attributes["instruction"]["operation"]["wavelength"]
+                ylabel = f"RAU ({self.datasets[0].attributes['instruction']['operation']['wavelength']})"
             elif self.operation == "fluorescence":
-                ylabel = "RFU (%s/%s)" % (self.datasets[0].attributes["instruction"]["operation"]["excitation"],
-                                          self.datasets[0].attributes["instruction"]["operation"]["emission"])
+                ylabel = f"RFU ({self.datasets[0].attributes['instruction']['operation']['excitation']}/" \
+                         f"{self.datasets[0].attributes['instruction']['operation']['emission']})"
             elif self.operation == "luminescence":
                 ylabel = "Luminescence"
 

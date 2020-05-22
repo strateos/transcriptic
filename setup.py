@@ -68,7 +68,7 @@ setup(
     packages=['transcriptic', 'transcriptic.jupyter', 'transcriptic.analysis'],
     include_package_data=True,
     tests_require=test_deps,
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
         'Click>=7.0,<8',
         'httpsig==1.3.0',
@@ -99,8 +99,8 @@ setup(
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8'
     ]
 )
