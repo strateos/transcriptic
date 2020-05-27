@@ -7,6 +7,7 @@ Unreleased
 Added
 ~~~~~
 
+-  .readthedocs.yml configuration for docs building, corresponding badge
 -  pre-commit framework and linting
 -  auto-deploy functionality
 -  Fish completions
