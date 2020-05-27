@@ -112,7 +112,7 @@ Pull Requests
 -------------
 
 To contribute, please submit a pull-request to the `Github
-repository <http://github.com/transcriptic/transcriptic>`__.
+repository <http://github.com/strateos/transcriptic>`__.
 
 Before submitting the request, please ensure that all tests pass by
 running ``tox`` in the main directory.

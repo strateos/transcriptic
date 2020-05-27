@@ -90,7 +90,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"TxPy"
-copyright = u"2020, Strateos Inc."
+copyright = u"2020, Max Hodak, Tali Herzka, Jeremy Apthorp, Yang Choo, Peter Lee"
 
 
 exec(open("../transcriptic/version.py").read())
