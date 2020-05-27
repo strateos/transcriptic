@@ -8,8 +8,11 @@
     Objects <objects>
     Analysis <analysis>
     Config <config>
+    Contributing <contributing>
+    Changelog <changelog>
 
-.. include:: README.rst
+.. include:: ../README.rst
+
 
 Indices and tables
 ==================

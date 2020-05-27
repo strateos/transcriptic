@@ -39,10 +39,10 @@ test_deps = [
 ]
 
 doc_deps = [
-    "releases>=1.5, <2",
+    "Sphinx>=2.4, <3",
     "mock>=3, <4",
-    "Sphinx>=1.7, <1.8",
-    "sphinx_rtd_theme>=0.4, <1",
+    "releases>=1.6.3, <2",
+    "sphinx_rtd_theme>=0.4.3, <1",
 ]
 
 # Extra module dependencies
