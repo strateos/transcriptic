@@ -251,11 +251,12 @@ class Connection(object):
             )
             self.update_headers(**{"Cookie": None})
 
-        is_bearer_token = value.startswith("Bearer")
-        if is_bearer_token:
-            self.update_headers(**{"Authorization": value})
-        else:
-            self.update_headers(**{"X-User-Token": value})
+        if value is not None:
+            is_bearer_token = value.startswith("Bearer")
+            if is_bearer_token:
+                self.update_headers(**{"Authorization": value})
+            else:
+                self.update_headers(**{"X-User-Token": value})
 
     @property
     def cookie(self):
