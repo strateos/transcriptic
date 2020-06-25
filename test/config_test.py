@@ -170,3 +170,38 @@ class ConnectionInitTests(unittest.TestCase):
             set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
             {"(request-target)", "date", "host", "content-length", "digest"},
         )
+
+    def test_bearer_token(self):
+        """Verify that the authorization header is set when a bearer token is provided"""
+
+        bearer_token = "Bearer myBearerToken"
+
+        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+            with open(config_file.name, "w") as f:
+                json.dump(
+                    {
+                        "email": "somebody@transcriptic.com",
+                        "token": bearer_token,
+                        "organization_id": "transcriptic",
+                        "api_root": "http://foo:5555",
+                        "analytics": True,
+                        "user_id": "ufoo2",
+                        "feature_groups": [
+                            "can_submit_autoprotocol",
+                            "can_upload_packages",
+                        ],
+                    },
+                    f,
+                )
+
+            connection = transcriptic.config.Connection.from_file(config_file.name)
+
+        get_request = requests.Request(
+            "GET",
+            "http://foo:5555/get"
+        )
+        prepared_get = connection.session.prepare_request(get_request)
+
+        authorization_header_value = prepared_get.headers["authorization"]
+        self.assertEqual(authorization_header_value, bearer_token)
+        self.assertNotIn("x-user-token", prepared_get.headers)

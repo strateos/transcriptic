@@ -131,7 +131,7 @@ class Connection(object):
 
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
-        if cookie:
+        if cookie is not None:
             if email is not None or token is not None:
                 warnings.warn(
                     "Cookie and token authentication is mutually "
@@ -142,11 +142,6 @@ class Connection(object):
             self.cookie = cookie
             self.update_session_auth(use_signature=False)
         else:
-            if cookie is not None:
-                warnings.warn(
-                    "Cookie and token authentication is mutually "
-                    "exclusive. Ignoring cookie"
-                )
             self.session.headers["Cookie"] = None
             self.email = email
             self.token = token
@@ -248,14 +243,19 @@ class Connection(object):
             raise ValueError("token is not set.")
 
     @token.setter
-    def token(self, value):
+    def token(self, value: str):
         if self.cookie is not None:
             warnings.warn(
                 "Cookie and token authentication is mutually "
                 "exclusive. Clearing cookie from headers"
             )
             self.update_headers(**{"Cookie": None})
-        self.update_headers(**{"X-User-Token": value})
+
+        is_bearer_token = value.startswith("Bearer")
+        if is_bearer_token:
+            self.update_headers(**{"Authorization": value})
+        else:
+            self.update_headers(**{"X-User-Token": value})
 
     @property
     def cookie(self):
