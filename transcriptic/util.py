@@ -3,6 +3,7 @@ import itertools
 import re
 import sys
 
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -81,6 +82,12 @@ def iter_json(manifest):
     return all_types
 
 
+# Converts human readable well index to its corresponding integer index
+# For example (given 12 columns):
+# "A1" -> 0
+# "B2" -> 13
+# "AA1" -> 312
+# "ZB12" -> 8135
 def robotize(well_ref, well_count, col_count):
     """Function referenced from autoprotocol.container_type.robotize()"""
     if isinstance(well_ref, list):
@@ -92,10 +99,16 @@ def robotize(well_ref, well_count, col_count):
         )
 
     well_ref = str(well_ref)
-    m = re.match("([a-z])(\d+)$", well_ref, re.I)
+    m = re.match("([a-z])?([a-z])(\d+)$", well_ref, re.I)
     if m:
-        row = ord(m.group(1).upper()) - ord("A")
-        col = int(m.group(2)) - 1
+        first_letter = m.group(1)
+        second_letter = m.group(2)
+
+        first_letter_rows = ((ord(first_letter.upper()) + 1 - ord("A")) * len(ALPHABET)) if first_letter else 0
+        second_letter_rows = ord(second_letter.upper()) - ord("A")
+
+        row = first_letter_rows + second_letter_rows
+        col = int(m.group(3)) - 1
         well_num = row * col_count + col
         # Check bounds
         if row > (well_count // col_count):
@@ -117,6 +130,13 @@ def robotize(well_ref, well_count, col_count):
             raise ValueError("Well must be in 'A1' format or be an integer.")
 
 
+# Converts integer well index to its corresponding human readable index
+# For example (given 12 columns):
+# 0 -> "A1"
+# 13 -> "B2"
+# 312 -> "AA1"
+# 8135 -> "ZB12"
+# [0,13,312,8135] -> ["A1","B2","AA1","ZB12"]
 def humanize(well_ref, well_count, col_count):
     """Function referenced from autoprotocol.container_type.humanize()"""
     if isinstance(well_ref, list):
@@ -135,8 +155,16 @@ def humanize(well_ref, well_count, col_count):
     # Check bounds
     if well_ref > well_count or well_ref < 0:
         raise ValueError("Well reference given exceeds container dimensions.")
-    return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[row] + str(col + 1)
+    return row_idx_to_letters(row) + str(col + 1)
 
+def row_idx_to_letters(row_idx):
+  first_letter_idx = row_idx // len(ALPHABET) - 1
+  second_letter_idx = row_idx % len(ALPHABET)
+
+  first_letter = ALPHABET[first_letter_idx] if first_letter_idx > -1 else ""
+  second_letter = ALPHABET[second_letter_idx]
+
+  return first_letter + second_letter
 
 def by_well(datasets, well):
     return [
