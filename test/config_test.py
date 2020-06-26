@@ -196,10 +196,7 @@ class ConnectionInitTests(unittest.TestCase):
 
             connection = transcriptic.config.Connection.from_file(config_file.name)
 
-        get_request = requests.Request(
-            "GET",
-            "http://foo:5555/get"
-        )
+        get_request = requests.Request("GET", "http://foo:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
 
         authorization_header_value = prepared_get.headers["authorization"]
