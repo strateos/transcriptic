@@ -158,13 +158,13 @@ def humanize(well_ref, well_count, col_count):
     return row_idx_to_letters(row) + str(col + 1)
 
 def row_idx_to_letters(row_idx):
-  first_letter_idx = row_idx // len(ALPHABET) - 1
-  second_letter_idx = row_idx % len(ALPHABET)
+    first_letter_idx = row_idx // len(ALPHABET) - 1
+    second_letter_idx = row_idx % len(ALPHABET)
 
-  first_letter = ALPHABET[first_letter_idx] if first_letter_idx > -1 else ""
-  second_letter = ALPHABET[second_letter_idx]
+    first_letter = ALPHABET[first_letter_idx] if first_letter_idx > -1 else ""
+    second_letter = ALPHABET[second_letter_idx]
 
-  return first_letter + second_letter
+    return first_letter + second_letter
 
 def by_well(datasets, well):
     return [
