@@ -90,7 +90,7 @@ class _PlateRead(object):
             if len(group_wells) > len(data_dict):
                 raise ValueError("Sum of group lengths exceeds total no. of wells.")
             wells = [
-                ContainerType.humanize(_, well_count, col_count).lower()
+                ContainerType.humanize_static(_, well_count, col_count).lower()
                 for _ in group_wells
             ]
             if not all(_ in data_dict for _ in wells):
@@ -104,7 +104,7 @@ class _PlateRead(object):
                 raise ValueError("Sum of group lengths exceeds total no. of wells.")
             for (idx, well_list) in enumerate(group_wells):
                 wells = [
-                    ContainerType.humanize(_, well_count, col_count).lower()
+                    ContainerType.humanize_static(_, well_count, col_count).lower()
                     for _ in well_list
                 ]
                 if not all(_ in data_dict for _ in wells):
