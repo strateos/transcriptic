@@ -1,7 +1,6 @@
 import click
 import itertools
 import re
-from autoprotocol.container_type import ContainerType
 
 
 def natural_sort(l):
