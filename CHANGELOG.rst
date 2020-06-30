@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Updated
+~~~~~~~
+
+-  Remove util.robotize/humanize and change callers to use autoprotocol directly
+
 v8.0.0
 ------
 

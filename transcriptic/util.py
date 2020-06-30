@@ -1,7 +1,6 @@
 import click
 import itertools
 import re
-import sys
 
 
 def natural_sort(l):
@@ -79,63 +78,6 @@ def iter_json(manifest):
                     regex_manifest(protocol, input)
         all_types[protocol["name"]] = types
     return all_types
-
-
-def robotize(well_ref, well_count, col_count):
-    """Function referenced from autoprotocol.container_type.robotize()"""
-    if isinstance(well_ref, list):
-        return [robotize(well, well_count, col_count) for well in well_ref]
-    if not isinstance(well_ref, (str, int)):
-        raise TypeError(
-            "ContainerType.robotize(): Well reference given "
-            "is not of type 'str' or 'int'."
-        )
-
-    well_ref = str(well_ref)
-    m = re.match("([a-z])(\d+)$", well_ref, re.I)
-    if m:
-        row = ord(m.group(1).upper()) - ord("A")
-        col = int(m.group(2)) - 1
-        well_num = row * col_count + col
-        # Check bounds
-        if row > (well_count // col_count):
-            raise ValueError("Row given exceeds container dimensions.")
-        if col > col_count or col < 0:
-            raise ValueError("Col given exceeds container dimensions.")
-        if well_num > well_count:
-            raise ValueError("Well given exceeds container dimensions.")
-        return well_num
-    else:
-        m = re.match("\d+$", well_ref)
-        if m:
-            well_num = int(m.group(0))
-            # Check bounds
-            if well_num > well_count or well_num < 0:
-                raise ValueError("Well number given exceeds container dimensions.")
-            return well_num
-        else:
-            raise ValueError("Well must be in 'A1' format or be an integer.")
-
-
-def humanize(well_ref, well_count, col_count):
-    """Function referenced from autoprotocol.container_type.humanize()"""
-    if isinstance(well_ref, list):
-        return [humanize(well, well_count, col_count) for well in well_ref]
-    if isinstance(well_ref, str):
-        try:
-            well_ref = int(well_ref)
-        except:
-            raise ValueError(
-                f"Well reference ({well_ref}) given has to be parseable into int."
-            )
-    if not isinstance(well_ref, int):
-        raise TypeError(f"Well reference ({well_ref}) given is not of type 'int'.")
-    idx = robotize(well_ref, well_count, col_count)
-    row, col = (idx // col_count, idx % col_count)
-    # Check bounds
-    if well_ref > well_count or well_ref < 0:
-        raise ValueError("Well reference given exceeds container dimensions.")
-    return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[row] + str(col + 1)
 
 
 def by_well(datasets, well):
