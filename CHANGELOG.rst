@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Updated
+~~~~~~~
+
+-  Add/refactor humanize and robotize support for 1536w
+
 v8.0.0
 ------
 
