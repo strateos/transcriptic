@@ -1083,7 +1083,9 @@ class Connection(object):
                 raise Exception(
                     f"For route: {method}, argument {arg} needs " f"to be provided."
                 )
-        return route_method(*tuple(input_args))
+        return route_method(  # pylint: disable=no-value-for-parameter
+            *tuple(input_args)
+        )
 
     def get(self, route, **kwargs):
         return self._call("get", route, **kwargs)
