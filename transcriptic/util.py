@@ -81,16 +81,6 @@ def iter_json(manifest):
     return all_types
 
 
-def robotize(well_ref, well_count, col_count):
-    """Function referenced from autoprotocol.container_type.robotize()"""
-    return ContainerType.robotize_static(well_ref, well_count, col_count)
-
-
-def humanize(well_ref, well_count, col_count):
-    """Function referenced from autoprotocol.container_type.humanize()"""
-    return ContainerType.humanize_static(well_ref, well_count, col_count)
-
-
 def by_well(datasets, well):
     return [
         datasets[reading].props["data"][well][0] for reading in list(datasets.keys())

@@ -4,7 +4,7 @@ Changelog
 Updated
 ~~~~~~~
 
--  Add/refactor humanize and robotize support for 1536w
+-  Remove util.robotize/humanize and change callers to use autoprotocol directly
 
 v8.0.0
 ------
