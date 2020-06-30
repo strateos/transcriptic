@@ -49,7 +49,7 @@ doc_deps = [
 jupyter_deps = ["pandas>=0.23,<1"]
 
 analysis_deps = [
-    "autoprotocol>=6,<7",
+    "autoprotocol>=7.1,<8",
     "matplotlib>=3,<4",
     "numpy>=1.14,<2",
     "pandas>=0.23,<1",
