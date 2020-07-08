@@ -92,3 +92,8 @@ def makedirs(name, mode=None, exist_ok=False):
 
     mode = mode if mode is not None else 0o777
     makedirs(name, mode, exist_ok)
+
+
+def is_valid_jwt_token(token: str):
+    regex = r"Bearer ([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)"
+    return re.fullmatch(regex, token) is not None

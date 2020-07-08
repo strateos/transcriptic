@@ -12,6 +12,7 @@ import zipfile
 
 from . import routes
 from .signing import StrateosSign
+from .util import is_valid_jwt_token
 from .version import __version__
 
 try:
@@ -252,9 +253,12 @@ class Connection(object):
             self.update_headers(**{"Cookie": None})
 
         if value is not None:
-            is_bearer_token = value.startswith("Bearer")
-            if is_bearer_token:
-                self.update_headers(**{"Authorization": value})
+            is_bearer_auth = value.startswith("Bearer")
+            if is_bearer_auth:
+                if is_valid_jwt_token(value):
+                    self.update_headers(**{"Authorization": value})
+                else:
+                    raise ValueError("Malformed JWT Bearer Token")
             else:
                 self.update_headers(**{"X-User-Token": value})
 
