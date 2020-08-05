@@ -112,6 +112,7 @@ class Connection(object):
         feature_groups=[],
         rsa_key=None,
         session=None,
+        bearer_token=None,
     ):
         # Initialize environment args used for computing routes
         self.env_args = dict()
@@ -132,7 +133,7 @@ class Connection(object):
 
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
-        if cookie is not None:
+        if cookie:
             if email is not None or token is not None:
                 warnings.warn(
                     "Cookie and token authentication is mutually "
@@ -143,9 +144,17 @@ class Connection(object):
             self.cookie = cookie
             self.update_session_auth(use_signature=False)
         else:
+            if cookie is not None:
+                warnings.warn(
+                    "Cookie and token authentication is mutually "
+                    "exclusive. Ignoring cookie"
+                )
             self.session.headers["Cookie"] = None
             self.email = email
-            self.token = token
+            if token is not None:
+                self.token = token
+            if bearer_token is not None:
+                self.bearer_token = bearer_token
             self.update_session_auth()
 
         # Initialize feature groups
@@ -237,6 +246,20 @@ class Connection(object):
         self.update_session_auth()
 
     @property
+    def bearer_token(self):
+        try:
+            return self.session.headers["Authorization"]
+        except (NameError, KeyError):
+            raise ValueError("Bearer token is not set.")
+
+    @bearer_token.setter
+    def bearer_token(self, value):
+        if is_valid_jwt_token(value):
+            self.update_headers(**{"Authorization": value})
+        else:
+            raise ValueError("Malformed JWT Bearer Token")
+
+    @property
     def token(self):
         try:
             return self.session.headers["X-User-Token"]
@@ -244,23 +267,14 @@ class Connection(object):
             raise ValueError("token is not set.")
 
     @token.setter
-    def token(self, value: str):
+    def token(self, value):
         if self.cookie is not None:
             warnings.warn(
                 "Cookie and token authentication is mutually "
                 "exclusive. Clearing cookie from headers"
             )
             self.update_headers(**{"Cookie": None})
-
-        if value is not None:
-            is_bearer_auth = value.startswith("Bearer")
-            if is_bearer_auth:
-                if is_valid_jwt_token(value):
-                    self.update_headers(**{"Authorization": value})
-                else:
-                    raise ValueError("Malformed JWT Bearer Token")
-            else:
-                self.update_headers(**{"X-User-Token": value})
+        self.update_headers(**{"X-User-Token": value})
 
     @property
     def cookie(self):
@@ -1088,9 +1102,7 @@ class Connection(object):
                 raise Exception(
                     f"For route: {method}, argument {arg} needs " f"to be provided."
                 )
-        return route_method(  # pylint: disable=no-value-for-parameter
-            *tuple(input_args)
-        )
+        return route_method(*tuple(input_args))
 
     def get(self, route, **kwargs):
         return self._call("get", route, **kwargs)
