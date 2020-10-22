@@ -46,3 +46,12 @@ class StrateosSign(AuthBase):
             return self.body_auth(request)
 
         return self.auth(request)
+
+
+class BearerAuth(AuthBase):
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, r):
+        r.headers["authorization"] = self.token
+        return r

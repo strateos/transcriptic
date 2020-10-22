@@ -11,7 +11,7 @@ import warnings
 import zipfile
 
 from . import routes
-from .signing import StrateosSign
+from .signing import StrateosSign, BearerAuth
 from .util import is_valid_jwt_token
 from .version import __version__
 
@@ -123,6 +123,8 @@ class Connection(object):
         if session is None:
             session = initialize_default_session()
         self.session = session
+
+        self._bearer_token = None
 
         # Initialize RSA props
         self._rsa_key = None
@@ -247,15 +249,12 @@ class Connection(object):
 
     @property
     def bearer_token(self):
-        try:
-            return self.session.headers["Authorization"]
-        except (NameError, KeyError):
-            raise ValueError("Bearer token is not set.")
+        return self._bearer_token
 
     @bearer_token.setter
     def bearer_token(self, value):
         if is_valid_jwt_token(value):
-            self.update_headers(**{"Authorization": value})
+            self._bearer_token = value
         else:
             raise ValueError("Malformed JWT Bearer Token")
 
@@ -350,6 +349,8 @@ class Connection(object):
             and "X-User-Email" in self.session.headers
         ):
             self.session.auth = StrateosSign(self.email, self._rsa_secret)
+        elif self.bearer_token:
+            self.session.auth = BearerAuth(self.bearer_token)
         else:
             self.session.auth = None
 

@@ -214,7 +214,7 @@ class ConnectionInitTests(unittest.TestCase):
         prepared_get = connection.session.prepare_request(get_request)
 
         authorization_header_value = prepared_get.headers["authorization"]
-        self.assertEqual(authorization_header_value, bearer_token)
+        self.assertEqual(bearer_token, authorization_header_value)
 
     def test_malformed_bearer_token(self):
         """Verify that an exception is thrown when a malformed JWT bearer token is provided"""
