@@ -53,8 +53,10 @@ def launch_protocol(api_root, org_id, protocol_id):
 
 
 def get_launch_request(api_root, org_id, protocol_id, launch_request_id):
-    return "{api_root}/{org_id}/protocols/{protocol_id}/launch/{launch_request_id}".format(
-        **locals()
+    return (
+        "{api_root}/{org_id}/protocols/{protocol_id}/launch/{launch_request_id}".format(
+            **locals()
+        )
     )
 
 
@@ -85,8 +87,10 @@ def query_inventory(api_root, org_id, query, page=0):
 
 
 def get_quick_launch(api_root, org_id, project_id, quick_launch_id):
-    return "{api_root}/{org_id}/{project_id}/runs/quick_launch/{quick_launch_id}".format(
-        **locals()
+    return (
+        "{api_root}/{org_id}/{project_id}/runs/quick_launch/{quick_launch_id}".format(
+            **locals()
+        )
     )
 
 
@@ -204,8 +208,10 @@ def get_data_zip(api_root, data_id):
 def monitoring_data(
     api_root, data_type, instruction_id, grouping=None, start_time=None, end_time=None
 ):
-    base_route = "{api_root}/sensor_data/{data_type}?instruction_id={instruction_id}".format(
-        **locals()
+    base_route = (
+        "{api_root}/sensor_data/{data_type}?instruction_id={instruction_id}".format(
+            **locals()
+        )
     )
     if grouping:
         base_route += "&grouping={grouping}".format(**locals())

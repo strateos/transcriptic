@@ -474,7 +474,7 @@ def summarize_cmd(ctx, file, html, tree, lookup, runtime):
 @click.argument("args", nargs=-1)
 def compile_cmd(protocol_name, args):
     """Compile a protocol by passing it a config file (without submitting or
-     analyzing)."""
+    analyzing)."""
     commands.compile(protocol_name, args)
 
 
