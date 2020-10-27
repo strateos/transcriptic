@@ -155,7 +155,12 @@ class Connection(object):
             self.email = email
             if token is not None:
                 self.token = token
-            if bearer_token is not None:
+                if bearer_token is not None:
+                    warnings.warn(
+                        "User token and bearer token authentication"
+                        "is mutually exclusive. Ignoring bearer token"
+                    )
+            elif bearer_token is not None:
                 self.bearer_token = bearer_token
             self.update_session_auth()
 

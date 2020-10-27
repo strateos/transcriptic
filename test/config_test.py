@@ -189,26 +189,13 @@ class ConnectionInitTests(unittest.TestCase):
             "7L_Hb7YgVJ5W2FwESnkDvV1T4Q"
         )
 
-        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
-            with open(config_file.name, "w") as f:
-                json.dump(
-                    {
-                        "email": "somebody@transcriptic.com",
-                        "token": "foobarinvalid",
-                        "bearer_token": bearer_token,
-                        "organization_id": "transcriptic",
-                        "api_root": "http://foo:5555",
-                        "analytics": True,
-                        "user_id": "ufoo2",
-                        "feature_groups": [
-                            "can_submit_autoprotocol",
-                            "can_upload_packages",
-                        ],
-                    },
-                    f,
-                )
-
-            connection = transcriptic.config.Connection.from_file(config_file.name)
+        connection = transcriptic.Connection(
+            email="somebody@transcriptic.com",
+            bearer_token=bearer_token,
+            organization_id="transcriptic",
+            api_root="http://foo:5555",
+            user_id="ufoo2",
+        )
 
         get_request = requests.Request("GET", "http://foo:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
@@ -221,13 +208,27 @@ class ConnectionInitTests(unittest.TestCase):
 
         bearer_token = "Bearer myBigBadBearerToken"
 
-        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+        with self.assertRaisesRegexp(ValueError, "Malformed JWT Bearer Token"):
+            transcriptic.Connection(
+                email="somebody@transcriptic.com",
+                bearer_token=bearer_token,
+                organization_id="transcriptic",
+                api_root="http://foo:5555",
+                user_id="ufoo2",
+            )
+
+    def test_user_token_supersedes_bearer_token(self):
+        """Verify that the user token and bearer token are mutually exclusive and that
+        user token supersedes bearer token"""
+
+        user_token = "userTokenFoo"
+        with tempfile.NamedTemporaryFile() as config_file:
             with open(config_file.name, "w") as f:
                 json.dump(
                     {
                         "email": "somebody@transcriptic.com",
-                        "token": "foobarinvalid",
-                        "bearer_token": bearer_token,
+                        "token": user_token,
+                        "bearer_token": "bearerTokenBar",
                         "organization_id": "transcriptic",
                         "api_root": "http://foo:5555",
                         "analytics": True,
@@ -239,6 +240,9 @@ class ConnectionInitTests(unittest.TestCase):
                     },
                     f,
                 )
+            connection = transcriptic.config.Connection.from_file(config_file.name)
 
-            with self.assertRaisesRegexp(ValueError, "Malformed JWT Bearer Token"):
-                transcriptic.config.Connection.from_file(config_file.name)
+        get_request = requests.Request("GET", "http://foo:5555/get")
+        prepared_get = connection.session.prepare_request(get_request)
+        self.assertFalse("authorization" in prepared_get.headers)
+        self.assertTrue("X-User-Email" in prepared_get.headers)
