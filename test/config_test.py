@@ -3,6 +3,7 @@ import unittest
 import tempfile
 import re
 
+import pytest
 import requests
 from email.utils import formatdate
 
@@ -208,7 +209,7 @@ class ConnectionInitTests(unittest.TestCase):
 
         bearer_token = "Bearer myBigBadBearerToken"
 
-        with self.assertRaisesRegexp(ValueError, "Malformed JWT Bearer Token"):
+        with pytest.raises(ValueError, match="Malformed JWT Bearer Token"):
             transcriptic.Connection(
                 email="somebody@transcriptic.com",
                 bearer_token=bearer_token,
