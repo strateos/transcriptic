@@ -9,6 +9,7 @@ Added
 Updated
 ~~~~~~~
 
+-  Pin black version to 20.8b1 for local dev env consistency
 -  Remove util.robotize/humanize and change callers to use autoprotocol directly
 
 v8.0.0

@@ -201,7 +201,7 @@ class Absorbance(_PlateRead):
         )
 
     def beers_law(self, conc_list=None, use_adj=True, **kwargs):
-        """"
+        """ "
         Apply Beer-Lambert's law to a series of absorbance readings and get
         an estimation of the linearity between the absorbance and concentration
         values.
