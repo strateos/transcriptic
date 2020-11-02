@@ -11,7 +11,8 @@ import warnings
 import zipfile
 
 from . import routes
-from .signing import StrateosSign
+from .signing import StrateosSign, BearerAuth
+from .util import is_valid_jwt_token
 from .version import __version__
 
 try:
@@ -111,6 +112,7 @@ class Connection(object):
         feature_groups=[],
         rsa_key=None,
         session=None,
+        bearer_token=None,
     ):
         # Initialize environment args used for computing routes
         self.env_args = dict()
@@ -121,6 +123,8 @@ class Connection(object):
         if session is None:
             session = initialize_default_session()
         self.session = session
+
+        self._bearer_token = None
 
         # Initialize RSA props
         self._rsa_key = None
@@ -149,7 +153,15 @@ class Connection(object):
                 )
             self.session.headers["Cookie"] = None
             self.email = email
-            self.token = token
+            if token is not None:
+                self.token = token
+                if bearer_token is not None:
+                    warnings.warn(
+                        "User token and bearer token authentication"
+                        "is mutually exclusive. Ignoring bearer token"
+                    )
+            elif bearer_token is not None:
+                self.bearer_token = bearer_token
             self.update_session_auth()
 
         # Initialize feature groups
@@ -239,6 +251,17 @@ class Connection(object):
             self.update_headers(**{"Cookie": None})
         self.update_headers(**{"X-User-Email": value})
         self.update_session_auth()
+
+    @property
+    def bearer_token(self):
+        return self._bearer_token
+
+    @bearer_token.setter
+    def bearer_token(self, value):
+        if is_valid_jwt_token(value):
+            self._bearer_token = value
+        else:
+            raise ValueError("Malformed JWT Bearer Token")
 
     @property
     def token(self):
@@ -331,6 +354,8 @@ class Connection(object):
             and "X-User-Email" in self.session.headers
         ):
             self.session.auth = StrateosSign(self.email, self._rsa_secret)
+        elif self.bearer_token:
+            self.session.auth = BearerAuth(self.bearer_token)
         else:
             self.session.auth = None
 
@@ -1081,7 +1106,7 @@ class Connection(object):
                 input_args.append(arg_dict[arg])
             else:
                 raise Exception(
-                    f"For route: {method}, argument {arg} needs " f"to be provided."
+                    f"For route: {method}, argument {arg} needs to be provided."
                 )
         return route_method(  # pylint: disable=no-value-for-parameter
             *tuple(input_args)

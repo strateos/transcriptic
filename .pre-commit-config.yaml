@@ -17,6 +17,7 @@ repos:
         args:
         - --disable=W,R,C
         - --rcfile=.pylintrc
+        - --jobs=1
         name: Pylint
         language: system
         types: [python]

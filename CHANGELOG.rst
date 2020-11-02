@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Added
+~~~~~
+
+- Support bearer token authentication
+
 Updated
 ~~~~~~~
 
