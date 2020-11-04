@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Added
+~~~~~
+
+- Codecov configuration for coverage
+
+
 v8.1.0
 ------
 Added
