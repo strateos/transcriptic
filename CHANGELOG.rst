@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Unreleased
+----------
+Fixed
+~~~~~
+
+- Repeated deploy issue with Travis config
+
+
+
 v8.1.0
 ------
 Added

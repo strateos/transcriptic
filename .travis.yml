@@ -8,7 +8,7 @@ jobs:
   - python: '3.6'
     env: TOXENV=lint
   - python: '3.6'
-    env: TOXENV=clean,py36,stats
+    env: TOXENV=clean,py36,stats DEPLOY=true
   - python: '3.7'
     env: TOXENV=py37
   - python: '3.8'
@@ -34,7 +34,7 @@ deploy:
     repo: strateos/transcriptic
     tags: true
     python: '3.6'
-    condition: '$TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$'
+    condition: '$TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ AND env(DEPLOY) = true'
 - provider: pypi
   skip_cleanup: true
   username: '__token__'
@@ -44,4 +44,4 @@ deploy:
   on:
     tags: true
     python: '3.6'
-    condition: '$TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$'
+    condition: '$TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ AND env(DEPLOY) = true'
