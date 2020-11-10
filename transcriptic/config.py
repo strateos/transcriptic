@@ -11,7 +11,7 @@ import warnings
 import zipfile
 
 from . import routes
-from .signing import StrateosSign, BearerAuth
+from .auth import StrateosSign, BearerAuth
 from .util import is_valid_jwt_token
 from .version import __version__
 

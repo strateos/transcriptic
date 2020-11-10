@@ -172,6 +172,43 @@ class ConnectionInitTests(unittest.TestCase):
             {"(request-target)", "date", "host", "content-length", "digest"},
         )
 
+    def test_signing_auth_header_not_set_when_calling_non_api_root_endpoint(self):
+        # Set up a connection with a key from a file
+        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+            with open(key_file.name, "w") as kf:
+                kf.write(
+                    "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDIK/IzSkBEuwKjYQo/ri4iKTTkr+FDtJetI7dYoz0//U5z7Vbu\nZQWncDNc38wMKidf2bWA+MTSWcYVUTlivp0y98MTLPsR6oJ9RwLggA2lFlCIjmdV\nUow/MmhWg0vX/SkThxS/F5I41GTrNIU3ZVZwGbmQ8hbyKCBYtbEHJWqATwIDAQAB\nAoGAHtYmSaB2ph/pGCIq4gSDNuACNfiiSzvW4eVOqWj8Vo8/NrypV7BYXqL6RqRz\nWqxjxHBVdbjdGUqbKU2J+ZxDuwCREsxQipjq+hM9aPpgjNJg4dz6yuc5mnUdOr9M\nR+zFjnnOJx98HGjuzLDXdBNYVSZFcDWj70Fjln/z5AjBYQECQQDijaHEcvDJOUmL\nDNyAYbjK811kFGpmglQBiZ257L47IP6jgqN544siHGnI7rykt+1upGfB2q8uQSIb\njNJKKsa3AkEA4jB9PXE8EooJ/eax2UsuwXt9LAgRabFurAJtadpAeeFBIIMSwBXU\n7APMfB3cQOnBlodnyrQ56mIOWPcSdN+7KQJAHr+4aBBtq/IRkETjnK0mxqz3TQEU\nW+tueXLzLGv8ecwFo620gHOoy61tki8M/ZJVMIIx7va+dhmzBmg7loNtywJAZUdy\n/K0USfTXToIaxoJcmDQUM0AVk+7n8EtR9KDOWASdpdIq9imQYnG9ASJZuhMxJJbS\nybfzatinNfzDneOEKQJBAMLOhHHbskUuuU9oDUl8sbrsreglQuoq1hvlB1uVskpi\nqMEIXSBwxAlxwmiAQLgS4hZY+cmQ3v5hCberMaZRPZ8=\n-----END RSA PRIVATE KEY-----\n"
+                )
+            with open(config_file.name, "w") as f:
+                json.dump(
+                    {
+                        "email": "somebody@transcriptic.com",
+                        "token": "foobarinvalid",
+                        "organization_id": "transcriptic",
+                        "api_root": "http://foo:5555",
+                        "analytics": True,
+                        "user_id": "ufoo2",
+                        "feature_groups": [
+                            "can_submit_autoprotocol",
+                            "can_upload_packages",
+                        ],
+                        "rsa_key": key_file.name,
+                    },
+                    f,
+                )
+
+            connection = transcriptic.config.Connection.from_file(config_file.name)
+
+        get_request = requests.Request(
+            "GET",
+            "http://bar:5555/get",
+            headers={
+                "Date": formatdate(timeval=1588628873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_get = connection.session.prepare_request(get_request)
+        self.assertFalse("authorization" in prepared_get.headers)
+
     def test_bearer_token(self):
         """Verify that the authorization header is set when a bearer token is provided"""
 
@@ -203,6 +240,36 @@ class ConnectionInitTests(unittest.TestCase):
 
         authorization_header_value = prepared_get.headers["authorization"]
         self.assertEqual(bearer_token, authorization_header_value)
+
+    def test_bearer_token_not_set_when_calling_non_api_root_endpoint(self):
+        """Verify that the authorization header is NOT set when non-API root is called"""
+
+        bearer_token = (
+            "Bearer eyJraWQiOiJWcmVsOE9zZ0JXaUpHeEpMeFJ4bE1UaVwvbjgyc1hwWktUaTd2UExUNFQ0T"
+            "T0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJoMTBlM2hwajliNjc4bXMwOG8zbGlibHQ2IiwidG9r"
+            "ZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJ3ZWJcL2dldCB3ZWJcL3Bvc3QiLCJhdXRoX3RpbWUi"
+            "OjE1OTM3MjM1NDgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9u"
+            "YXdzLmNvbVwvdXMtZWFzdC0xX1d6aEZzTGlPRyIsImV4cCI6MTU5MzcyNzE0OCwiaWF0IjoxNTkz"
+            "NzIzNTQ4LCJ2ZXJzaW9uIjoyLCJqdGkiOiI4Njk5ZDEwYy05Mjg4LTQ0YmEtODIxNi01OTJjZGU3"
+            "MDBhY2MiLCJjbGllbnRfaWQiOiJoMTBlM2hwajliNjc4bXMwOG8zbGlibHQ2In0.YA_yiD-x6UuB"
+            "MShprUbUKuB_DO6ogCtd5srfgpJA6Ve_qsf8n19nVMmFsZBy3GxzN92P1ZXiFY99FfNPohhQtaRR"
+            "hpeUkir08hgJN2bEHCJ5Ym8r9mr9mlwSG6FoiedgLaUVGwJujD9c2rcA83NEo8ayTyfCynF2AZ2p"
+            "MxLHvqOYtvscGMiMzIwlZfJV301iKUVgPODJM5lpJ4iKCpOy2ByCl2_KL1uxIxgMkglpB-i7kgJc"
+            "-WmYoJFoN88D89ugnEoAxNfK14N4_RyEkrLNGape9kew79nUeR6fWbVFLiGDDu25_9z-7VB-GGGk"
+            "7L_Hb7YgVJ5W2FwESnkDvV1T4Q"
+        )
+
+        connection = transcriptic.Connection(
+            email="somebody@transcriptic.com",
+            bearer_token=bearer_token,
+            organization_id="transcriptic",
+            api_root="http://foo:5555",
+            user_id="ufoo2",
+        )
+
+        get_request = requests.Request("GET", "http://bar:5555/get")
+        prepared_get = connection.session.prepare_request(get_request)
+        self.assertFalse("authorization" in prepared_get.headers)
 
     def test_malformed_bearer_token(self):
         """Verify that an exception is thrown when a malformed JWT bearer token is provided"""
