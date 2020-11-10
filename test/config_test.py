@@ -209,6 +209,61 @@ class ConnectionInitTests(unittest.TestCase):
         prepared_get = connection.session.prepare_request(get_request)
         self.assertFalse("authorization" in prepared_get.headers)
 
+    def test_signing_request_body_already_encoded(self):
+        # Set up a connection with a key from a file
+        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+            with open(key_file.name, "w") as kf:
+                kf.write(
+                    "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDIK/IzSkBEuwKjYQo/ri4iKTTkr+FDtJetI7dYoz0//U5z7Vbu\nZQWncDNc38wMKidf2bWA+MTSWcYVUTlivp0y98MTLPsR6oJ9RwLggA2lFlCIjmdV\nUow/MmhWg0vX/SkThxS/F5I41GTrNIU3ZVZwGbmQ8hbyKCBYtbEHJWqATwIDAQAB\nAoGAHtYmSaB2ph/pGCIq4gSDNuACNfiiSzvW4eVOqWj8Vo8/NrypV7BYXqL6RqRz\nWqxjxHBVdbjdGUqbKU2J+ZxDuwCREsxQipjq+hM9aPpgjNJg4dz6yuc5mnUdOr9M\nR+zFjnnOJx98HGjuzLDXdBNYVSZFcDWj70Fjln/z5AjBYQECQQDijaHEcvDJOUmL\nDNyAYbjK811kFGpmglQBiZ257L47IP6jgqN544siHGnI7rykt+1upGfB2q8uQSIb\njNJKKsa3AkEA4jB9PXE8EooJ/eax2UsuwXt9LAgRabFurAJtadpAeeFBIIMSwBXU\n7APMfB3cQOnBlodnyrQ56mIOWPcSdN+7KQJAHr+4aBBtq/IRkETjnK0mxqz3TQEU\nW+tueXLzLGv8ecwFo620gHOoy61tki8M/ZJVMIIx7va+dhmzBmg7loNtywJAZUdy\n/K0USfTXToIaxoJcmDQUM0AVk+7n8EtR9KDOWASdpdIq9imQYnG9ASJZuhMxJJbS\nybfzatinNfzDneOEKQJBAMLOhHHbskUuuU9oDUl8sbrsreglQuoq1hvlB1uVskpi\nqMEIXSBwxAlxwmiAQLgS4hZY+cmQ3v5hCberMaZRPZ8=\n-----END RSA PRIVATE KEY-----\n"
+                )
+            with open(config_file.name, "w") as f:
+                json.dump(
+                    {
+                        "email": "somebody@transcriptic.com",
+                        "token": "foobarinvalid",
+                        "organization_id": "transcriptic",
+                        "api_root": "http://foo:5555",
+                        "analytics": True,
+                        "user_id": "ufoo2",
+                        "feature_groups": [
+                            "can_submit_autoprotocol",
+                            "can_upload_packages",
+                        ],
+                        "rsa_key": key_file.name,
+                    },
+                    f,
+                )
+
+            connection = transcriptic.config.Connection.from_file(config_file.name)
+
+        # Verify that when `json` is set in the request, the authorization header is still generated without error
+        # and confirm that the request body is already encoded as bytes
+        post_request = requests.Request(
+            "POST",
+            "http://foo:5555/get",
+            json={"foo": "bar"},
+            headers={
+                "Date": formatdate(timeval=1588628873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_post = connection.session.prepare_request(post_request)
+        self.assertTrue("authorization" in prepared_post.headers)
+        self.assertTrue(isinstance(prepared_post.body, bytes))
+
+        # Verify that when `data` is set in the request, the authorization header is generated without error
+        # and confirm that the request body is not encoded
+        post_request = requests.Request(
+            "POST",
+            "http://foo:5555/get",
+            data={"foo": "bar"},
+            headers={
+                "Date": formatdate(timeval=1588628873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_post = connection.session.prepare_request(post_request)
+        self.assertTrue("authorization" in prepared_post.headers)
+        self.assertFalse(isinstance(prepared_post.body, bytes))
+
     def test_bearer_token(self):
         """Verify that the authorization header is set when a bearer token is provided"""
 
