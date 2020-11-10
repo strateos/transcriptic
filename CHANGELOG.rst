@@ -3,11 +3,16 @@ Changelog
 
 Unreleased
 ----------
+
+Added
+~~~~~
+
+- Codecov configuration for coverage
+
 Fixed
 ~~~~~
 
 - Repeated deploy issue with Travis config
-
 
 
 v8.1.0
