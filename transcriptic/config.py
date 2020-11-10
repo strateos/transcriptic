@@ -353,9 +353,11 @@ class Connection(object):
             and self._rsa_secret
             and "X-User-Email" in self.session.headers
         ):
-            self.session.auth = StrateosSign(self.email, self._rsa_secret)
+            self.session.auth = StrateosSign(
+                self.email, self._rsa_secret, self.api_root
+            )
         elif self.bearer_token:
-            self.session.auth = BearerAuth(self.bearer_token)
+            self.session.auth = BearerAuth(self.bearer_token, self.api_root)
         else:
             self.session.auth = None
 

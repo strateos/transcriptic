@@ -4,14 +4,17 @@ from Crypto.Hash import SHA256
 from httpsig.utils import HttpSigException
 from requests.auth import AuthBase
 from httpsig.requests_auth import HTTPSignatureAuth
+from urllib.parse import urlparse
 
 
 class StrateosSign(AuthBase):
     """Signs requests"""
 
-    def __init__(self, email, secret):
+    def __init__(self, email, secret, api_root):
         self.email = email
         self.secret = secret
+        self.api_root = api_root
+
         headers = ["(request-target)", "Date", "Host"]
         body_headers = ["Digest", "Content-Length"]
         try:
@@ -34,13 +37,21 @@ class StrateosSign(AuthBase):
             )
 
     def __call__(self, request):
+        if urlparse(request.url).netloc != urlparse(self.api_root).netloc:
+            return request
+
         if "Date" not in request.headers:
             request.headers["Date"] = formatdate(
                 timeval=None, localtime=False, usegmt=True
             )
 
         if request.method.upper() in ("PUT", "POST", "PATCH"):
-            digest = SHA256.new(request.body.encode()).digest()
+            encoded_body = (
+                request.body
+                if isinstance(request.body, bytes)
+                else request.body.encode()
+            )
+            digest = SHA256.new(encoded_body).digest()
             sha = base64.b64encode(digest).decode("ascii")
             request.headers["Digest"] = f"SHA-256={sha}"
             return self.body_auth(request)
@@ -49,9 +60,12 @@ class StrateosSign(AuthBase):
 
 
 class BearerAuth(AuthBase):
-    def __init__(self, token):
+    def __init__(self, token, api_root):
         self.token = token
+        self.api_root = api_root
 
-    def __call__(self, r):
-        r.headers["authorization"] = self.token
-        return r
+    def __call__(self, request):
+        if urlparse(request.url).netloc == urlparse(self.api_root).netloc:
+            request.headers["authorization"] = self.token
+
+        return request
