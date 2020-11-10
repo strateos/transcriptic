@@ -246,8 +246,7 @@ class Run(_BaseObject):
                     print(
                         "Operation timed out after %d seconds. Returning data_ids "
                         "instead of Datasets.\nTo try again, increase value of "
-                        "self.timeout and resubmit request."
-                        % self.timeout
+                        "self.timeout and resubmit request." % self.timeout
                     )
                     return self.data_ids
         return self._data
