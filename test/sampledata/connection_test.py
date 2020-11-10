@@ -3,7 +3,8 @@ import pytest
 import requests
 
 from transcriptic.sampledata.connection import MockConnection
-from transcriptic.sampledata.project import sample_project_attr
+from transcriptic.sampledata.project import sample_project_attr, load_sample_project
+from transcriptic.sampledata.run import sample_run_attr, load_sample_run
 from transcriptic.util import load_sampledata_json
 
 
@@ -37,6 +38,7 @@ class TestMockConnection:
         assert mock_connection.runs(project_id="p123") == load_sampledata_json(
             "p123-runs.json"
         )
+        assert mock_connection._get_object(obj_id="r123") == sample_run_attr
 
     def test_jupyter_project(self):
         from transcriptic import Project
@@ -59,3 +61,29 @@ class TestMockConnection:
         assert len(project_runs) == 1
         assert project_runs.loc[0].id == "r123"
         assert project_runs.loc[0].Name == "Sample Run"
+
+    def test_jupyter_run(self):
+        from transcriptic import Run
+
+        mock_connection = MockConnection()
+
+        with pytest.raises(
+            requests.exceptions.ConnectionError, match="Mocked route not implemented"
+        ):
+            Run("invalid-id")
+
+        run = Run("r123")
+        assert run.id == "r123"
+        assert run.connection == mock_connection
+        assert run.attributes == sample_run_attr
+
+    def test_load_sample_objects(self):
+        mock_connection = MockConnection()
+
+        project = load_sample_project()
+        assert project.attributes == sample_project_attr
+        assert project.connection == mock_connection
+
+        run = load_sample_run()
+        assert run.attributes == sample_run_attr
+        assert run.connection == mock_connection

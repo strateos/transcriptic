@@ -4,6 +4,7 @@ from requests.exceptions import ConnectionError
 import responses
 
 from transcriptic.sampledata.project import sample_project_attr
+from transcriptic.sampledata.run import sample_run_attr
 from transcriptic.util import load_sampledata_json
 
 
@@ -24,8 +25,8 @@ class MockConnection(Connection):
                 raise ConnectionError(f"Mocked route not implemented: {route}")
 
     def _register_mocked_responses(self):
-        # Register Project routes
         # TODO: Everything is hardcoded right now. Move to Jinja
+        # Register Project routes
         responses.add(
             responses.GET,
             self.get_route("get_project", project_id="p123"),
@@ -48,4 +49,11 @@ class MockConnection(Connection):
             responses.GET,
             self.get_route("get_project_runs", org_id="sample-org", project_id="p123"),
             json=load_sampledata_json("p123-runs.json"),
+        )
+        # Register Run routes
+        responses.add(
+            responses.GET,
+            self.get_route("deref_route", obj_id="r123"),
+            json=sample_run_attr,
+            status=200,
         )
