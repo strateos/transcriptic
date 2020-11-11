@@ -2,7 +2,9 @@ import pandas as pd
 import pytest
 import requests
 
+from transcriptic.sampledata import load_sample_container
 from transcriptic.sampledata.connection import MockConnection
+from transcriptic.sampledata.container import sample_container_attr
 from transcriptic.sampledata.project import sample_project_attr, load_sample_project
 from transcriptic.sampledata.run import sample_run_attr, load_sample_run
 from transcriptic.util import load_sampledata_json
@@ -77,6 +79,30 @@ class TestMockConnection:
         assert run.connection == mock_connection
         assert run.attributes == sample_run_attr
 
+        containers = run.containers
+        assert len(containers) == 2
+        assert containers.loc[0].ContainerId == "ct123"
+        assert containers.loc[1].ContainerId == "ct124"
+
+        instructions = run.instructions
+        assert len(instructions) == 1
+        assert instructions.loc[0].Id == "i123"
+
+    def test_jupyter_container(self):
+        from transcriptic import Container
+
+        mock_connection = MockConnection()
+
+        with pytest.raises(
+            requests.exceptions.ConnectionError, match="Mocked route not implemented"
+        ):
+            Container("invalid-id")
+
+        container = Container("ct123")
+        assert container.id == "ct123"
+        assert container.connection == mock_connection
+        assert container.attributes == sample_container_attr
+
     def test_load_sample_objects(self):
         mock_connection = MockConnection()
 
@@ -87,3 +113,11 @@ class TestMockConnection:
         run = load_sample_run()
         assert run.attributes == sample_run_attr
         assert run.connection == mock_connection
+
+        container = load_sample_container("ct123")
+        assert container.attributes == load_sampledata_json("ct123.json")
+        assert container.connection == mock_connection
+
+        container124 = load_sample_container("ct124")
+        assert container124.attributes == load_sampledata_json("ct124.json")
+        assert container124.connection == mock_connection

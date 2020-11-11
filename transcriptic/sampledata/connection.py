@@ -57,3 +57,16 @@ class MockConnection(Connection):
             json=sample_run_attr,
             status=200,
         )
+        # Register Container routes
+        responses.add(
+            responses.GET,
+            self.get_route("deref_route", obj_id="ct123"),
+            json=load_sampledata_json("ct123.json"),
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            self.get_route("deref_route", obj_id="ct124"),
+            json=load_sampledata_json("ct124.json"),
+            status=200,
+        )

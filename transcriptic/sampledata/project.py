@@ -12,5 +12,7 @@ def load_project_from_attributes(project_id: str, attributes: dict) -> Project:
 sample_project_attr = load_sampledata_json("p123.json")
 
 
-def load_sample_project() -> Project:
-    return load_project_from_attributes("p123", sample_project_attr)
+def load_sample_project(project_id="p123") -> Project:
+    return load_project_from_attributes(
+        project_id, load_sampledata_json(f"{project_id}.json")
+    )
