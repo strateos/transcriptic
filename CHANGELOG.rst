@@ -4,6 +4,11 @@ Changelog
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- `transcriptic.sampledata` module for enabling mocked Jupyter object exploration without establishing an explicit connection
+
 Updated
 ~~~~~~~
 

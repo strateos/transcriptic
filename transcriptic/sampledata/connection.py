@@ -9,6 +9,19 @@ from transcriptic.util import load_sampledata_json
 
 
 class MockConnection(Connection):
+    """
+    MockConnection object used for previewing Juypter objects without establishing a
+    connection.
+
+    Example Usage:
+
+        .. code-block:: python
+
+            mock_connection = MockConnection()
+            mock_connection.projects()
+            myRun = Run('r123')
+    """
+
     def __init__(self, *args, organization_id="sample-org", **kwargs):
         super().__init__(*args, organization_id=organization_id, **kwargs)
 
