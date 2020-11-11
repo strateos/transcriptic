@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 
 
 class StrateosAuthBase(AuthBase, ABC):
-
     def __init__(self, api_root):
         self.api_root = api_root
 
