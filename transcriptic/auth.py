@@ -1,4 +1,5 @@
 import base64
+from abc import ABC
 from email.utils import formatdate
 from Crypto.Hash import SHA256
 from httpsig.utils import HttpSigException
@@ -7,13 +8,22 @@ from httpsig.requests_auth import HTTPSignatureAuth
 from urllib.parse import urlparse
 
 
-class StrateosSign(AuthBase):
+class StrateosAuthBase(AuthBase, ABC):
+
+    def __init__(self, api_root):
+        self.api_root = api_root
+
+    def is_internal_request(self, request):
+        return urlparse(request.url).netloc == urlparse(self.api_root).netloc
+
+
+class StrateosSign(StrateosAuthBase):
     """Signs requests"""
 
     def __init__(self, email, secret, api_root):
+        super().__init__(api_root)
         self.email = email
         self.secret = secret
-        self.api_root = api_root
 
         headers = ["(request-target)", "Date", "Host"]
         body_headers = ["Digest", "Content-Length"]
@@ -37,7 +47,7 @@ class StrateosSign(AuthBase):
             )
 
     def __call__(self, request):
-        if urlparse(request.url).netloc != urlparse(self.api_root).netloc:
+        if not self.is_internal_request(request):
             return request
 
         if "Date" not in request.headers:
@@ -59,13 +69,13 @@ class StrateosSign(AuthBase):
         return self.auth(request)
 
 
-class BearerAuth(AuthBase):
+class StrateosBearerAuth(StrateosAuthBase):
     def __init__(self, token, api_root):
+        super().__init__(api_root)
         self.token = token
-        self.api_root = api_root
 
     def __call__(self, request):
-        if urlparse(request.url).netloc == urlparse(self.api_root).netloc:
+        if self.is_internal_request(request):
             request.headers["authorization"] = self.token
 
         return request

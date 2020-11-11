@@ -11,7 +11,7 @@ import warnings
 import zipfile
 
 from . import routes
-from .auth import StrateosSign, BearerAuth
+from .auth import StrateosSign, StrateosBearerAuth
 from .util import is_valid_jwt_token
 from .version import __version__
 
@@ -357,7 +357,7 @@ class Connection(object):
                 self.email, self._rsa_secret, self.api_root
             )
         elif self.bearer_token:
-            self.session.auth = BearerAuth(self.bearer_token, self.api_root)
+            self.session.auth = StrateosBearerAuth(self.bearer_token, self.api_root)
         else:
             self.session.auth = None
 
