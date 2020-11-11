@@ -30,6 +30,7 @@ v8.1.1
 Added
 ~~~~~
 
+=======
 - Codecov configuration for coverage
 
 Fixed
