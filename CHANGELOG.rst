@@ -9,8 +9,6 @@ Added
 
 - Codecov configuration for coverage
 
-v8.1.1
-------
 Fixed
 ~~~~~
 
