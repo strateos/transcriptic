@@ -12,6 +12,7 @@ Added
 Fixed
 ~~~~~
 
+- Repeated deploy issue with Travis config
 - Encoding error when using dataset upload API with request signing enabled
 - Bad request error when making calls to non-Strateos endpoints (e.g. S3) with authorization headers set
 
