@@ -14,7 +14,7 @@ from jinja2 import Environment, PackageLoader
 from os.path import isfile, expanduser, abspath
 from transcriptic.english import AutoprotocolParser
 from transcriptic.config import Connection
-from transcriptic.signing import StrateosSign
+from transcriptic.auth import StrateosSign
 from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
 from transcriptic import routes
 
@@ -1022,7 +1022,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         # Try making an auth handler with a dummy email so that the command
         # fails early
         try:
-            rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
+            rsa_auth = StrateosSign("foo@bar.com", rsa_secret, api_root)
         except Exception as e:
             click.echo(f"Error loading RSA key: {e}")
             sys.exit(1)
@@ -1032,7 +1032,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
 
     # replace the dummy rsa_auth with a handler using the given email
     if rsa_auth is not None:
-        rsa_auth = StrateosSign(email, rsa_auth.secret)
+        rsa_auth = StrateosSign(email, rsa_auth.secret, api_root)
 
     try:
         r = api.post(
