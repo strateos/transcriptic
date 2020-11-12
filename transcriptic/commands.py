@@ -1037,8 +1037,18 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
     try:
         r = api.post(
             routes.login(api_root=api_root),
-            data=json.dumps({"user": {"email": email, "password": password,},}),
-            headers={"Accept": "application/json", "Content-Type": "application/json",},
+            data=json.dumps(
+                {
+                    "user": {
+                        "email": email,
+                        "password": password,
+                    },
+                }
+            ),
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            },
             status_response={
                 "200": lambda resp: resp,
                 "401": lambda resp: resp,
