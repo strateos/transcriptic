@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Unreleased
+----------
+Fixed
+~~~~~
+
+- Issue with bash syntax for Travis config
+
+
 v8.1.1
 ------
 
