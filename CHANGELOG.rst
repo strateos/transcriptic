@@ -1,8 +1,9 @@
 Changelog
 =========
 
-Unreleased
-----------
+v8.1.2
+------
+
 Fixed
 ~~~~~
 
