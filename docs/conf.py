@@ -27,7 +27,6 @@ class Mock(MagicMock):
 # MOCK_MODULES list below)
 MOCK_MODULES = [
     "numpy",
-    "scipy",
     "matplotlib",
     "matplotlib.pyplot",
     "sklearn.grid_search",

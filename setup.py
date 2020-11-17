@@ -55,7 +55,6 @@ analysis_deps = [
     "pandas>=0.23,<1",
     "pillow>=3,<4",
     "plotly>=1.13,<2",
-    "scipy>=0.14,<1",
 ]
 
 
