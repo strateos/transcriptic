@@ -8,6 +8,7 @@ Added
 ~~~~~
 
 - `transcriptic.sampledata` module for enabling mocked Jupyter object exploration without establishing an explicit connection
+- example notebook for Jupyter object exploration
 
 Updated
 ~~~~~~~
@@ -30,7 +31,6 @@ v8.1.1
 Added
 ~~~~~
 
-=======
 - Codecov configuration for coverage
 
 Fixed
