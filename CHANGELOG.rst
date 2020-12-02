@@ -8,6 +8,7 @@ Added
 ~~~~~
 
 - `transcriptic.sampledata` module for enabling mocked Jupyter object exploration without establishing an explicit connection
+- example notebook for Jupyter object exploration
 
 Updated
 ~~~~~~~
