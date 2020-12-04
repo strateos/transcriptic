@@ -1,6 +1,9 @@
+from os.path import join, abspath, dirname
+
 import click
 import itertools
 import re
+import json
 
 
 def natural_sort(l):
@@ -97,3 +100,16 @@ def makedirs(name, mode=None, exist_ok=False):
 def is_valid_jwt_token(token: str):
     regex = r"Bearer ([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)"
     return re.fullmatch(regex, token) is not None
+
+
+def load_sampledata_json(filename: str) -> dict:
+    with open(sampledata_path(filename)) as fh:
+        return json.load(fh)
+
+
+def sampledata_path(filename: str) -> str:
+    return join(sampledata_dir(), filename)
+
+
+def sampledata_dir() -> str:
+    return abspath(join(dirname(__file__), "sampledata", "_data"))
