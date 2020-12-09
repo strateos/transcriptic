@@ -32,6 +32,7 @@ Added
 ~~~~~
 
 - Codecov configuration for coverage
+- Binder badge and updated Dockerfile
 
 Fixed
 ~~~~~
