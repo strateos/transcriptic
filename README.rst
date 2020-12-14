@@ -1,7 +1,7 @@
 Transcriptic Python Library
 ===========================
 
-|PyPI Version| |Build Status| |Documentation| |Code Coverage| |Binder|
+|PyPI Version| |Build Status| |Documentation| |Code Coverage| |Downloads| |Binder|
 
 The Transcriptic Python Library (TxPy) provides a Python interface for
 managing Transcriptic organizations, projects, runs, datasets and more.
@@ -134,5 +134,7 @@ Read `Contributing <http://transcriptic.readthedocs.io/en/latest/contributing.ht
    :target: http://transcriptic.readthedocs.io/en/latest/?badge=latest
 .. |Code Coverage| image:: https://codecov.io/gh/strateos/transcriptic/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/strateos/transcriptic
+.. |Downloads| image:: https://img.shields.io/pypi/dm/transcriptic?logo=pypi
+   :target: https://transcriptic.readthedocs.io/en/latest
 .. |Binder| image:: https://mybinder.org/badge_logo.svg
   :target: https://mybinder.org/v2/gh/strateos/transcriptic/master
