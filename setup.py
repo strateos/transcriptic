@@ -46,7 +46,7 @@ doc_deps = [
 ]
 
 # Extra module dependencies
-jupyter_deps = ["pandas>=0.23,<1", "responses>=0.12.0,<1"]
+jupyter_deps = ["pandas>=0.23,<1", "responses>=0.12.0,<1", "jupyter>=1.0.0, <2"]
 
 analysis_deps = [
     "autoprotocol>=7.1,<8",
