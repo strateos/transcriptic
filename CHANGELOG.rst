@@ -7,6 +7,8 @@ Unreleased
 Added
 ~~~~~
 
+- example notebook for Analysis package exploration
+- sample Absorbance and Kinetics datasets
 - `transcriptic.sampledata` module for enabling mocked Jupyter object exploration without establishing an explicit connection
 - example notebook for Jupyter object exploration
 - Downloads badge to keep track of usage

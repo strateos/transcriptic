@@ -112,7 +112,7 @@ class _PlateRead(object):
                         f"Not all wells {wells} are in dataset {data_dict}."
                     )
                 col = pandas.DataFrame(
-                    [data_dict[_][0] for _ in wells], columns=[group_labels[0]]
+                    [data_dict[_][0] for _ in wells], columns=[group_labels[idx]]
                 )
                 # if group_well members are of different lengths,
                 # concat automatically pads resultant DataFrame with NaN
@@ -182,7 +182,7 @@ class Absorbance(_PlateRead):
         Single dataset selected from datasets object
     group_labels: list[str]
         Labels for each of the respective groups
-    group_wells: list[int]
+    group_wells: list[list[int]]
         List of list of wells (robot form) belonging to each group in order.
         E.g. [[1,3,5],[2,4,6]]
     control_abs: Absorbance object, optional
@@ -212,7 +212,7 @@ class Absorbance(_PlateRead):
         conc_list: list[double], optional
             List of concentrations of dye used
         use_adj: Boolean, optional
-            Booelan option which determines if the adjusted absorbance readings
+            Boolean option which determines if the adjusted absorbance readings
             are used
         \**plot_kwargs : dict
             Optional dictionary of specifications for your plot type of choice
@@ -249,7 +249,9 @@ class Absorbance(_PlateRead):
             # Calculate R^2 from residuals
             ss_res = result[1]
             ss_tot = np.sum(np.square((plot_obj["values"] - plot_obj["values"].mean())))
-            print(f"{self.name} R^2: {1 - ss_res // ss_tot}")
+            print(
+                f"{self.name if self.name is not None else ''} R^2: {1 - ss_res // ss_tot}"
+            )
 
 
 class Fluorescence(_PlateRead):
