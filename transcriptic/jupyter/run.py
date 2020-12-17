@@ -222,7 +222,7 @@ class Run(_BaseObject):
             if num_datasets == 0:
                 print("No datasets were found.")
             else:
-                print("Attempting to fetch %d datasets..." % num_datasets)
+                print(f"Attempting to fetch ${num_datasets} datasets...")
                 try:
                     data_list = []
                     for name, data_type, data_id in self.data_ids.values:
@@ -244,9 +244,9 @@ class Run(_BaseObject):
                     ]
                 except ReadTimeout:
                     print(
-                        "Operation timed out after %d seconds. Returning data_ids "
-                        "instead of Datasets.\nTo try again, increase value of "
-                        "self.timeout and resubmit request." % self.timeout
+                        f"Operation timed out after {self.timeout} seconds. Returning "
+                        "data_ids instead of Datasets.\nTo try again, increase value "
+                        "of self.timeout and resubmit request."
                     )
                     return self.data_ids
         return self._data
