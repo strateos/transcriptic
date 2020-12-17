@@ -83,3 +83,20 @@ class MockConnection(Connection):
             json=load_sampledata_json("ct124.json"),
             status=200,
         )
+        # Register Dataset routes
+        for data_id in ["d123", "d124", "d125", "d126", "d127"]:
+            # Note: `match_querystring` is important for correct resolution
+            responses.add(
+                responses.GET,
+                self.get_route("dataset_short", data_id=data_id),
+                json=load_sampledata_json(f"{data_id}.json"),
+                status=200,
+                match_querystring=True,
+            )
+            responses.add(
+                responses.GET,
+                self.get_route("dataset", data_id=data_id, key="*"),
+                json=load_sampledata_json(f"{data_id}-raw.json"),
+                status=200,
+                match_querystring=True,
+            )
