@@ -17,6 +17,8 @@ Updated
 ~~~~~~~
 
 - Remove unused `scipy` dependency
+- Break out Jupyter objects into individual files. This affects direct imports from
+  `transcriptic.jupyter.objects`
 
 
 v8.1.2
