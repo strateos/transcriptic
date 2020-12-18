@@ -43,6 +43,8 @@ jobs:
 
     - name: Upload to CodeCov
       uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
       if: ${{ matrix.python-version == 3.6 }}
 
   docs:
