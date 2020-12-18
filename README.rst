@@ -128,8 +128,8 @@ Read `Contributing <http://transcriptic.readthedocs.io/en/latest/contributing.ht
 
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/transcriptic.svg?maxAge=86400
    :target: https://pypi.python.org/pypi/transcriptic
-.. |Build Status| image:: https://travis-ci.org/strateos/transcriptic.svg?branch=master
-   :target: https://travis-ci.org/strateos/transcriptic
+.. |Build Status| image:: https://github.com/strateos/transcriptic/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/strateos/transcriptic/actions?query=workflow%3ACI+branch%3Amaster
 .. |Documentation| image:: https://readthedocs.org/projects/transcriptic/badge/?version=latest
    :target: http://transcriptic.readthedocs.io/en/latest/?badge=latest
 .. |Code Coverage| image:: https://codecov.io/gh/strateos/transcriptic/branch/master/graph/badge.svg

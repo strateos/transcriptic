@@ -16,6 +16,7 @@ Added
 Updated
 ~~~~~~~
 
+- Migrated from travis to github actions as a CI backend
 - Remove unused `scipy` dependency
 - Break out Jupyter objects into individual files. This affects direct imports from
   `transcriptic.jupyter.objects`
