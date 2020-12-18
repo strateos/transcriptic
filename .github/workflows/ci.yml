@@ -41,6 +41,10 @@ jobs:
       run: tox -e clean,py
       if: ${{ matrix.python-version == 3.6 }}
 
+    - name: Upload to CodeCov
+      uses: codecov/codecov-action@v1
+      if: ${{ matrix.python-version == 3.6 }}
+
   docs:
     name: Docs
     runs-on: ubuntu-latest
