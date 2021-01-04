@@ -106,10 +106,22 @@ Here’s an example script for installing it on a bash shell in your
 Documentation
 -------------
 
+CLI
+~~~
+
 See the `Transcriptic Developer
 Documentation <https://developers.transcriptic.com/docs/getting-started-with-the-cli>`__
 for detailed information about how to use this package, including
 learning about how to package protocols and build releases.
+
+Jupyter
+~~~~~~~
+
+Click on the |Binder| icon to open an interactive notebook environment 
+for using the library.
+
+Developer
+~~~~~~~~~
 
 View `Developer Specific
 Documentation <http://transcriptic.readthedocs.io/en/latest/>`__
@@ -137,4 +149,4 @@ Read `Contributing <http://transcriptic.readthedocs.io/en/latest/contributing.ht
 .. |Downloads| image:: https://img.shields.io/pypi/dm/transcriptic?logo=pypi
    :target: https://transcriptic.readthedocs.io/en/latest
 .. |Binder| image:: https://mybinder.org/badge_logo.svg
-  :target: https://mybinder.org/v2/gh/strateos/transcriptic/master
+   :target: https://mybinder.org/v2/gh/strateos/transcriptic/master?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fstrateos%252Ftranscriptic%26urlpath%3Dtree%252Ftranscriptic%252F%26branch%3Dnotebooks

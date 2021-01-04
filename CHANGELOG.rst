@@ -10,6 +10,11 @@ Added
 
 - isort for automatic import sorting
 
+Updated
+~~~~~~~
+
+- Remove notebooks directory as we break it out into a separate branch
+
 Fixed
 ~~~~~
 
