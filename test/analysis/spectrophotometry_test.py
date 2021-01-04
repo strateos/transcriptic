@@ -3,9 +3,9 @@ from contextlib import contextmanager
 import pandas as pd
 import pytest
 
+from transcriptic.analysis.spectrophotometry import *
 from transcriptic.sampledata.connection import MockConnection
 from transcriptic.sampledata.dataset import load_sample_absorbance_dataset
-from transcriptic.analysis.spectrophotometry import *
 
 
 @contextmanager

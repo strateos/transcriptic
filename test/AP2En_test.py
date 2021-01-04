@@ -1,6 +1,8 @@
-import pytest
-import unittest
 import json
+import unittest
+
+import pytest
+
 from transcriptic import english
 
 

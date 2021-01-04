@@ -1,8 +1,8 @@
 import pytest
-from pandas import DatetimeTZDtype
 
-from transcriptic.sampledata.connection import MockConnection
+from pandas import DatetimeTZDtype
 from transcriptic.analysis.kinetics import *
+from transcriptic.sampledata.connection import MockConnection
 from transcriptic.sampledata.dataset import load_sample_kinetics_datasets
 
 

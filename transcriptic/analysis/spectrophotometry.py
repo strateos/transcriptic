@@ -1,12 +1,13 @@
 from autoprotocol.container_type import ContainerType
 from transcriptic import dataset as get_dataset
 
+
 try:
-    import plotly as py
-    import pandas
     import matplotlib.pyplot as plt
-    import plotly.tools as tls
     import numpy as np
+    import pandas
+    import plotly as py
+    import plotly.tools as tls
 except ImportError:
     raise ImportError(
         "Please run `pip install transcriptic[analysis] if you "

@@ -5,8 +5,14 @@ Changelog
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- isort for automatic import sorting
+
 Fixed
 ~~~~~
+
 - Issue with CodeCov for GitHub action CI
 
 
