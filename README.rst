@@ -117,7 +117,7 @@ learning about how to package protocols and build releases.
 Jupyter
 ~~~~~~~
 
-Click on the |Binder| icon to open an interactive notebook environment 
+Click on the |Binder| icon to open an interactive notebook environment
 for using the library.
 
 Developer
