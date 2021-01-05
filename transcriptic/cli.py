@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import click
 import os
+
+import click
 import requests
 
-from transcriptic.config import Connection
 from transcriptic import commands
+from transcriptic.config import Connection
 
 
 class FeatureGroup(click.Group):

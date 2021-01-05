@@ -1,6 +1,7 @@
 from .config import Connection
 from .version import __version__
 
+
 api = None
 
 """
@@ -24,8 +25,8 @@ to the Jupyter library.
 required imports are present
 """
 try:
-    from .jupyter import Run, Project, Container, Dataset
     from .commands import ProtocolPreview
+    from .jupyter import Container, Dataset, Project, Run
 except ImportError as e:
     pass
 

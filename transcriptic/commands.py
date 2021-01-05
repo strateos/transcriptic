@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 
-import click
 import json
 import locale
 import os
+import sys
 import time
 import zipfile
-import requests
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from jinja2 import Environment, PackageLoader
-from os.path import isfile, expanduser, abspath
-from transcriptic.english import AutoprotocolParser
-from transcriptic.config import Connection
-from transcriptic.auth import StrateosSign
-from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
-from transcriptic import routes
+from os.path import abspath, expanduser, isfile
 
-import sys
+import click
+import requests
+
+from jinja2 import Environment, PackageLoader
+from transcriptic import routes
+from transcriptic.auth import StrateosSign
+from transcriptic.config import Connection
+from transcriptic.english import AutoprotocolParser
+from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
 
 
 def submit(api, file, project, title=None, test=None, pm=None):
@@ -919,7 +920,7 @@ def launch(
         if not project:
             return
 
-        from time import strftime, gmtime
+        from time import gmtime, strftime
 
         if title:
             default_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
@@ -1398,8 +1399,9 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
         )
         return
 
-    from subprocess import check_output, CalledProcessError
     import tempfile
+
+    from subprocess import CalledProcessError, check_output
 
     with tempfile.NamedTemporaryFile() as fp:
         fp.write(bytes(json.dumps(inputs), "UTF-8"))

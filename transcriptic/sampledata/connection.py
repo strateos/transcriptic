@@ -1,8 +1,7 @@
-from transcriptic.config import Connection
-from requests.exceptions import ConnectionError
-
 import responses
 
+from requests.exceptions import ConnectionError
+from transcriptic.config import Connection
 from transcriptic.sampledata.project import sample_project_attr
 from transcriptic.sampledata.run import sample_run_attr
 from transcriptic.util import load_sampledata_json

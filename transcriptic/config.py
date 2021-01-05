@@ -3,17 +3,20 @@ import io
 import json
 import os
 import platform
-import requests
 import time
-from Crypto.PublicKey import RSA
-import transcriptic
 import warnings
 import zipfile
 
+import requests
+import transcriptic
+
+from Crypto.PublicKey import RSA
+
 from . import routes
-from .auth import StrateosSign, StrateosBearerAuth
+from .auth import StrateosBearerAuth, StrateosSign
 from .util import is_valid_jwt_token
 from .version import __version__
+
 
 try:
     import magic

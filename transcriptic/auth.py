@@ -1,11 +1,13 @@
 import base64
+
 from abc import ABC
 from email.utils import formatdate
+from urllib.parse import urlparse
+
 from Crypto.Hash import SHA256
+from httpsig.requests_auth import HTTPSignatureAuth
 from httpsig.utils import HttpSigException
 from requests.auth import AuthBase
-from httpsig.requests_auth import HTTPSignatureAuth
-from urllib.parse import urlparse
 
 
 class StrateosAuthBase(AuthBase, ABC):

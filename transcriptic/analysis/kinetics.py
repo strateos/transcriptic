@@ -1,7 +1,7 @@
 try:
+    import pandas as pd
     import plotly as py
     import plotly.graph_objs as go
-    import pandas as pd
 except ImportError:
     raise ImportError(
         "Please run `pip install transcriptic[analysis] if you "

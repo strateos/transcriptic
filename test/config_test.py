@@ -1,13 +1,14 @@
 import json
-import unittest
-import tempfile
 import re
+import tempfile
+import unittest
+
+from email.utils import formatdate
 
 import pytest
 import requests
-from email.utils import formatdate
-
 import transcriptic.config
+
 
 try:
     from unittest.mock import Mock

@@ -1,9 +1,10 @@
-from os.path import join, abspath, dirname
+import itertools
+import json
+import re
+
+from os.path import abspath, dirname, join
 
 import click
-import itertools
-import re
-import json
 
 
 def natural_sort(l):
