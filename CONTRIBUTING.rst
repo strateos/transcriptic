@@ -32,7 +32,7 @@ Version Compatibility
 ---------------------
 
 TxPy is written with Python 3.6+ compatibility in mind. Python 2 is no
-longer officialy supported.
+longer officially supported.
 
 General Setup
 -------------
