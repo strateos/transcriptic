@@ -9,6 +9,7 @@ Added
 ~~~~~
 
 - isort for automatic import sorting
+- Python 3.9 support. Added to test suite.
 
 Fixed
 ~~~~~
