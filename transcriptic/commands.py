@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
+"""
+Contains abstracted functions which is primarily used by the CLI. However, they can
+be separately imported and used in other contexts.
+"""
 
 import json
 import locale
 import os
 import sys
 import time
+import warnings
 import zipfile
 
 from collections import OrderedDict
@@ -22,8 +27,32 @@ from transcriptic.english import AutoprotocolParser
 from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
 
 
-def submit(api, file, project, title=None, test=None, pm=None):
-    """Submit your run to the project specified."""
+def submit(
+    api: Connection,
+    file: str,
+    project: str,
+    title: str = None,
+    test: bool = None,
+    pm: str = None,
+):
+    """
+    Submit your run to the project specified.
+
+    Parameters
+    ----------
+    api: Connection
+        API context used for making base calls
+    file: str
+        Name of file to read from. Use `-` if reading from standard input.
+    project: str
+        `ProjectId` to submit this json to.
+    title: str, optional
+        If specified, Title of the created run.
+    test: bool, optional
+        If true, submit as a test run.
+    pm: str, optional
+        If specified, `PaymentId` to be used.
+    """
     if pm is not None and not is_valid_payment_method(api, pm):
         print_stderr(
             "Payment method is invalid. Please specify a payment "
@@ -31,14 +60,15 @@ def submit(api, file, project, title=None, test=None, pm=None):
             "`--payment` flag to use the default payment method."
         )
         return
-    project = get_project_id(api, project)
-    if not project:
+    valid_project_id = get_project_id(api, project)
+    if not valid_project_id:
+        print_stderr(f"Invalid project {project} specified")
         return
     with click.open_file(file, "r") as f:
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            click.echo(
+            print_stderr(
                 "Error: Could not submit since your manifest.json "
                 "file is improperly formatted."
             )
@@ -47,15 +77,16 @@ def submit(api, file, project, title=None, test=None, pm=None):
     try:
         req_json = api.submit_run(
             protocol,
-            project_id=project,
+            project_id=valid_project_id,
             title=title,
             test_mode=test,
             payment_method_id=pm,
         )
         run_id = req_json["id"]
-        click.echo("Run created: %s" % api.url("%s/runs/%s" % (project, run_id)))
+        formatted_url = api.url(f"{valid_project_id}/runs/{run_id}")
+        click.echo(f"Run created: {formatted_url}")
     except Exception as err:
-        click.echo("\n" + str(err))
+        print_stderr(str(err))
 
 
 def release(api, name=None, package=None):
@@ -350,20 +381,48 @@ def upload_dataset(api, file_path, title, run_id, tool, version):
         click.echo("An unexpected response was returned from the server. ")
 
 
-def projects(api, i, json_flag):
-    """List the projects in your organization"""
+def projects(
+    api: Connection,
+    i: any = None,
+    json_flag: bool = False,
+    names_only: bool = False,
+):
+    """
+    List the projects in your organization.
+
+    When no options are specified, outputs a console-optimized format.
+
+    Parameters
+    ----------
+    api: Connection
+        API context used for making base calls
+    i: any, optional
+        DEPRECATED option. See `names_only`.
+    json_flag: bool, optional
+        Outputs to console and returns the full response which is json formatted.
+    names_only: bool, optional
+        Outputs to console and returns a `project_id: project_name` mapping.
+    """
+    if i:
+        warnings.warn(
+            "`i` will be deprecated in the future. Please use `names_only` instead.",
+            FutureWarning,
+        )
+        names_only = True
     try:
-        projects = api.projects()
+        response = api.projects()
         proj_id_names = {}
         all_proj = {}
-        for proj in projects:
+        for proj in response:
             status = " (archived)" if proj["archived_at"] else ""
             proj_id_names[proj["id"]] = proj["name"]
             all_proj[proj["id"]] = proj["name"] + status
-        if i:
+        if names_only:
+            click.echo(proj_id_names)
             return proj_id_names
         elif json_flag:
-            return click.echo(json.dumps(projects))
+            click.echo(json.dumps(response))
+            return response
         else:
             click.echo("\n{:^80}".format("PROJECTS:\n"))
             click.echo(f"{'PROJECT NAME':^40}" + "|" + f"{'PROJECT ID':^40}")
@@ -372,9 +431,9 @@ def projects(api, i, json_flag):
                 click.echo(f"{name:<40}" + "|" + f"{proj_id:^40}")
                 click.echo(f"{'':-^80}")
     except RuntimeError:
-        click.echo(
+        print_stderr(
             "There was an error listing the projects in your "
-            "organization.  Make sure your login details are correct."
+            "organization. Make sure your login details are correct."
         )
 
 
@@ -1290,11 +1349,11 @@ def org_prompt(org_list):
 
 
 def get_project_id(api, name):
-    projs = projects(api, True, True)
-    if name in projs:
+    project_id_name_mapping = projects(api, names_only=True)
+    if name in project_id_name_mapping:
         return name
     else:
-        project_ids = [k for k, v in projs.items() if v == name]
+        project_ids = [k for k, v in project_id_name_mapping.items() if v == name]
         if not project_ids:
             click.echo(f"The project '{name}' was not found in your organization.")
             return
@@ -1307,10 +1366,10 @@ def get_project_id(api, name):
 
 
 def get_project_name(api, id):
-    projs = projects(api, True, True)
-    name = projs.get(id)
+    project_id_name_mapping = projects(api, names_only=True)
+    name = project_id_name_mapping.get(id)
     if not name:
-        name = id if id in projs.values() else None
+        name = id if id in project_id_name_mapping.values() else None
         if not name:
             click.echo(f"The project '{name}' was not found in your organization.")
             return

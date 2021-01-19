@@ -313,12 +313,18 @@ def generate_protocol_cmd(ctx, name):
 
 @cli.command("projects")
 @click.pass_context
-@click.option("-i")
+@click.option("-i", help="DEPRECATED option. Use `--names` instead.")
 @click.option("--json", "json_flag", help="print JSON response", is_flag=True)
-def projects_cmd(ctx, i, json_flag):
+@click.option(
+    "--names",
+    "names_only",
+    help="returns a mapping of `project_id`: `project_name`",
+    is_flag=True,
+)
+def projects_cmd(ctx, i, json_flag, names_only):
     """List the projects in your organization"""
     api = ctx.obj.api
-    commands.projects(api, i, json_flag)
+    commands.projects(api, i, json_flag, names_only)
 
 
 @cli.command("runs")

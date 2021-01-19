@@ -10,6 +10,7 @@ from .helpers.util import load_protocol
 sys.path.append(os.path.join(os.path.dirname(__file__), "helpers"))
 
 
+# TODO: Migrate tests utilizing this to use the `TestConnection` pattern instead.
 @pytest.fixture()
 def test_api(monkeypatch):
     from transcriptic.config import Connection
@@ -43,7 +44,10 @@ def json_db():
 
 
 class ResponseDB:
-    """Contains dictionary of MockResponse used for testing purposes"""
+    """
+    Contains dictionary of MockResponse used for testing purposes
+    TODO: Simplify this by using `@responses.activate` pattern
+    """
 
     def __init__(self):
         self.mock_responses = {}
@@ -61,3 +65,12 @@ class ResponseDB:
 @pytest.fixture(scope="module")
 def response_db():
     return ResponseDB()
+
+
+@pytest.fixture(scope="module")
+def test_connection():
+    from transcriptic.config import Connection
+
+    return Connection(
+        email="mock@api.com", organization_id="mock", api_root="http://mock-api"
+    )

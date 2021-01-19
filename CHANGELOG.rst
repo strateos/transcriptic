@@ -9,12 +9,23 @@ Added
 ~~~~~
 
 - isort for automatic import sorting
+- Example initial tests for `commands` file using `responses` pattern, starting with
+  `submit` and `projects`.
+- Deprecation warning for existing `-i` option for `projects` command.
 
 Fixed
 ~~~~~
 
 - Issue with CodeCov for GitHub action CI
+- `-i` option for `projects` command did not output anything to console when called from
+  cli.
 
+Updated
+~~~~~~~
+
+- Added new option "--names" to `projects` CLI command. This is meant as a better
+  named and more intuitive replacement for the existing `-i` option.
+- Returned more explicit error statuses for `projects` and `submit` commands.
 
 v9.0.0
 ------
