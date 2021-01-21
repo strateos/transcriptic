@@ -10,6 +10,11 @@ Added
 
 - isort for automatic import sorting
 
+Updated
+~~~~~~~
+
+- Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
+
 Fixed
 ~~~~~
 
