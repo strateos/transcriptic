@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import json
 import os
 
 import click
@@ -324,7 +324,25 @@ def generate_protocol_cmd(ctx, name):
 def projects_cmd(ctx, i, json_flag, names_only):
     """List the projects in your organization"""
     api = ctx.obj.api
-    commands.projects(api, i, json_flag, names_only)
+    try:
+        response = commands.projects(api, i, json_flag, names_only)
+        if i or names_only:
+            click.echo(response)
+        elif json_flag:
+            click.echo(json.dumps(response))
+        else:
+            click.echo("\n{:^80}".format("PROJECTS:\n"))
+            click.echo(f"{'PROJECT NAME':^40}" + "|" + f"{'PROJECT ID':^40}")
+            click.echo(f"{'':-^80}")
+            for proj_id, name in list(response.items()):
+                click.echo(f"{name:<40}" + "|" + f"{proj_id:^40}")
+                click.echo(f"{'':-^80}")
+    except RuntimeError:
+        click.echo(
+            "There was an error listing the projects in your "
+            "organization. Make sure your login details are correct.",
+            err=True,
+        )
 
 
 @cli.command("runs")

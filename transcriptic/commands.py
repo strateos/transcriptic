@@ -2,6 +2,9 @@
 """
 Contains abstracted functions which is primarily used by the CLI. However, they can
 be separately imported and used in other contexts.
+
+There is a mix of functions which directly call `click.echo` vs returning responses to
+the caller (e.g. CLI). We should move towards the latter pattern.
 """
 
 import json
@@ -390,7 +393,7 @@ def projects(
     """
     List the projects in your organization.
 
-    When no options are specified, outputs a console-optimized format.
+    When no options are specified, returns a summarized format.
 
     Parameters
     ----------
@@ -399,9 +402,9 @@ def projects(
     i: any, optional
         DEPRECATED option. See `names_only`.
     json_flag: bool, optional
-        Outputs to console and returns the full response which is json formatted.
+        Returns the full response which is json formatted.
     names_only: bool, optional
-        Outputs to console and returns a `project_id: project_name` mapping.
+        Returns a `project_id: project_name` mapping.
     """
     if i:
         warnings.warn(
@@ -409,32 +412,22 @@ def projects(
             FutureWarning,
         )
         names_only = True
-    try:
-        response = api.projects()
-        proj_id_names = {}
-        all_proj = {}
-        for proj in response:
-            status = " (archived)" if proj["archived_at"] else ""
-            proj_id_names[proj["id"]] = proj["name"]
-            all_proj[proj["id"]] = proj["name"] + status
-        if names_only:
-            click.echo(proj_id_names)
-            return proj_id_names
-        elif json_flag:
-            click.echo(json.dumps(response))
-            return response
-        else:
-            click.echo("\n{:^80}".format("PROJECTS:\n"))
-            click.echo(f"{'PROJECT NAME':^40}" + "|" + f"{'PROJECT ID':^40}")
-            click.echo(f"{'':-^80}")
-            for proj_id, name in list(all_proj.items()):
-                click.echo(f"{name:<40}" + "|" + f"{proj_id:^40}")
-                click.echo(f"{'':-^80}")
-    except RuntimeError:
-        print_stderr(
-            "There was an error listing the projects in your "
-            "organization. Make sure your login details are correct."
-        )
+
+    response = api.projects()
+
+    proj_id_names = {}
+    all_proj = {}
+    for proj in response:
+        status = " (archived)" if proj["archived_at"] else ""
+        proj_id_names[proj["id"]] = proj["name"]
+        all_proj[proj["id"]] = proj["name"] + status
+
+    if names_only:
+        return proj_id_names
+    elif json_flag:
+        return response
+    else:
+        return all_proj
 
 
 def runs(api, project_name, json_flag):
@@ -1075,7 +1068,8 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         except Exception:
             click.echo(
                 f"Error loading RSA key. Please check that the file "
-                f"{rsa_key} is accessible"
+                f"{rsa_key} is accessible",
+                err=True,
             )
             sys.exit(1)
 
@@ -1084,7 +1078,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         try:
             rsa_auth = StrateosSign("foo@bar.com", rsa_secret, api_root)
         except Exception as e:
-            click.echo(f"Error loading RSA key: {e}")
+            click.echo(f"Error loading RSA key: {e}", err=True)
             sys.exit(1)
 
     email = click.prompt("Email")
