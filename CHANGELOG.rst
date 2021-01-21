@@ -9,6 +9,7 @@ Added
 ~~~~~
 
 - isort for automatic import sorting
+- Binder build cache step
 
 Updated
 ~~~~~~~
