@@ -25,7 +25,7 @@ import requests
 from jinja2 import Environment, PackageLoader
 from transcriptic import routes
 from transcriptic.auth import StrateosSign
-from transcriptic.config import Connection
+from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
 from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
 
@@ -40,6 +40,7 @@ def submit(
 ):
     """
     Submit your run to the project specified.
+    If successful, returns the formatted url link to the created run.
 
     Parameters
     ----------
@@ -57,25 +58,22 @@ def submit(
         If specified, `PaymentId` to be used.
     """
     if pm is not None and not is_valid_payment_method(api, pm):
-        print_stderr(
+        raise RuntimeError(
             "Payment method is invalid. Please specify a payment "
             "method from `transcriptic payments` or not specify the "
             "`--payment` flag to use the default payment method."
         )
-        return
     valid_project_id = get_project_id(api, project)
     if not valid_project_id:
-        print_stderr(f"Invalid project {project} specified")
-        return
+        raise RuntimeError(f"Invalid project {project} specified")
     with click.open_file(file, "r") as f:
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            print_stderr(
+            raise RuntimeError(
                 "Error: Could not submit since your manifest.json "
                 "file is improperly formatted."
             )
-            return
 
     try:
         req_json = api.submit_run(
@@ -87,9 +85,9 @@ def submit(
         )
         run_id = req_json["id"]
         formatted_url = api.url(f"{valid_project_id}/runs/{run_id}")
-        click.echo(f"Run created: {formatted_url}")
-    except Exception as err:
-        print_stderr(str(err))
+        return formatted_url
+    except AnalysisException as e:
+        raise RuntimeError(e.message)
 
 
 def release(api, name=None, package=None):

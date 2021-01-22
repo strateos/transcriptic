@@ -18,45 +18,43 @@ class TestSubmit:
         path.write(json.dumps({"refs": {}, "instructions": []}))
         yield path
 
-    def test_invalid_pm(self, monkeypatch, test_connection, capsys):
+    def test_invalid_pm(self, monkeypatch, test_connection):
         monkeypatch.setattr(commands, "is_valid_payment_method", lambda api, pm: False)
 
-        commands.submit(test_connection, "some file", "some project", pm="invalid")
+        with pytest.raises(RuntimeError) as error:
+            commands.submit(test_connection, "some file", "some project", pm="invalid")
 
-        captured = capsys.readouterr()
-        assert captured.err == (
+        assert f"{error.value}" == (
             "Payment method is invalid. Please specify a payment "
             "method from `transcriptic payments` or not specify the "
-            "`--payment` flag to use the default payment method.\n"
+            "`--payment` flag to use the default payment method."
         )
 
-    def test_invalid_project(self, monkeypatch, test_connection, capsys):
+    def test_invalid_project(self, monkeypatch, test_connection):
         monkeypatch.setattr(commands, "get_project_id", lambda api, project: False)
 
-        commands.submit(test_connection, "some file", "invalid_project")
+        with pytest.raises(RuntimeError) as error:
+            commands.submit(test_connection, "some file", "invalid_project")
 
-        captured = capsys.readouterr()
-        assert captured.err == "Invalid project invalid_project specified\n"
+        assert f"{error.value}" == "Invalid project invalid_project specified"
 
-    def test_invalid_file(self, monkeypatch, test_connection, capsys, tmpdir):
+    def test_invalid_file(self, monkeypatch, test_connection, tmpdir):
         path = tmpdir.mkdir("foo").join("invalid-input.txt")
         path.write("this is not json")
 
         monkeypatch.setattr(commands, "get_project_id", lambda api, project: "p123")
 
-        commands.submit(test_connection, path, "project name")
+        with pytest.raises(RuntimeError) as error:
+            commands.submit(test_connection, path, "project name")
 
-        captured = capsys.readouterr()
         assert (
-            captured.err
+            f"{error.value}"
             == "Error: Could not submit since your manifest.json file is improperly "
-            "formatted.\n"
+            "formatted."
         )
 
     @responses.activate
-    def test_valid_submission(
-        self, monkeypatch, test_connection, capsys, valid_json_file
-    ):
+    def test_valid_submission(self, monkeypatch, test_connection, valid_json_file):
         monkeypatch.setattr(commands, "get_project_id", lambda api, project: "p123")
 
         responses.add(
@@ -65,14 +63,14 @@ class TestSubmit:
             json={"id": "r123"},
         )
 
-        commands.submit(test_connection, valid_json_file, "project name")
+        actual = commands.submit(test_connection, valid_json_file, "project name")
 
-        captured = capsys.readouterr()
-        assert captured.out == "Run created: http://mock-api/mock/p123/runs/r123\n"
+        expected = "http://mock-api/mock/p123/runs/r123"
+        assert actual == expected
 
     @responses.activate
     def test_submit_exception_handling(
-        self, monkeypatch, test_connection, capsys, valid_json_file
+        self, monkeypatch, test_connection, valid_json_file
     ):
         monkeypatch.setattr(commands, "get_project_id", lambda api, project: "p123")
 
@@ -83,7 +81,7 @@ class TestSubmit:
             status=404,
         )
 
-        commands.submit(test_connection, valid_json_file, "project name")
+        with pytest.raises(RuntimeError) as error:
+            commands.submit(test_connection, valid_json_file, "project name")
 
-        captured = capsys.readouterr()
-        assert "Error: Couldn't create run (404)" in captured.err
+        assert "Error: Couldn't create run (404)" in f"{error.value}"

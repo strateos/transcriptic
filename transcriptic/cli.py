@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import sys
 
 import click
 import requests
@@ -204,7 +205,12 @@ def cli(ctx, api_root, email, token, organization, config):
 def submit_cmd(ctx, file, project, title=None, test=None, pm=None):
     """Submit your run to the project specified."""
     api = ctx.obj.api
-    commands.submit(api, file, project, title=title, test=test, pm=pm)
+    try:
+        run_url = commands.submit(api, file, project, title=title, test=test, pm=pm)
+        click.echo(f"Run created: {run_url}")
+    except RuntimeError as err:
+        click.echo(f"{err}", err=True)
+        sys.exit(1)
 
 
 @cli.command("build-release", cls=FeatureCommand, feature="can_upload_packages")

@@ -152,3 +152,24 @@ def test_projects_default(cli_test_runner, monkeypatch):
         "Foo (archived)                          |                  p123                  \n"
         "--------------------------------------------------------------------------------\n"
     )
+
+
+def test_submit_exception_handling(cli_test_runner, monkeypatch):
+    runtime_error = "Some runtime error message"
+
+    def mocked_exception(api, file, project, title, test, pm):
+        raise RuntimeError(runtime_error)
+
+    monkeypatch.setattr(commands, "submit", mocked_exception)
+    result = cli_test_runner.invoke(cli, ["submit", "--project", "some project"])
+    assert result.stderr == f"{runtime_error}\n"
+    assert result.exit_code == 1
+
+
+def test_submit_success(cli_test_runner, monkeypatch):
+    mock_url = "http://mock-api/mock/p123/runs/r123"
+    monkeypatch.setattr(
+        commands, "submit", lambda api, file, project, title, test, pm: mock_url
+    )
+    result = cli_test_runner.invoke(cli, ["submit", "--project", "some project"])
+    assert result.output == f"Run created: {mock_url}\n"
