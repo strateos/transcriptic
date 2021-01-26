@@ -7,7 +7,7 @@ Unreleased
 
 Added
 ~~~~~
-
+- A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
 - Example initial tests for `commands` file using `responses` pattern, starting with
   `submit` and `projects`.

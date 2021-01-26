@@ -1476,6 +1476,69 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
             return
 
 
+def execute(
+    autoprotocol,
+    api,
+    workcell_id,
+    device_set,
+    time_limit,
+    partition_group_size,
+    partition_horizon,
+    partitioning_swap_device_id,
+):
+    # Get the autoprotocol
+    autoprotocol_str = autoprotocol.read()
+    try:
+        autoprotocol_dict = json.loads(autoprotocol_str)
+    except json.decoder.JSONDecodeError as err:
+        click.echo(f"Error decoding autoprotocol json: {err}", err=True)
+        return
+
+    # Define the initial payload
+    payload = {"autoprotocol": autoprotocol_dict, "timeLimit": f"{time_limit}:second"}
+
+    if device_set:
+        device_str = device_set.read()
+        try:
+            device_json = json.loads(device_str)
+            payload["deviceSet"] = device_json
+        except json.decoder.JSONDecodeError as err:
+            click.echo(f"Error decoding device set json: {err}", err=True)
+            return
+    elif workcell_id:
+        payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
+    else:
+        payload["workcellIdForDeviceSet"] = "wctest-mcx1"
+
+    if partition_group_size is not None:
+        payload["partitionGroupSize"] = partition_group_size
+
+    if partition_horizon is not None:
+        payload["partitionHorizon"] = f"{partition_horizon}:second"
+
+    if partitioning_swap_device_id is not None:
+        payload["partitioningSwapDeviceId"] = partitioning_swap_device_id
+
+    # Clean api end point
+    if api[-1] == "/":
+        clean_api = api[0:-1]  # remove trailing slash
+    else:
+        clean_api = api
+
+    # POST to workcell
+    test_run_endpoint = f"{clean_api}/testRun"
+    click.echo("Sending request...")
+    res = requests.post(test_run_endpoint, json=payload)
+    try:
+        res_json = json.loads(res.text)
+        if res_json["success"]:
+            click.echo(f"Success. View {clean_api} to see the scheduling outcome.")
+        else:
+            click.echo(f"Error: {res_json['message']}", err=True)
+    except json.decoder.JSONDecodeError:
+        click.echo(f"Error: {res.text}", err=True)
+
+
 def parse_json(json_file):
     try:
         return json.load(open(json_file))
