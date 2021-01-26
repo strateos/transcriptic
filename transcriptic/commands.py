@@ -923,7 +923,7 @@ def launch(
         from time import gmtime, strftime
 
         if title:
-            run_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
+            run_title = title
         else:
             run_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
 
