@@ -1,7 +1,7 @@
 Transcriptic Python Library
 ===========================
 
-|PyPI Version| |Build Status| |Documentation|
+|PyPI Version| |Build Status| |Documentation| |Code Coverage| |Downloads| |Binder|
 
 The Transcriptic Python Library (TxPy) provides a Python interface for
 managing Transcriptic organizations, projects, runs, datasets and more.
@@ -106,10 +106,22 @@ Here’s an example script for installing it on a bash shell in your
 Documentation
 -------------
 
+CLI
+~~~
+
 See the `Transcriptic Developer
 Documentation <https://developers.transcriptic.com/docs/getting-started-with-the-cli>`__
 for detailed information about how to use this package, including
 learning about how to package protocols and build releases.
+
+Jupyter
+~~~~~~~
+
+Click on the |Binder| icon to open an interactive notebook environment
+for using the library.
+
+Developer
+~~~~~~~~~
 
 View `Developer Specific
 Documentation <http://transcriptic.readthedocs.io/en/latest/>`__
@@ -128,7 +140,13 @@ Read `Contributing <http://transcriptic.readthedocs.io/en/latest/contributing.ht
 
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/transcriptic.svg?maxAge=86400
    :target: https://pypi.python.org/pypi/transcriptic
-.. |Build Status| image:: https://travis-ci.org/strateos/transcriptic.svg?branch=master
-   :target: https://travis-ci.org/strateos/transcriptic
+.. |Build Status| image:: https://github.com/strateos/transcriptic/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/strateos/transcriptic/actions?query=workflow%3ACI+branch%3Amaster
 .. |Documentation| image:: https://readthedocs.org/projects/transcriptic/badge/?version=latest
    :target: http://transcriptic.readthedocs.io/en/latest/?badge=latest
+.. |Code Coverage| image:: https://codecov.io/gh/strateos/transcriptic/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/strateos/transcriptic
+.. |Downloads| image:: https://img.shields.io/pypi/dm/transcriptic?logo=pypi
+   :target: https://transcriptic.readthedocs.io/en/latest
+.. |Binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/strateos/transcriptic/master?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fopen-strateos%252Ftxpy_jupyter_notebooks%26urlpath%3Dtree%252Ftxpy_jupyter_notebooks%252Findex.ipynb%26branch%3Dmain

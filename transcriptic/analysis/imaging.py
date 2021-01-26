@@ -2,6 +2,7 @@ from io import BytesIO
 
 from transcriptic import api
 
+
 try:
     from PIL import Image
 except ImportError:

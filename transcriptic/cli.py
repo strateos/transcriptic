@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import click
 import os
+
+import click
 import requests
 
-from transcriptic.config import Connection
 from transcriptic import commands
+from transcriptic.config import Connection
 
 
 class FeatureGroup(click.Group):
@@ -474,7 +475,7 @@ def summarize_cmd(ctx, file, html, tree, lookup, runtime):
 @click.argument("args", nargs=-1)
 def compile_cmd(protocol_name, args):
     """Compile a protocol by passing it a config file (without submitting or
-     analyzing)."""
+    analyzing)."""
     commands.compile(protocol_name, args)
 
 

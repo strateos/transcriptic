@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 
-import click
 import json
 import locale
 import os
+import sys
 import time
 import zipfile
-import requests
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from jinja2 import Environment, PackageLoader
-from os.path import isfile, expanduser, abspath
-from transcriptic.english import AutoprotocolParser
-from transcriptic.config import Connection
-from transcriptic.signing import StrateosSign
-from transcriptic.util import iter_json, flatmap, ascii_encode, makedirs
-from transcriptic import routes
+from os.path import abspath, expanduser, isfile
 
-import sys
+import click
+import requests
+
+from jinja2 import Environment, PackageLoader
+from transcriptic import routes
+from transcriptic.auth import StrateosSign
+from transcriptic.config import Connection
+from transcriptic.english import AutoprotocolParser
+from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
 
 
 def submit(api, file, project, title=None, test=None, pm=None):
@@ -776,7 +777,7 @@ def summarize(api, file, html, tree, lookup, runtime):
 
 def compile(protocol_name, args):
     """Compile a protocol by passing it a config file (without submitting or
-     analyzing)."""
+    analyzing)."""
     manifest, protocol = load_manifest_and_protocol(protocol_name)
 
     try:
@@ -919,7 +920,7 @@ def launch(
         if not project:
             return
 
-        from time import strftime, gmtime
+        from time import gmtime, strftime
 
         if title:
             default_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
@@ -1022,7 +1023,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         # Try making an auth handler with a dummy email so that the command
         # fails early
         try:
-            rsa_auth = StrateosSign("foo@bar.com", rsa_secret)
+            rsa_auth = StrateosSign("foo@bar.com", rsa_secret, api_root)
         except Exception as e:
             click.echo(f"Error loading RSA key: {e}")
             sys.exit(1)
@@ -1032,13 +1033,23 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
 
     # replace the dummy rsa_auth with a handler using the given email
     if rsa_auth is not None:
-        rsa_auth = StrateosSign(email, rsa_auth.secret)
+        rsa_auth = StrateosSign(email, rsa_auth.secret, api_root)
 
     try:
         r = api.post(
             routes.login(api_root=api_root),
-            data=json.dumps({"user": {"email": email, "password": password,},}),
-            headers={"Accept": "application/json", "Content-Type": "application/json",},
+            data=json.dumps(
+                {
+                    "user": {
+                        "email": email,
+                        "password": password,
+                    },
+                }
+            ),
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            },
             status_response={
                 "200": lambda resp: resp,
                 "401": lambda resp: resp,
@@ -1388,8 +1399,9 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
         )
         return
 
-    from subprocess import check_output, CalledProcessError
     import tempfile
+
+    from subprocess import CalledProcessError, check_output
 
     with tempfile.NamedTemporaryFile() as fp:
         fp.write(bytes(json.dumps(inputs), "UTF-8"))

@@ -1,8 +1,9 @@
 import json
 
 import pytest
-from Crypto.PublicKey import RSA
+
 from click.testing import CliRunner
+from Crypto.PublicKey import RSA
 from transcriptic.cli import cli
 
 

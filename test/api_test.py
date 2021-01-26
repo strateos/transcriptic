@@ -1,5 +1,7 @@
 import pytest
+
 from transcriptic.config import AnalysisException
+
 from .helpers.mockAPI import mockRoute
 
 

@@ -1,9 +1,86 @@
 Changelog
 =========
 
+
+Unreleased
+----------
+
+Added
+~~~~~
+
+- isort for automatic import sorting
+- Binder build cache step
+
 Updated
 ~~~~~~~
 
+- Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
+
+Fixed
+~~~~~
+
+- Issue with CodeCov for GitHub action CI
+
+
+v9.0.0
+------
+
+Added
+~~~~~
+
+- example notebook for Analysis package exploration
+- sample Absorbance and Kinetics datasets
+- `transcriptic.sampledata` module for enabling mocked Jupyter object exploration without establishing an explicit connection
+- example notebook for Jupyter object exploration
+- Downloads badge to keep track of usage
+
+Updated
+~~~~~~~
+
+- Migrated from travis to github actions as a CI backend
+- Remove unused `scipy` dependency
+- Break out Jupyter objects into individual files. This affects direct imports from
+  `transcriptic.jupyter.objects`
+
+
+v8.1.2
+------
+
+Fixed
+~~~~~
+
+- Issue with bash syntax for Travis config
+
+
+v8.1.1
+------
+
+Added
+~~~~~
+
+- Codecov configuration for coverage
+- Binder badge and updated Dockerfile
+
+Fixed
+~~~~~
+
+- Repeated deploy issue with Travis config
+- Encoding error when using dataset upload API with request signing enabled
+- Bad request error when making calls to non-Strateos endpoints (e.g. S3) with authorization headers set
+
+
+v8.1.0
+------
+
+Added
+~~~~~
+
+- Support bearer token authentication
+
+Updated
+~~~~~~~
+
+-  Pin black version to 20.8b1 for local dev env consistency
 -  Remove util.robotize/humanize and change callers to use autoprotocol directly
 
 v8.0.0

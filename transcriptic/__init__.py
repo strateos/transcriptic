@@ -1,6 +1,7 @@
 from .config import Connection
 from .version import __version__
 
+
 api = None
 
 """
@@ -24,8 +25,8 @@ to the Jupyter library.
 required imports are present
 """
 try:
-    from .jupyter import Run, Project, Container, Dataset
     from .commands import ProtocolPreview
+    from .jupyter import Container, Dataset, Project, Run
 except ImportError as e:
     pass
 
@@ -163,21 +164,30 @@ def dataset(data_id, key="*"):
     return api.dataset(data_id=data_id, key=key)
 
 
-def connect(transcriptic_path="~/.transcriptic"):
+def connect(transcriptic_path="~/.transcriptic", mocked=False):
     """
     Instantiates a Connection based on the specified path, and overwrites the
     existing `api` object with this Connection
 
     Parameters
     ----------
-    transcriptic_path:
-     Path to transcriptic dot-file
+    transcriptic_path
+        Path to transcriptic dot-file
+    mocked
+        If specified, instantiates a mocked connection
     """
     # TODO: Mirror login code from CLI
-    try:
-        api = Connection.from_file(transcriptic_path)
-    except (OSError, IOError):
-        print(
-            "Unable to find .transcriptic file, please ensure the right path"
-            " is provided"
-        )
+    if mocked is True:
+        from transcriptic.sampledata.connection import MockConnection
+
+        api = MockConnection()
+        return api
+    else:
+        try:
+            api = Connection.from_file(transcriptic_path)
+            return api
+        except (OSError, IOError):
+            print(
+                "Unable to find .transcriptic file, please ensure the right path"
+                " is provided"
+            )
