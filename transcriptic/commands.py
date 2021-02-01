@@ -973,16 +973,16 @@ def launch(
         from time import gmtime, strftime
 
         if title:
-            default_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
+            run_title = title
         else:
-            default_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
+            run_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
 
         try:
             req_json = api.submit_launch_request(
                 req_id,
                 protocol_id=protocol_obj["id"],
                 project_id=project,
-                title=default_title,
+                title=run_title,
                 test_mode=test,
                 payment_method_id=pm,
             )
