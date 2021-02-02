@@ -25,6 +25,7 @@ Fixed
 - Issue with CodeCov for GitHub action CI
 - `-i` option for `projects` command did not output anything to console when called from
   cli.
+- Pinned numpy to <=1.19.5 due to an incompatibility issue with numpy 1.20.0 on python 3.7
 
 Updated
 ~~~~~~~
