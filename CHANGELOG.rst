@@ -9,6 +9,9 @@ Added
 ~~~~~
 
 - isort for automatic import sorting
+- Example initial tests for `commands` file using `responses` pattern, starting with
+  `submit` and `projects`.
+- Deprecation warning for existing `-i` option for `projects` command.
 - Binder build cache step
 
 Updated
@@ -20,7 +23,16 @@ Fixed
 ~~~~~
 
 - Issue with CodeCov for GitHub action CI
+- `-i` option for `projects` command did not output anything to console when called from
+  cli.
+- Pinned numpy to <=1.19.5 due to an incompatibility issue with numpy 1.20.0 on python 3.7
 
+Updated
+~~~~~~~
+
+- Added new option "--names" to `projects` CLI command. This is meant as a better
+  named and more intuitive replacement for the existing `-i` option.
+- Returned more explicit error statuses for `projects` and `submit` commands.
 
 v9.0.0
 ------
