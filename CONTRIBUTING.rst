@@ -92,7 +92,7 @@ the root folder.
 
 If you’re using `pyenv <https://github.com/pyenv/pyenv>`__ to manage
 python versions, ensure you have all the tested environments in your
-``.python-version`` file. i.e.\ ``pyenv local 3.6.12 3.7.9 3.8.7 ``
+``.python-version`` file. i.e.\ ``pyenv local 3.6.12 3.7.9 3.8.7``
 
 Running Specific Tests
 ~~~~~~~~~~~~~~~~~~~~~~
