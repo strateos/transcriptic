@@ -14,11 +14,6 @@ Added
 - Deprecation warning for existing `-i` option for `projects` command.
 - Binder build cache step
 
-Updated
-~~~~~~~
-
-- Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
-
 Fixed
 ~~~~~
 
@@ -33,6 +28,8 @@ Updated
 - Added new option "--names" to `projects` CLI command. This is meant as a better
   named and more intuitive replacement for the existing `-i` option.
 - Returned more explicit error statuses for `projects` and `submit` commands.
+- Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
+- Plumbed test posargs through to allow local execution of specific test files.
 
 v9.0.0
 ------
