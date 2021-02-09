@@ -78,7 +78,7 @@ For testing purposes, we write tests in the ``test`` folder in the
 also use `tox <https://tox.readthedocs.org/en/latest/>`__ for automating
 tests.
 
-The ``tox`` command is run by Jenkins and is currently configured to run
+The ``tox`` command is run by CI and is currently configured to run
 the main module tests, generate a coverage report and build
 documentation.
 
@@ -92,7 +92,7 @@ the root folder.
 
 If you’re using `pyenv <https://github.com/pyenv/pyenv>`__ to manage
 python versions, ensure you have all the tested environments in your
-``.python-version`` file. i.e.\ ``pyenv local 3.5.6 3.6.8 3.7.3``
+``.python-version`` file. i.e.\ ``pyenv local 3.6.12 3.7.9 3.8.7``
 
 Running Specific Tests
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -102,6 +102,9 @@ Specific tests are controlled by the ``tox.ini`` configuration file.
 To run just the main module tests, execute ``python setup.py test`` in
 the root folder. This is specified by the main ``[testenv]`` flag in
 ``tox.ini``.
+
+To run a specific test, execute ``python setup.py test -a path/to/test.py``.
+Using tox, ``tox -e py36 -- -a path/to/test.py``.
 
 To build the docs locally, execute
 ``sphinx-build -W -b html -d tmp/doctrees . -d tmp/html`` in the
