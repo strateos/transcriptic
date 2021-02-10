@@ -150,3 +150,4 @@ Read `Contributing <http://transcriptic.readthedocs.io/en/latest/contributing.ht
    :target: https://transcriptic.readthedocs.io/en/latest
 .. |Binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/strateos/transcriptic/master?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fopen-strateos%252Ftxpy_jupyter_notebooks%26urlpath%3Dtree%252Ftxpy_jupyter_notebooks%252Findex.ipynb%26branch%3Dmain
+IGNORE
