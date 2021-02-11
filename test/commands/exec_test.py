@@ -1,40 +1,40 @@
-# import json
+import json
 
-# import requests
+import requests
 
-# from click.testing import CliRunner
-# from transcriptic.cli import cli
+from click.testing import CliRunner
+from transcriptic.cli import cli
 
-# from ..helpers.mockAPI import MockResponse
-
-
-# # Structure of the response object from SCLE
-# def bool_success_res():
-#     return {"success": True}
+from ..helpers.mockAPI import MockResponse
 
 
-# def good_autoprotocol_file():
-#     return "test/autoprotocol/singleTransfer.json"
+# Structure of the response object from SCLE
+def bool_success_res():
+    return {"success": True}
 
 
-# def mock_api_endpoint():
-#     return "foo.bar.baz"
+def good_autoprotocol_file():
+    return "test/autoprotocol/singleTransfer.json"
 
 
-# def test_good_autoprotocol(monkeypatch):
-#     def mockpost(*args, **kwargs):
-#         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+def mock_api_endpoint():
+    return "foo.bar.baz"
 
-#     monkeypatch.setattr(requests, "post", mockpost)
-#     runner = CliRunner()
-#     result = runner.invoke(
-#         cli, ["exec", good_autoprotocol_file(), "-a", mock_api_endpoint()]
-#     )
-#     assert result.exit_code == 0
-#     assert (
-#         f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
-#         in result.output
-#     )
+
+def test_good_autoprotocol(monkeypatch):
+    def mockpost(*args, **kwargs):
+        return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ["exec", good_autoprotocol_file(), "-a", mock_api_endpoint()]
+    )
+    assert result.exit_code == 0
+    assert (
+        f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        in result.output
+    )
 
 
 # def test_bad_autoprotocol():
