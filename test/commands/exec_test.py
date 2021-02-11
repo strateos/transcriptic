@@ -22,16 +22,16 @@ def test_good_autoprotocol(monkeypatch):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
 
     monkeypatch.setattr(requests, "post", mockpost)
-    # runner = CliRunner()
-    # with runner.isolated_filesystem():
-    #     with open("ap.json", "w") as f:
-    #         f.write("{}")  # any valid json works
-    #     result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
-    #     assert result.exit_code == 0
-    #     assert (
-    #         f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
-    #         in result.output
-    #     )
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("ap.json", "w") as f:
+            f.write("{}")  # any valid json works
+        # result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
+        # assert result.exit_code == 0
+        # assert (
+        #     f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        #     in result.output
+        # )
 
 
 # def test_bad_autoprotocol():
