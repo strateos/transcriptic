@@ -5,6 +5,7 @@ from transcriptic import commands
 from transcriptic.cli import cli
 from .helpers.fixtures import *
 
+
 def test_kebab_case(cli_test_runner):
     result = cli_test_runner.invoke(cli, ["--help"])
     command_str = result.output.split("Commands:\n")[1]

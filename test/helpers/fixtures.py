@@ -3,6 +3,7 @@ import json
 from click.testing import CliRunner
 from Crypto.PublicKey import RSA
 
+
 @pytest.fixture(scope="session")
 def temp_tx_dotfile(tmpdir_factory):
     path = tmpdir_factory.mktemp("config").join(".transcriptic")

@@ -9,8 +9,10 @@ from ..helpers.fixtures import *
 def bool_success_res():
     return {"success": True}
 
+
 def mock_api_endpoint():
     return "foo.bar.baz"
+
 
 def test_good_autoprotocol(cli_test_runner, monkeypatch, tmpdir_factory):
     def mockpost(*args, **kwargs):
@@ -30,10 +32,14 @@ def test_good_autoprotocol(cli_test_runner, monkeypatch, tmpdir_factory):
         in result.output
     )
 
+
 def test_bad_autoprotocol(cli_test_runner):
-    result = cli_test_runner.invoke(cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()])
+    result = cli_test_runner.invoke(
+        cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()]
+    )
     assert result.exit_code != 0
     assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.stderr
+
 
 def test_bad_deviceset(cli_test_runner, tmpdir_factory):
     # make autoprotocol file
