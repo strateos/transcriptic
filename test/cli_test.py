@@ -45,6 +45,7 @@ def cli_test_runner(temp_tx_dotfile):
         env={"TRANSCRIPTIC_CONFIG": str(temp_tx_dotfile)}, mix_stderr=False
     )
     yield runner
+    # _TODO_ ^ try using this
 
 
 def test_kebab_case(cli_test_runner):
