@@ -17,18 +17,23 @@ def mock_api_endpoint():
     return "foo.bar.baz"
 
 
-def test_good_autoprotocol(cli_test_runner, monkeypatch, tmpdir_factory):
+@pytest.fixture
+def ap_file(tmpdir_factory):
+    """Make a temp autoprotocol file"""
+    path = tmpdir_factory.mktemp("foo").join("ap.json")
+    with open(str(path), "w") as f:
+        f.write("{}")  # any valid json works
+    return path
+
+
+def test_good_autoprotocol(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
 
     monkeypatch.setattr(requests, "post", mockpost)
-
-    # make autoprotocol file
-    path = tmpdir_factory.mktemp("foo").join("ap.json")
-    with open(str(path), "w") as f:
-        f.write("{}")  # any valid json works
-
-    result = cli_test_runner.invoke(cli, ["exec", str(path), "-a", mock_api_endpoint()])
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
+    )
     assert result.exit_code == 0
     assert (
         f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
@@ -44,17 +49,12 @@ def test_bad_autoprotocol(cli_test_runner):
     assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.stderr
 
 
-def test_bad_deviceset(cli_test_runner, tmpdir_factory):
-    # make autoprotocol file
-    path = tmpdir_factory.mktemp("foo").join("ap.json")
-    with open(str(path), "w") as f:
-        f.write("{}")  # any valid json works
-
+def test_bad_deviceset(cli_test_runner, ap_file):
     result = cli_test_runner.invoke(
         cli,
         [
             "exec",
-            str(path),
+            str(ap_file),
             "--device-set",
             "bad-file-handle",
             "-a",
@@ -68,17 +68,13 @@ def test_bad_deviceset(cli_test_runner, tmpdir_factory):
     )
 
 
-def test_bad_api_response(cli_test_runner, monkeypatch, tmpdir_factory):
+def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
         return MockResponse(0, "not-json", "not-json")
 
     monkeypatch.setattr(requests, "post", mockpost)
-
-    # make autoprotocol file
-    path = tmpdir_factory.mktemp("foo").join("ap.json")
-    with open(str(path), "w") as f:
-        f.write("{}")  # any valid json works
-
-    result = cli_test_runner.invoke(cli, ["exec", str(path), "-a", mock_api_endpoint()])
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
+    )
     assert result.exit_code == 0
     assert "Error: " in result.stderr
