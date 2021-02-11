@@ -22,12 +22,11 @@ def mock_api_endpoint():
 
 
 def test_good_autoprotocol(monkeypatch):
-    assert(True)
-    # def mockpost(*args, **kwargs):
-    #     return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+    def mockpost(*args, **kwargs):
+        return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
 
-    # monkeypatch.setattr(requests, "post", mockpost)
-    # runner = CliRunner()
+    monkeypatch.setattr(requests, "post", mockpost)
+    runner = CliRunner()
     # result = runner.invoke(
     #     cli, ["exec", good_autoprotocol_file(), "-a", mock_api_endpoint()]
     # )
