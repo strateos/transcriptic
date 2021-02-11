@@ -1,8 +1,10 @@
 import json
+
 import pytest
 
 from transcriptic import commands
 from transcriptic.cli import cli
+
 from .helpers.fixtures import *
 
 

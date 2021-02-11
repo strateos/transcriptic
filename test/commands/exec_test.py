@@ -1,9 +1,12 @@
 import json
+
 import requests
 
 from transcriptic.cli import cli
-from ..helpers.mockAPI import MockResponse
+
 from ..helpers.fixtures import *
+from ..helpers.mockAPI import MockResponse
+
 
 # Structure of the response object from SCLE
 def bool_success_res():
