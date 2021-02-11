@@ -1,23 +1,18 @@
 import json
-
 import requests
 
-from click.testing import CliRunner
 from transcriptic.cli import cli
-
 from ..helpers.mockAPI import MockResponse
-
+from ..helpers.fixtures import *
 
 # Structure of the response object from SCLE
 def bool_success_res():
     return {"success": True}
 
-
 def mock_api_endpoint():
     return "foo.bar.baz"
 
-
-def test_good_autoprotocol(monkeypatch, tmpdir_factory):
+def test_good_autoprotocol(cli_test_runner, monkeypatch, tmpdir_factory):
     def mockpost(*args, **kwargs):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
 
@@ -28,8 +23,7 @@ def test_good_autoprotocol(monkeypatch, tmpdir_factory):
     with open(str(path), "w") as f:
         f.write("{}")  # any valid json works
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["exec", str(path), "-a", mock_api_endpoint()], catch_exceptions=False)
+    result = cli_test_runner.invoke(cli, ["exec", str(path), "-a", mock_api_endpoint()], catch_exceptions=False)
     assert result.exit_code == 0
     assert (
         f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
