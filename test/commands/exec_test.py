@@ -26,7 +26,7 @@ def test_good_autoprotocol(monkeypatch):
     with runner.isolated_filesystem():
         with open("ap.json", "w") as f:
             f.write("{}")  # any valid json works
-        # result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
+        result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
         # assert result.exit_code == 0
         # assert (
         #     f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
