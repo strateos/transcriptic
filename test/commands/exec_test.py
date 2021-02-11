@@ -36,10 +36,10 @@ def test_good_autoprotocol(monkeypatch):
 
 def test_bad_autoprotocol():
     runner = CliRunner()
-    result = runner.invoke(cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()])
-    assert result.exit_code != 0
-    assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.output
-
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()])
+        assert result.exit_code != 0
+        assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.output
 
 def test_bad_deviceset():
     runner = CliRunner()
