@@ -17,21 +17,21 @@ def mock_api_endpoint():
     return "foo.bar.baz"
 
 
-def test_good_autoprotocol(monkeypatch):
+def test_good_autoprotocol(monkeypatch, tmpdir_factory):
     def mockpost(*args, **kwargs):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
 
     monkeypatch.setattr(requests, "post", mockpost)
+    path = tmpdir_factory.mktemp("foo").join("ap.json")
+    with open(str(path), "w") as f:
+        f.write("{}")  # any valid json works
     runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("ap.json", "w") as f:
-            f.write("{}")  # any valid json works
-        result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
-        # assert result.exit_code == 0
-        # assert (
-        #     f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
-        #     in result.output
-        # )
+    result = runner.invoke(cli, ["exec", str(path), "-a", mock_api_endpoint()])
+    assert result.exit_code == 0
+    assert (
+        f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        in result.output
+    )
 
 
 # def test_bad_autoprotocol():
