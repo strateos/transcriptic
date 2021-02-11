@@ -34,45 +34,45 @@ def test_good_autoprotocol(monkeypatch):
         )
 
 
-def test_bad_autoprotocol():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()])
-        assert result.exit_code != 0
-        assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.output
+# def test_bad_autoprotocol():
+#     runner = CliRunner()
+#     with runner.isolated_filesystem():
+#         result = runner.invoke(cli, ["exec", "bad-file-handle", "-a", mock_api_endpoint()])
+#         assert result.exit_code != 0
+#         assert "Invalid value for '[AUTOPROTOCOL]': Could not open file" in result.output
 
-def test_bad_deviceset():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("ap.json", "w") as f:
-            f.write("{}")  # any valid json works
-        result = runner.invoke(
-            cli,
-            [
-                "exec",
-                "ap.json",
-                "--device-set",
-                "bad-file-handle",
-                "-a",
-                mock_api_endpoint(),
-            ],
-        )
-        assert result.exit_code != 0
-        assert (
-            "Invalid value for '--device-set' / '-d': Could not open file: bad-file-handle:"
-            in result.output
-        )
+# def test_bad_deviceset():
+#     runner = CliRunner()
+#     with runner.isolated_filesystem():
+#         with open("ap.json", "w") as f:
+#             f.write("{}")  # any valid json works
+#         result = runner.invoke(
+#             cli,
+#             [
+#                 "exec",
+#                 "ap.json",
+#                 "--device-set",
+#                 "bad-file-handle",
+#                 "-a",
+#                 mock_api_endpoint(),
+#             ],
+#         )
+#         assert result.exit_code != 0
+#         assert (
+#             "Invalid value for '--device-set' / '-d': Could not open file: bad-file-handle:"
+#             in result.output
+#         )
 
 
-def test_bad_api_response(monkeypatch):
-    def mockpost(*args, **kwargs):
-        return MockResponse(0, "not-json", "not-json")
+# def test_bad_api_response(monkeypatch):
+#     def mockpost(*args, **kwargs):
+#         return MockResponse(0, "not-json", "not-json")
 
-    monkeypatch.setattr(requests, "post", mockpost)
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        with open("ap.json", "w") as f:
-            f.write("{}")  # any valid json works
-        result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
-        assert result.exit_code == 0
-        assert "Error: " in result.output
+#     monkeypatch.setattr(requests, "post", mockpost)
+#     runner = CliRunner()
+#     with runner.isolated_filesystem():
+#         with open("ap.json", "w") as f:
+#             f.write("{}")  # any valid json works
+#         result = runner.invoke(cli, ["exec", "ap.json", "-a", mock_api_endpoint()])
+#         assert result.exit_code == 0
+#         assert "Error: " in result.output
