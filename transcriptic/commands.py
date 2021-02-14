@@ -14,12 +14,14 @@ import sys
 import time
 import warnings
 import zipfile
+import re
 
 from collections import OrderedDict
 from contextlib import contextmanager
 from os.path import abspath, expanduser, isfile
 
 import click
+from click.exceptions import BadParameter
 import requests
 
 from jinja2 import Environment, PackageLoader
@@ -1315,8 +1317,6 @@ def org_prompt(org_list):
             click.echo(f"{indx + 1}.  {o['name']} ({o['subdomain']})")
 
         def parse_valid_org(indx):
-            from click.exceptions import BadParameter
-
             try:
                 org_indx = int(indx) - 1
                 if org_indx < 0 or org_indx >= len(org_list):
@@ -1506,6 +1506,8 @@ def execute(
             click.echo(f"Error decoding device set json: {err}", err=True)
             return
     elif workcell_id:
+        if not re.search("^wc[a-z,0-9]+$", workcell_id):
+            raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
         payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
     else:
         payload["workcellIdForDeviceSet"] = "wctest-mcx1"

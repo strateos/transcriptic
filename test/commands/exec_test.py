@@ -78,3 +78,24 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
     )
     assert result.exit_code == 0
     assert "Error: " in result.stderr
+
+def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
+    def mockpost(*args, **kwargs):
+        return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-w", "wc3"]
+    )
+    assert result.exit_code == 0
+    assert (
+        f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        in result.output
+    )
+
+def test_bad_workcell(cli_test_runner, ap_file):
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-w", "bad-workcell-id"]
+    )
+    assert result.exit_code != 0
+    assert "Workcell id must be like wcN but was bad-workcell-id" in result.stderr
