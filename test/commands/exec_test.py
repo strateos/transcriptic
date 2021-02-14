@@ -79,6 +79,7 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
     assert result.exit_code == 0
     assert "Error: " in result.stderr
 
+
 def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
@@ -92,6 +93,7 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
         f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
         in result.output
     )
+
 
 def test_bad_workcell(cli_test_runner, ap_file):
     result = cli_test_runner.invoke(

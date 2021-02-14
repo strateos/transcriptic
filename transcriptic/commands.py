@@ -10,20 +10,20 @@ the caller (e.g. CLI). We should move towards the latter pattern.
 import json
 import locale
 import os
+import re
 import sys
 import time
 import warnings
 import zipfile
-import re
 
 from collections import OrderedDict
 from contextlib import contextmanager
 from os.path import abspath, expanduser, isfile
 
 import click
-from click.exceptions import BadParameter
 import requests
 
+from click.exceptions import BadParameter
 from jinja2 import Environment, PackageLoader
 from transcriptic import routes
 from transcriptic.auth import StrateosSign
