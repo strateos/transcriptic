@@ -628,3 +628,66 @@ def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None):
 def format_cmd(manifest):
     """Check Autoprotocol format of manifest.json."""
     commands.format(manifest)
+
+
+@cli.command("exec")
+@click.argument("autoprotocol", type=click.File("r"), default=sys.stdin)
+@click.option(
+    "--api", "-a", help="The api endpoint of your scle test workcell instance."
+)
+@click.option(
+    "--workcell-id",
+    "-w",
+    help="The workcell id to use for the device set. This is not permitted along with the `deviceSet` option.",
+)
+@click.option(
+    "--device-set",
+    "-d",
+    type=click.File("r"),
+    help="A DeviceSet json file to use for scheduling. This is not permitted along with the `workcellId` option.",
+)
+@click.option(
+    "--time-limit",
+    "-t",
+    type=click.INT,
+    default=30,
+    help="The maximum time in seconds to spend scheduling. The scheduler will use all the time until an optimal solution is found.",
+)
+@click.option(
+    "--partition-group-size",
+    type=click.INT,
+    default=None,
+    help="The number of x_partition groups to be scheduled together.",
+)
+@click.option(
+    "--partition-horizon",
+    type=click.INT,
+    default=None,
+    help="The time in seconds to overlap partitions by.",
+)
+@click.option(
+    "--partitioning-swap-device-id",
+    default=None,
+    help="The device id to use as a swap space when partitioning.",
+)
+def execute(
+    autoprotocol,
+    api,
+    workcell_id,
+    device_set,
+    time_limit,
+    partition_group_size,
+    partition_horizon,
+    partitioning_swap_device_id,
+):
+    """Send autoprotocol to a test workcell (no hardware) for scheduling."""
+    commands.execute(
+        autoprotocol,
+        api,
+        workcell_id,
+        device_set,
+        time_limit,
+        partition_group_size,
+        partition_horizon,
+        partitioning_swap_device_id,
+    )
