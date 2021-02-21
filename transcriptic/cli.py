@@ -641,13 +641,18 @@ def format_cmd(manifest):
 @click.option(
     "--workcell-id",
     "-w",
-    help="The workcell id to use for the device set. This is not permitted along with the `deviceSet` option.",
+    help="The workcell id to use for the device set. This is not permitted along with the `device-set` or `session-id` option.",
 )
 @click.option(
     "--device-set",
     "-d",
     type=click.File("r"),
-    help="A DeviceSet json file to use for scheduling. This is not permitted along with the `workcellId` option.",
+    help="A DeviceSet json file to use for scheduling. This is not permitted along with the `workcell-id` or `session-id` options.",
+)
+@click.option(
+    "--session-id",
+    "-s",
+    help="A Session id that already exists in your scle test workcell instance. This is not permitted along with the `workcell-id` or `device-set` options.",
 )
 @click.option(
     "--time-limit",
@@ -655,6 +660,11 @@ def format_cmd(manifest):
     type=click.INT,
     default=30,
     help="The maximum time in seconds to spend scheduling. The scheduler will use all the time until an optimal solution is found.",
+)
+@click.option(
+    "--schedule-at",
+    default=None,
+    help="The absolute time at which the given protocol should start (at the earliest). Absolute time format YYYY-MM-DDThh:mm in local time (if year, month, or day is missing, it will be auto filled with the current values). Relative time format +NUM in minutes.",
 )
 @click.option(
     "--partition-group-size",
@@ -678,7 +688,9 @@ def execute(
     api,
     workcell_id,
     device_set,
+    session_id,
     time_limit,
+    schedule_at,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -689,7 +701,9 @@ def execute(
         api,
         workcell_id,
         device_set,
+        session_id,
         time_limit,
+        schedule_at,
         partition_group_size,
         partition_horizon,
         partitioning_swap_device_id,
