@@ -26,6 +26,12 @@ def ap_file(tmpdir_factory):
     return path
 
 
+def test_unspecified_api(cli_test_runner, ap_file):
+    result = cli_test_runner.invoke(cli, ["exec", str(ap_file)])
+    assert result.exit_code != 0
+    assert "Missing option '--api'" in result.stderr
+
+
 def test_good_autoprotocol(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
         return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
