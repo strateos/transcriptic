@@ -7,15 +7,30 @@ Unreleased
 
 Added
 ~~~~~
-
+- A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
 - Python 3.9 support. Added to test suite.
+- Example initial tests for `commands` file using `responses` pattern, starting with
+  `submit` and `projects`.
+- Deprecation warning for existing `-i` option for `projects` command.
+- Binder build cache step
 
 Fixed
 ~~~~~
 
 - Issue with CodeCov for GitHub action CI
+- `-i` option for `projects` command did not output anything to console when called from
+  cli.
+- Pinned numpy to <=1.19.5 due to an incompatibility issue with numpy 1.20.0 on python 3.7
 
+Updated
+~~~~~~~
+
+- Added new option "--names" to `projects` CLI command. This is meant as a better
+  named and more intuitive replacement for the existing `-i` option.
+- Returned more explicit error statuses for `projects` and `submit` commands.
+- Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
+- Plumbed test posargs through to allow local execution of specific test files.
 
 v9.0.0
 ------

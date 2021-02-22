@@ -28,8 +28,9 @@ RUN mkdir /pip_cache && \
 ENV XDG_CONFIG_HOME /pip_cache
 ENV PYTHON_EGG_CACHE /python_eggs
 
-# Install Jupyter
-RUN pip install --no-cache-dir notebook==5.*
+# Install Jupyter, nbgitpuller for separate notebook/environment
+RUN pip install --no-cache-dir notebook==5.* && \
+    pip install nbgitpuller
 
 # Install TxPy
 RUN pip install 'transcriptic[jupyter, analysis]'

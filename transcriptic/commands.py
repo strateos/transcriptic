@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
+"""
+Contains abstracted functions which is primarily used by the CLI. However, they can
+be separately imported and used in other contexts.
+
+There is a mix of functions which directly call `click.echo` vs returning responses to
+the caller (e.g. CLI). We should move towards the latter pattern.
+"""
 
 import json
 import locale
 import os
+import re
 import sys
 import time
+import warnings
 import zipfile
 
 from collections import OrderedDict
@@ -14,48 +23,73 @@ from os.path import abspath, expanduser, isfile
 import click
 import requests
 
+from click.exceptions import BadParameter
 from jinja2 import Environment, PackageLoader
 from transcriptic import routes
 from transcriptic.auth import StrateosSign
-from transcriptic.config import Connection
+from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
 from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
 
 
-def submit(api, file, project, title=None, test=None, pm=None):
-    """Submit your run to the project specified."""
+def submit(
+    api: Connection,
+    file: str,
+    project: str,
+    title: str = None,
+    test: bool = None,
+    pm: str = None,
+):
+    """
+    Submit your run to the project specified.
+    If successful, returns the formatted url link to the created run.
+
+    Parameters
+    ----------
+    api: Connection
+        API context used for making base calls
+    file: str
+        Name of file to read from. Use `-` if reading from standard input.
+    project: str
+        `ProjectId` to submit this json to.
+    title: str, optional
+        If specified, Title of the created run.
+    test: bool, optional
+        If true, submit as a test run.
+    pm: str, optional
+        If specified, `PaymentId` to be used.
+    """
     if pm is not None and not is_valid_payment_method(api, pm):
-        print_stderr(
+        raise RuntimeError(
             "Payment method is invalid. Please specify a payment "
             "method from `transcriptic payments` or not specify the "
             "`--payment` flag to use the default payment method."
         )
-        return
-    project = get_project_id(api, project)
-    if not project:
-        return
+    valid_project_id = get_project_id(api, project)
+    if not valid_project_id:
+        raise RuntimeError(f"Invalid project {project} specified")
     with click.open_file(file, "r") as f:
         try:
             protocol = json.loads(f.read())
         except ValueError:
-            click.echo(
+            raise RuntimeError(
                 "Error: Could not submit since your manifest.json "
                 "file is improperly formatted."
             )
-            return
 
     try:
         req_json = api.submit_run(
             protocol,
-            project_id=project,
+            project_id=valid_project_id,
             title=title,
             test_mode=test,
             payment_method_id=pm,
         )
         run_id = req_json["id"]
-        click.echo("Run created: %s" % api.url("%s/runs/%s" % (project, run_id)))
-    except Exception as err:
-        click.echo("\n" + str(err))
+        formatted_url = api.url(f"{valid_project_id}/runs/{run_id}")
+        return formatted_url
+    except AnalysisException as e:
+        raise RuntimeError(e.message)
 
 
 def release(api, name=None, package=None):
@@ -350,32 +384,50 @@ def upload_dataset(api, file_path, title, run_id, tool, version):
         click.echo("An unexpected response was returned from the server. ")
 
 
-def projects(api, i, json_flag):
-    """List the projects in your organization"""
-    try:
-        projects = api.projects()
-        proj_id_names = {}
-        all_proj = {}
-        for proj in projects:
-            status = " (archived)" if proj["archived_at"] else ""
-            proj_id_names[proj["id"]] = proj["name"]
-            all_proj[proj["id"]] = proj["name"] + status
-        if i:
-            return proj_id_names
-        elif json_flag:
-            return click.echo(json.dumps(projects))
-        else:
-            click.echo("\n{:^80}".format("PROJECTS:\n"))
-            click.echo(f"{'PROJECT NAME':^40}" + "|" + f"{'PROJECT ID':^40}")
-            click.echo(f"{'':-^80}")
-            for proj_id, name in list(all_proj.items()):
-                click.echo(f"{name:<40}" + "|" + f"{proj_id:^40}")
-                click.echo(f"{'':-^80}")
-    except RuntimeError:
-        click.echo(
-            "There was an error listing the projects in your "
-            "organization.  Make sure your login details are correct."
+def projects(
+    api: Connection,
+    i: any = None,
+    json_flag: bool = False,
+    names_only: bool = False,
+):
+    """
+    List the projects in your organization.
+
+    When no options are specified, returns a summarized format.
+
+    Parameters
+    ----------
+    api: Connection
+        API context used for making base calls
+    i: any, optional
+        DEPRECATED option. See `names_only`.
+    json_flag: bool, optional
+        Returns the full response which is json formatted.
+    names_only: bool, optional
+        Returns a `project_id: project_name` mapping.
+    """
+    if i:
+        warnings.warn(
+            "`i` will be deprecated in the future. Please use `names_only` instead.",
+            FutureWarning,
         )
+        names_only = True
+
+    response = api.projects()
+
+    proj_id_names = {}
+    all_proj = {}
+    for proj in response:
+        status = " (archived)" if proj["archived_at"] else ""
+        proj_id_names[proj["id"]] = proj["name"]
+        all_proj[proj["id"]] = proj["name"] + status
+
+    if names_only:
+        return proj_id_names
+    elif json_flag:
+        return response
+    else:
+        return all_proj
 
 
 def runs(api, project_name, json_flag):
@@ -923,16 +975,16 @@ def launch(
         from time import gmtime, strftime
 
         if title:
-            default_title = f"{title}_{strftime('%b_%d_%Y', gmtime())}"
+            run_title = title
         else:
-            default_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
+            run_title = f"{protocol}_{strftime('%b_%d_%Y', gmtime())}"
 
         try:
             req_json = api.submit_launch_request(
                 req_id,
                 protocol_id=protocol_obj["id"],
                 project_id=project,
-                title=default_title,
+                title=run_title,
                 test_mode=test,
                 payment_method_id=pm,
             )
@@ -1016,7 +1068,8 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         except Exception:
             click.echo(
                 f"Error loading RSA key. Please check that the file "
-                f"{rsa_key} is accessible"
+                f"{rsa_key} is accessible",
+                err=True,
             )
             sys.exit(1)
 
@@ -1025,7 +1078,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         try:
             rsa_auth = StrateosSign("foo@bar.com", rsa_secret, api_root)
         except Exception as e:
-            click.echo(f"Error loading RSA key: {e}")
+            click.echo(f"Error loading RSA key: {e}", err=True)
             sys.exit(1)
 
     email = click.prompt("Email")
@@ -1264,8 +1317,6 @@ def org_prompt(org_list):
             click.echo(f"{indx + 1}.  {o['name']} ({o['subdomain']})")
 
         def parse_valid_org(indx):
-            from click.exceptions import BadParameter
-
             try:
                 org_indx = int(indx) - 1
                 if org_indx < 0 or org_indx >= len(org_list):
@@ -1290,11 +1341,11 @@ def org_prompt(org_list):
 
 
 def get_project_id(api, name):
-    projs = projects(api, True, True)
-    if name in projs:
+    project_id_name_mapping = projects(api, names_only=True)
+    if name in project_id_name_mapping:
         return name
     else:
-        project_ids = [k for k, v in projs.items() if v == name]
+        project_ids = [k for k, v in project_id_name_mapping.items() if v == name]
         if not project_ids:
             click.echo(f"The project '{name}' was not found in your organization.")
             return
@@ -1307,10 +1358,10 @@ def get_project_id(api, name):
 
 
 def get_project_name(api, id):
-    projs = projects(api, True, True)
-    name = projs.get(id)
+    project_id_name_mapping = projects(api, names_only=True)
+    name = project_id_name_mapping.get(id)
     if not name:
-        name = id if id in projs.values() else None
+        name = id if id in project_id_name_mapping.values() else None
         if not name:
             click.echo(f"The project '{name}' was not found in your organization.")
             return
@@ -1423,6 +1474,71 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
         except CalledProcessError as e:
             click.echo(e.output)
             return
+
+
+def execute(
+    autoprotocol,
+    api,
+    workcell_id,
+    device_set,
+    time_limit,
+    partition_group_size,
+    partition_horizon,
+    partitioning_swap_device_id,
+):
+    # Get the autoprotocol
+    autoprotocol_str = autoprotocol.read()
+    try:
+        autoprotocol_dict = json.loads(autoprotocol_str)
+    except json.decoder.JSONDecodeError as err:
+        click.echo(f"Error decoding autoprotocol json: {err}", err=True)
+        return
+
+    # Define the initial payload
+    payload = {"autoprotocol": autoprotocol_dict, "timeLimit": f"{time_limit}:second"}
+
+    if device_set:
+        device_str = device_set.read()
+        try:
+            device_json = json.loads(device_str)
+            payload["deviceSet"] = device_json
+        except json.decoder.JSONDecodeError as err:
+            click.echo(f"Error decoding device set json: {err}", err=True)
+            return
+    elif workcell_id:
+        if not re.search("^wc[a-z,0-9]+$", workcell_id):
+            raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
+        payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
+    else:
+        payload["workcellIdForDeviceSet"] = "wctest-mcx1"
+
+    if partition_group_size is not None:
+        payload["partitionGroupSize"] = partition_group_size
+
+    if partition_horizon is not None:
+        payload["partitionHorizon"] = f"{partition_horizon}:second"
+
+    if partitioning_swap_device_id is not None:
+        payload["partitioningSwapDeviceId"] = partitioning_swap_device_id
+
+    # Clean api end point
+    if api[-1] == "/":
+        clean_api = api[0:-1]  # remove trailing slash
+    else:
+        clean_api = api
+
+    # POST to workcell
+    test_run_endpoint = f"{clean_api}/testRun"
+    click.echo("Sending request...")
+    res = requests.post(test_run_endpoint, json=payload)
+    try:
+        res_json = json.loads(res.text)
+        if res_json["success"]:
+            click.echo(f"Success. View {clean_api} to see the scheduling outcome.")
+        else:
+            click.echo(f"Error: {res_json['message']}", err=True)
+    except json.decoder.JSONDecodeError:
+        click.echo(f"Error: {res.text}", err=True)
 
 
 def parse_json(json_file):

@@ -424,7 +424,7 @@ class Connection(object):
         route = self.get_route("get_projects")
         err_default = (
             "There was an error listing the projects in your "
-            "organization.  Make sure your login details are correct."
+            "organization. Make sure your login details are correct."
         )
         return self.get(
             route,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-
+import json
 import os
+import sys
 
 import click
 import requests
@@ -204,7 +205,12 @@ def cli(ctx, api_root, email, token, organization, config):
 def submit_cmd(ctx, file, project, title=None, test=None, pm=None):
     """Submit your run to the project specified."""
     api = ctx.obj.api
-    commands.submit(api, file, project, title=title, test=test, pm=pm)
+    try:
+        run_url = commands.submit(api, file, project, title=title, test=test, pm=pm)
+        click.echo(f"Run created: {run_url}")
+    except RuntimeError as err:
+        click.echo(f"{err}", err=True)
+        sys.exit(1)
 
 
 @cli.command("build-release", cls=FeatureCommand, feature="can_upload_packages")
@@ -313,12 +319,36 @@ def generate_protocol_cmd(ctx, name):
 
 @cli.command("projects")
 @click.pass_context
-@click.option("-i")
+@click.option("-i", help="DEPRECATED option. Use `--names` instead.")
 @click.option("--json", "json_flag", help="print JSON response", is_flag=True)
-def projects_cmd(ctx, i, json_flag):
+@click.option(
+    "--names",
+    "names_only",
+    help="returns a mapping of `project_id`: `project_name`",
+    is_flag=True,
+)
+def projects_cmd(ctx, i, json_flag, names_only):
     """List the projects in your organization"""
     api = ctx.obj.api
-    commands.projects(api, i, json_flag)
+    try:
+        response = commands.projects(api, i, json_flag, names_only)
+        if i or names_only:
+            click.echo(response)
+        elif json_flag:
+            click.echo(json.dumps(response))
+        else:
+            click.echo("\n{:^80}".format("PROJECTS:\n"))
+            click.echo(f"{'PROJECT NAME':^40}" + "|" + f"{'PROJECT ID':^40}")
+            click.echo(f"{'':-^80}")
+            for proj_id, name in list(response.items()):
+                click.echo(f"{name:<40}" + "|" + f"{proj_id:^40}")
+                click.echo(f"{'':-^80}")
+    except RuntimeError:
+        click.echo(
+            "There was an error listing the projects in your "
+            "organization. Make sure your login details are correct.",
+            err=True,
+        )
 
 
 @cli.command("runs")
@@ -598,3 +628,66 @@ def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None):
 def format_cmd(manifest):
     """Check Autoprotocol format of manifest.json."""
     commands.format(manifest)
+
+
+@cli.command("exec")
+@click.argument("autoprotocol", type=click.File("r"), default=sys.stdin)
+@click.option(
+    "--api", "-a", help="The api endpoint of your scle test workcell instance."
+)
+@click.option(
+    "--workcell-id",
+    "-w",
+    help="The workcell id to use for the device set. This is not permitted along with the `deviceSet` option.",
+)
+@click.option(
+    "--device-set",
+    "-d",
+    type=click.File("r"),
+    help="A DeviceSet json file to use for scheduling. This is not permitted along with the `workcellId` option.",
+)
+@click.option(
+    "--time-limit",
+    "-t",
+    type=click.INT,
+    default=30,
+    help="The maximum time in seconds to spend scheduling. The scheduler will use all the time until an optimal solution is found.",
+)
+@click.option(
+    "--partition-group-size",
+    type=click.INT,
+    default=None,
+    help="The number of x_partition groups to be scheduled together.",
+)
+@click.option(
+    "--partition-horizon",
+    type=click.INT,
+    default=None,
+    help="The time in seconds to overlap partitions by.",
+)
+@click.option(
+    "--partitioning-swap-device-id",
+    default=None,
+    help="The device id to use as a swap space when partitioning.",
+)
+def execute(
+    autoprotocol,
+    api,
+    workcell_id,
+    device_set,
+    time_limit,
+    partition_group_size,
+    partition_horizon,
+    partitioning_swap_device_id,
+):
+    """Send autoprotocol to a test workcell (no hardware) for scheduling."""
+    commands.execute(
+        autoprotocol,
+        api,
+        workcell_id,
+        device_set,
+        time_limit,
+        partition_group_size,
+        partition_horizon,
+        partitioning_swap_device_id,
+    )
