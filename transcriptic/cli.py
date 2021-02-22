@@ -652,7 +652,7 @@ def format_cmd(manifest):
 @click.option(
     "--session-id",
     "-s",
-    help="A Session id that already exists in your scle test workcell instance. This is not permitted along with the `workcell-id` or `device-set` options.",
+    help="The session id of the session that should be used for scheduling this run. This is not permitted along with the `workcell-id` or `device-set` options.",
 )
 @click.option(
     "--time-limit",
@@ -664,7 +664,13 @@ def format_cmd(manifest):
 @click.option(
     "--schedule-at",
     default=None,
-    help="The absolute time at which the given protocol should start (at the earliest). Absolute time format YYYY-MM-DDThh:mm in local time (if year, month, or day is missing, it will be auto filled with the current values). Relative time format +NUM in minutes.",
+    help="The absolute time at which the given protocol should start (at the earliest). Absolute time format YYYY-MM-DDThh:mm in the local time of the target workcell (if year, month, or day is missing, it will be auto filled with the current values).",
+)
+@click.option(
+    "--schedule-delay",
+    type=click.INT,
+    default=None,
+    help="Delay in minutes at which the given protocol should start (at the earliest).",
 )
 @click.option(
     "--partition-group-size",
@@ -691,6 +697,7 @@ def execute(
     session_id,
     time_limit,
     schedule_at,
+    schedule_delay,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -704,6 +711,7 @@ def execute(
         session_id,
         time_limit,
         schedule_at,
+        schedule_delay,
         partition_group_size,
         partition_horizon,
         partitioning_swap_device_id,

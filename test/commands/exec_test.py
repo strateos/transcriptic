@@ -140,7 +140,7 @@ def test_valid_relative_time(cli_test_runner, monkeypatch, ap_file):
     )
     result = cli_test_runner.invoke(
         cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "--schedule-at", f"+{delta}"],
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "--schedule-delay", delta],
     )
     assert result.exit_code == 0
     assert (

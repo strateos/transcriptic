@@ -1485,6 +1485,7 @@ def execute(
     session_id,
     time_limit,
     schedule_at,
+    schedule_delay,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -1492,43 +1493,47 @@ def execute(
     # Define the initial payload
     payload = {"timeLimit": f"{time_limit}:second"}
 
-    # Get the requested scheduling time
-    if schedule_at is not None:
-        if re.search(r"^\+\d+$", schedule_at):  # relative time
-            # take the next minutes!
-            parsed_schedule_at = (
-                int(time.time() // 60 + 1) + int(schedule_at[1:])
-            ) * 60
-        else:  # absolute time
-            current_time = time.localtime()
-            if re.search(
-                r"^\d{1,2}:\d{1,2}$", schedule_at
-            ):  # only time is given use today's year, month, and day
-                schedule_at_fixed = f"{current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday}T{schedule_at}"
-            elif re.search(
-                r"^\d{2,2}T\d{1,2}:\d{1,2}$", schedule_at
-            ):  # use today's year, and month
-                schedule_at_fixed = (
-                    f"{current_time.tm_year}-{current_time.tm_mon}-{schedule_at}"
-                )
-            elif re.search(
-                r"^\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}$", schedule_at
-            ):  # use today's year
-                schedule_at_fixed = f"{current_time.tm_year}-{schedule_at}"
-            else:
-                schedule_at_fixed = schedule_at
+    if schedule_delay is not None and schedule_at is not None:
+        click.echo(
+            "Error: '--schedule-delay' and '--schedule-at' are mutually exclusive.",
+            err=True,
+        )
+        return
 
-            try:
-                expected_schedule_at = datetime.strptime(
-                    schedule_at_fixed, "%Y-%m-%dT%H:%M"
-                )
-                parsed_schedule_at = int(expected_schedule_at.timestamp())
-            except ValueError:
-                click.echo(
-                    f"Couln't parse absolute time input, got {schedule_at} (fixed to {schedule_at_fixed})",
-                    err=True,
-                )
-                return
+    # Get the requested scheduling time
+    if schedule_delay is not None:
+        # round up to the next minute!
+        payload["scheduleAt"] = (int(time.time() // 60 + 1) + schedule_delay) * 60000
+    elif schedule_at is not None:  # absolute time
+        current_time = time.localtime()
+        if re.search(
+            r"^\d{1,2}:\d{1,2}$", schedule_at
+        ):  # only time is given use today's year, month, and day
+            schedule_at_fixed = f"{current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday}T{schedule_at}"
+        elif re.search(
+            r"^\d{2,2}T\d{1,2}:\d{1,2}$", schedule_at
+        ):  # use today's year, and month
+            schedule_at_fixed = (
+                f"{current_time.tm_year}-{current_time.tm_mon}-{schedule_at}"
+            )
+        elif re.search(
+            r"^\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}$", schedule_at
+        ):  # use today's year
+            schedule_at_fixed = f"{current_time.tm_year}-{schedule_at}"
+        else:
+            schedule_at_fixed = schedule_at
+
+        try:
+            expected_schedule_at = datetime.strptime(
+                schedule_at_fixed, "%Y-%m-%dT%H:%M"
+            )
+            parsed_schedule_at = int(expected_schedule_at.timestamp())
+        except ValueError:
+            click.echo(
+                f"Error: couldn't parse absolute time input, got {schedule_at} (fixed to {schedule_at_fixed}).\nExpected format: [YYYY-MM-DDT]hh:mm, e.g. 08:33 or 2021-02-22T08:33",
+                err=True,
+            )
+            return
 
         payload["scheduleAt"] = parsed_schedule_at * 1000
 
@@ -1540,6 +1545,8 @@ def execute(
         click.echo(f"Error decoding autoprotocol json: {err}", err=True)
         return
 
+    # device set resolution
+    in_use = []
     if device_set:
         device_str = device_set.read()
         try:
@@ -1548,15 +1555,26 @@ def execute(
         except json.decoder.JSONDecodeError as err:
             click.echo(f"Error decoding device set json: {err}", err=True)
             return
-    elif workcell_id:
+        in_use.append("--device-set")
+
+    if workcell_id:
         if not re.search("^wc[a-z,0-9]+$", workcell_id):
             raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
         payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
-    elif session_id is not None:
+        in_use.append("--workcell-id")
+
+    if session_id is not None:
         payload["sessionId"] = session_id
-    else:
+        in_use.append("--session-id")
+
+    if len(in_use) > 1:
+        click.echo(f"Error: {', '.join(in_use)} are mutually exclive.", err=True)
+        return
+
+    if len(in_use) == 0:
         payload["workcellIdForDeviceSet"] = "wctest-mcx1"
 
+    # partition parameters
     if partition_group_size is not None:
         payload["partitionGroupSize"] = partition_group_size
 
