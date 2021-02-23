@@ -633,7 +633,10 @@ def format_cmd(manifest):
 @cli.command("exec")
 @click.argument("autoprotocol", type=click.File("r"), default=sys.stdin)
 @click.option(
-    "--api", "-a", help="The api endpoint of your scle test workcell instance."
+    "--api",
+    "-a",
+    help="The api endpoint of your scle test workcell instance.",
+    required=True,
 )
 @click.option(
     "--workcell-id",
