@@ -7,7 +7,8 @@ Unreleased
 
 Added
 ~~~~~
-- A new `exec` command to send autoprotocol to a test workcell
+- A new `exec` command to send autoprotocol to a test workcell. This command support
+  submission to sessions on the test workcell, and absolute time constraints.
 - isort for automatic import sorting
 - Example initial tests for `commands` file using `responses` pattern, starting with
   `submit` and `projects`.
