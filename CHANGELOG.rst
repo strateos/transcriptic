@@ -13,6 +13,7 @@ Added
   `submit` and `projects`.
 - Deprecation warning for existing `-i` option for `projects` command.
 - Binder build cache step
+- All API requests will include new request header parameter
 
 Fixed
 ~~~~~
