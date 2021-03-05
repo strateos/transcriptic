@@ -211,7 +211,9 @@ class ConnectionInitTests(unittest.TestCase):
         )
         prepared_get = connection.session.prepare_request(get_request)
         self.assertFalse("authorization" in prepared_get.headers)
-        self.assertTrue(prepared_get.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_get.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_get.headers["x-user-email"] == connection.email)
 
     def test_signing_request_body_already_encoded(self):
@@ -253,7 +255,9 @@ class ConnectionInitTests(unittest.TestCase):
         )
         prepared_post = connection.session.prepare_request(post_request)
         self.assertTrue("authorization" in prepared_post.headers)
-        self.assertTrue(prepared_post.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_post.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_post.headers["x-user-email"] == connection.email)
         self.assertTrue(isinstance(prepared_post.body, bytes))
 
@@ -269,7 +273,9 @@ class ConnectionInitTests(unittest.TestCase):
         )
         prepared_post = connection.session.prepare_request(post_request)
         self.assertTrue("authorization" in prepared_post.headers)
-        self.assertTrue(prepared_post.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_post.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_post.headers["x-user-email"] == connection.email)
         self.assertFalse(isinstance(prepared_post.body, bytes))
 
@@ -304,7 +310,9 @@ class ConnectionInitTests(unittest.TestCase):
 
         authorization_header_value = prepared_get.headers["authorization"]
         self.assertEqual(bearer_token, authorization_header_value)
-        self.assertTrue(prepared_get.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_get.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_get.headers["x-user-email"] == connection.email)
 
     def test_bearer_token_not_set_when_calling_non_api_root_endpoint(self):
@@ -336,7 +344,9 @@ class ConnectionInitTests(unittest.TestCase):
         get_request = requests.Request("GET", "http://bar:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
         self.assertFalse("authorization" in prepared_get.headers)
-        self.assertTrue(prepared_get.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_get.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_get.headers["x-user-email"] == connection.email)
 
     def test_malformed_bearer_token(self):
@@ -381,5 +391,7 @@ class ConnectionInitTests(unittest.TestCase):
         get_request = requests.Request("GET", "http://foo:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
         self.assertFalse("authorization" in prepared_get.headers)
-        self.assertTrue(prepared_get.headers["x-organization-id"] == connection.organization_id)
+        self.assertTrue(
+            prepared_get.headers["x-organization-id"] == connection.organization_id
+        )
         self.assertTrue(prepared_get.headers["x-user-email"] == connection.email)
