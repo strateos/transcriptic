@@ -59,7 +59,7 @@ edge:
 
 .. code-block:: bash
 
-   git clone https://github.com/transcriptic/transcriptic.git
+   git clone https://github.com/strateos/transcriptic.git
    cd transcriptic
    pip install .[jupyter,analysis]
 
@@ -110,7 +110,7 @@ CLI
 ~~~
 
 See the `Transcriptic Developer
-Documentation <https://developers.transcriptic.com/docs/getting-started-with-the-cli>`__
+Documentation <https://developers.strateos.com/docs/getting-started-with-the-cli>`__
 for detailed information about how to use this package, including
 learning about how to package protocols and build releases.
 

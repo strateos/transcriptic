@@ -68,7 +68,7 @@ class Connection(object):
         from transcriptic.config import Connection
         api = Connection.from_file("~/.transcriptic")
 
-    For those using Jupyter notebooks on secure.transcriptic.com (beta), a
+    For those using Jupyter notebooks on secure.strateos.com (beta), a
     Connection object is automatically instantiated as api.
 
     .. code-block:: python
@@ -107,7 +107,7 @@ class Connection(object):
         email=None,
         token=None,
         organization_id=None,
-        api_root="https://secure.transcriptic.com",
+        api_root="https://secure.strateos.com",
         cookie=None,
         verbose=False,
         analytics=True,
@@ -120,7 +120,6 @@ class Connection(object):
         # Initialize environment args used for computing routes
         self.env_args = dict()
         self.api_root = api_root
-        self.organization_id = organization_id
 
         # Initialize session headers
         if session is None:
@@ -133,9 +132,10 @@ class Connection(object):
         self._rsa_key = None
         self._rsa_key_path = None
         self._rsa_secret = None
-        # Set/Load rsa_key from arguement as string or Path
+        # Set/Load rsa_key from argument as string or Path
         self.rsa_key = rsa_key
 
+        self.organization_id = organization_id
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
         if cookie:
@@ -218,12 +218,14 @@ class Connection(object):
     @property
     def organization_id(self):
         try:
-            return self.env_args["org_id"]
+            return self.session.headers["X-Organization-Id"]
         except (NameError, KeyError):
             raise ValueError("organization_id is not set.")
 
     @organization_id.setter
     def organization_id(self, value):
+        self.update_headers(**{"X-Organization-Id": value})
+        self.update_session_auth()
         self.update_environment(org_id=value)
 
     @property
