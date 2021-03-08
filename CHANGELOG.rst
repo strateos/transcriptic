@@ -7,6 +7,7 @@ Unreleased
 
 Added
 ~~~~~
+- Autoprotocol dependency to >=7.6.1,<8 for `Instruction` `informatics` attribute
 - A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
 - Example initial tests for `commands` file using `responses` pattern, starting with
