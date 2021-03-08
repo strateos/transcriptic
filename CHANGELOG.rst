@@ -13,7 +13,7 @@ Added
   `submit` and `projects`.
 - Deprecation warning for existing `-i` option for `projects` command.
 - Binder build cache step
-- All API requests will include new request header parameter
+- All API requests will now pass the organization context as a request header
 
 Fixed
 ~~~~~
