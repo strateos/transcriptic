@@ -225,7 +225,6 @@ class Connection(object):
     @organization_id.setter
     def organization_id(self, value):
         self.update_headers(**{"X-Organization-Id": value})
-        self.update_session_auth()
         self.update_environment(org_id=value)
 
     @property
