@@ -7,7 +7,6 @@ Unreleased
 
 Added
 ~~~~~
-- Autoprotocol dependency to >=7.6.1,<8 for `Instruction` `informatics` attribute
 - A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
 - Example initial tests for `commands` file using `responses` pattern, starting with
@@ -31,6 +30,7 @@ Updated
 - Returned more explicit error statuses for `projects` and `submit` commands.
 - Remove notebooks directory as we break it out into a `separate repository <https://github.com/open-strateos/txpy_jupyter_notebooks>`_
 - Plumbed test posargs through to allow local execution of specific test files.
+- Autoprotocol dependency to >=7.6.1,<8 for `Instruction` `informatics` attribute
 
 v9.0.0
 ------
