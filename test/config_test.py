@@ -92,8 +92,12 @@ class ConnectionInitTests(unittest.TestCase):
             "https://fake.transcriptic.com/api/aliquots/23534245/modify_properties",
             json={"id": aliquot_id, "data": {"delete": [], "set": props}},
         )
-        self.assertTrue(session.headers.get("X-Organization-Id") == connection.organization_id)
-        self.assertTrue(session.headers.get("X-Organization-Id") == connection.env_args["org_id"])
+        self.assertTrue(
+            session.headers.get("X-Organization-Id") == connection.organization_id
+        )
+        self.assertTrue(
+            session.headers.get("X-Organization-Id") == connection.env_args["org_id"]
+        )
 
     def test_signing(self):
         # Set up a connection with a key from a file
@@ -131,8 +135,12 @@ class ConnectionInitTests(unittest.TestCase):
             },
         )
         prepared_get = connection.session.prepare_request(get_request)
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.organization_id)
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.organization_id
+        )
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
 
         get_sig = prepared_get.headers["authorization"]
         self.assertEqual(
@@ -216,7 +224,9 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_get.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_get.headers["X-User-Email"] == connection.email)
 
     def test_signing_request_body_already_encoded(self):
@@ -261,7 +271,9 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_post.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_post.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_post.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_post.headers["X-User-Email"] == connection.email)
         self.assertTrue(isinstance(prepared_post.body, bytes))
 
@@ -280,7 +292,9 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_post.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_post.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_post.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_post.headers["X-User-Email"] == connection.email)
         self.assertFalse(isinstance(prepared_post.body, bytes))
 
@@ -318,7 +332,9 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_get.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_get.headers["X-User-Email"] == connection.email)
 
     def test_bearer_token_not_set_when_calling_non_api_root_endpoint(self):
@@ -353,7 +369,9 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_get.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_get.headers["X-User-Email"] == connection.email)
 
     def test_malformed_bearer_token(self):
@@ -401,5 +419,7 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertTrue(
             prepared_get.headers["X-Organization-Id"] == connection.organization_id
         )
-        self.assertTrue(prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"])
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
         self.assertTrue(prepared_get.headers["X-User-Email"] == connection.email)
