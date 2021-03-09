@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-Unreleased
+v9.1.0
 ----------
 
 Added
