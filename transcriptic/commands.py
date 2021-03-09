@@ -1503,39 +1503,9 @@ def execute(
     # Get the requested scheduling time
     if schedule_delay is not None:
         # round up to the next minute!
-        payload["scheduleAt"] = (int(time.time() // 60 + 1) + schedule_delay) * 60000
+        payload["delay"] = schedule_delay
     elif schedule_at is not None:  # absolute time
-        current_time = time.localtime()
-        if re.search(
-            r"^\d{1,2}:\d{1,2}$", schedule_at
-        ):  # only time is given use today's year, month, and day
-            schedule_at_fixed = f"{current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday}T{schedule_at}"
-        elif re.search(
-            r"^\d{2,2}T\d{1,2}:\d{1,2}$", schedule_at
-        ):  # use today's year, and month
-            schedule_at_fixed = (
-                f"{current_time.tm_year}-{current_time.tm_mon}-{schedule_at}"
-            )
-        elif re.search(
-            r"^\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}$", schedule_at
-        ):  # use today's year
-            schedule_at_fixed = f"{current_time.tm_year}-{schedule_at}"
-        else:
-            schedule_at_fixed = schedule_at
-
-        try:
-            expected_schedule_at = datetime.strptime(
-                schedule_at_fixed, "%Y-%m-%dT%H:%M"
-            )
-            parsed_schedule_at = int(expected_schedule_at.timestamp())
-        except ValueError:
-            click.echo(
-                f"Error: couldn't parse absolute time input, got {schedule_at} (fixed to {schedule_at_fixed}).\nExpected format: [YYYY-MM-DDT]hh:mm, e.g. 08:33 or 2021-02-22T08:33",
-                err=True,
-            )
-            return
-
-        payload["scheduleAt"] = parsed_schedule_at * 1000
+        payload["scheduleAt"] = schedule_at
 
     # Get the autoprotocol
     autoprotocol_str = autoprotocol.read()
@@ -1602,6 +1572,11 @@ def execute(
             )
         else:
             click.echo(f"Error: {res_json['message']}", err=True)
+            if "sessionId" in res_json:
+                click.echo(
+                    f"Dashboard can be seen at: {clean_api}/dashboard?sessionId={res_json['sessionId']}",
+                    err=True,
+                )
     except json.decoder.JSONDecodeError:
         click.echo(f"Error: {res.text}", err=True)
 
