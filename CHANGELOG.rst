@@ -1,14 +1,28 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Added
+~~~~~
+
+Fixed
+~~~~~
+
+Updated
+~~~~~~~
+
+- Added support for sessions and absolute time constraint in `exec` CLI command.
+  Added "--sessionId", "--schedule-at", and "--schedule-delay" flags.
+
 
 v9.1.0
 ----------
 
 Added
 ~~~~~
-- A new `exec` command to send autoprotocol to a test workcell. This command support
-  submission to sessions on the test workcell, and absolute time constraints.
+- A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
 - Example initial tests for `commands` file using `responses` pattern, starting with
   `submit` and `projects`.
