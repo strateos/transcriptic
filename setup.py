@@ -50,7 +50,7 @@ doc_deps = [
 jupyter_deps = ["pandas>=0.23,<1", "responses>=0.12.0,<1", "jupyter>=1.0.0, <2"]
 
 analysis_deps = [
-    "autoprotocol>=7.1,<8",
+    "autoprotocol>=7.6.1,<8",
     "matplotlib>=3,<4",
     # incompatibilities with release 1.20.0
     "numpy>=1.14,<=1.19.5",
