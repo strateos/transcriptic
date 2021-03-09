@@ -135,9 +135,9 @@ class Connection(object):
         # Set/Load rsa_key from argument as string or Path
         self.rsa_key = rsa_key
 
-        self.organization_id = organization_id
         # NB: These many setattr calls update self.session.headers
         # cookie authentication is mutually exclusive from token authentication
+        self.organization_id = organization_id
         if cookie:
             if email is not None or token is not None:
                 warnings.warn(
