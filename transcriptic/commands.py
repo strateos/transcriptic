@@ -18,7 +18,6 @@ import zipfile
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from datetime import datetime
 from os.path import abspath, expanduser, isfile
 
 import click
