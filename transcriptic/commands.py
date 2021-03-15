@@ -1537,7 +1537,7 @@ def execute(
         in_use.append("--session-id")
 
     if len(in_use) > 1:
-        click.echo(f"Error: {', '.join(in_use)} are mutually exclive.", err=True)
+        click.echo(f"Error: {', '.join(in_use)} are mutually exclusive.", err=True)
         return
 
     if len(in_use) == 0:

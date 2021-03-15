@@ -1,7 +1,5 @@
 import json
 
-from datetime import datetime, timedelta
-
 import requests
 
 from transcriptic.cli import cli
@@ -142,3 +140,13 @@ def test_session_id(cli_test_runner, monkeypatch, ap_file):
         f"Success. View {mock_api_endpoint()}/dashboard?sessionId={sessionId} to see the scheduling outcome."
         in result.output
     )
+
+
+def test_too_many_workcell_definition_arguments(cli_test_runner, monkeypatch, ap_file):
+
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-s", "anthing", "-w", "wc0"],
+    )
+    assert result.exit_code == 0
+    assert "Error: --workcell-id, --session-id are mutually exclusive." in result.stderr
