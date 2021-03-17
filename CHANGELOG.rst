@@ -17,6 +17,13 @@ Updated
   Added "--sessionId", "--schedule-at", and "--schedule-delay" flags.
 
 
+v9.2.0
+----------
+
+Added
+~~~~~
+- A new `generated_containers` attribute to the `Instruction` object
+
 v9.1.0
 ----------
 

@@ -62,6 +62,7 @@ class Instruction(object):
         self.name = attributes["operation"]["op"]
         self.started_at = attributes["started_at"]
         self.completed_at = attributes["completed_at"]
+        self.generated_containers = attributes["generated_containers"]
         if len(attributes["warps"]) > 0:
             device_id_set = set(
                 [warp["device_id"] for warp in self.attributes["warps"]]

@@ -94,6 +94,16 @@ class TestMockConnection:
         assert instructions.loc[0].Id == "i123"
         assert instructions.loc[1].Id == "i124"
 
+        # all instructions have a `generated_container` attribute, if none generated, it is empty list
+        expected_generated_containers = [
+            {"id": "ct123", "label": "container_generated"}
+        ]
+        assert (
+            instructions.loc[0].Instructions.generated_containers
+            == expected_generated_containers
+        )
+        assert instructions.loc[1].Instructions.generated_containers == []
+
         data = run.data
         assert len(data) == 1
         assert data.loc[0].Name == "OD600"
