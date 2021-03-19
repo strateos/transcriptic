@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Added
+~~~~~
+
+Fixed
+~~~~~
+
+Updated
+~~~~~~~
+
+- Added support for sessions and absolute time constraint in `exec` CLI command.
+  Added "--sessionId", "--schedule-at", and "--schedule-delay" flags.
+
 
 v9.2.0
 ----------

@@ -1481,22 +1481,41 @@ def execute(
     api,
     workcell_id,
     device_set,
+    session_id,
     time_limit,
+    schedule_at,
+    schedule_delay,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
 ):
+    # Define the initial payload
+    payload = {"timeLimit": f"{time_limit}:second"}
+
+    if schedule_delay is not None and schedule_at is not None:
+        click.echo(
+            "Error: '--schedule-delay' and '--schedule-at' are mutually exclusive.",
+            err=True,
+        )
+        return
+
+    # Get the requested scheduling time
+    if schedule_delay is not None:
+        # round up to the next minute!
+        payload["delay"] = schedule_delay
+    elif schedule_at is not None:  # absolute time
+        payload["scheduleAt"] = schedule_at
+
     # Get the autoprotocol
     autoprotocol_str = autoprotocol.read()
     try:
-        autoprotocol_dict = json.loads(autoprotocol_str)
+        payload["autoprotocol"] = json.loads(autoprotocol_str)
     except json.decoder.JSONDecodeError as err:
         click.echo(f"Error decoding autoprotocol json: {err}", err=True)
         return
 
-    # Define the initial payload
-    payload = {"autoprotocol": autoprotocol_dict, "timeLimit": f"{time_limit}:second"}
-
+    # device set resolution
+    in_use = []
     if device_set:
         device_str = device_set.read()
         try:
@@ -1505,13 +1524,26 @@ def execute(
         except json.decoder.JSONDecodeError as err:
             click.echo(f"Error decoding device set json: {err}", err=True)
             return
-    elif workcell_id:
+        in_use.append("--device-set")
+
+    if workcell_id:
         if not re.search("^wc[a-z,0-9]+$", workcell_id):
             raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
         payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
-    else:
+        in_use.append("--workcell-id")
+
+    if session_id is not None:
+        payload["sessionId"] = session_id
+        in_use.append("--session-id")
+
+    if len(in_use) > 1:
+        click.echo(f"Error: {', '.join(in_use)} are mutually exclusive.", err=True)
+        return
+
+    if len(in_use) == 0:
         payload["workcellIdForDeviceSet"] = "wctest-mcx1"
 
+    # partition parameters
     if partition_group_size is not None:
         payload["partitionGroupSize"] = partition_group_size
 
@@ -1534,9 +1566,16 @@ def execute(
     try:
         res_json = json.loads(res.text)
         if res_json["success"]:
-            click.echo(f"Success. View {clean_api} to see the scheduling outcome.")
+            click.echo(
+                f"Success. View {clean_api}/dashboard?sessionId={res_json['sessionId']} to see the scheduling outcome."
+            )
         else:
             click.echo(f"Error: {res_json['message']}", err=True)
+            if "sessionId" in res_json:
+                click.echo(
+                    f"Dashboard can be seen at: {clean_api}/dashboard?sessionId={res_json['sessionId']}",
+                    err=True,
+                )
     except json.decoder.JSONDecodeError:
         click.echo(f"Error: {res.text}", err=True)
 

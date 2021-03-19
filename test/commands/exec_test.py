@@ -9,8 +9,8 @@ from ..helpers.mockAPI import MockResponse
 
 
 # Structure of the response object from SCLE
-def bool_success_res():
-    return {"success": True}
+def queue_test_success_res(sessionId="testSessionId"):
+    return {"success": True, "sessionId": sessionId}
 
 
 def mock_api_endpoint():
@@ -34,7 +34,9 @@ def test_unspecified_api(cli_test_runner, ap_file):
 
 def test_good_autoprotocol(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
-        return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+        return MockResponse(
+            0, queue_test_success_res(), json.dumps(queue_test_success_res())
+        )
 
     monkeypatch.setattr(requests, "post", mockpost)
     result = cli_test_runner.invoke(
@@ -42,7 +44,7 @@ def test_good_autoprotocol(cli_test_runner, monkeypatch, ap_file):
     )
     assert result.exit_code == 0
     assert (
-        f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        f"Success. View {mock_api_endpoint()}/dashboard?sessionId=testSessionId to see the scheduling outcome."
         in result.output
     )
 
@@ -88,7 +90,9 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
 
 def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
     def mockpost(*args, **kwargs):
-        return MockResponse(0, bool_success_res(), json.dumps(bool_success_res()))
+        return MockResponse(
+            0, queue_test_success_res(), json.dumps(queue_test_success_res())
+        )
 
     monkeypatch.setattr(requests, "post", mockpost)
     result = cli_test_runner.invoke(
@@ -96,7 +100,7 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
     )
     assert result.exit_code == 0
     assert (
-        f"Success. View {mock_api_endpoint()} to see the scheduling outcome."
+        f"Success. View {mock_api_endpoint()}/dashboard?sessionId=testSessionId to see the scheduling outcome."
         in result.output
     )
 
@@ -107,3 +111,42 @@ def test_bad_workcell(cli_test_runner, ap_file):
     )
     assert result.exit_code != 0
     assert "Workcell id must be like wcN but was bad-workcell-id" in result.stderr
+
+
+def test_session_id(cli_test_runner, monkeypatch, ap_file):
+    sessionId = "hi_there"
+
+    def mockpost(*args, **kwargs):
+        return MockResponse(
+            0,
+            queue_test_success_res(sessionId),
+            json.dumps(queue_test_success_res(sessionId)),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    result = cli_test_runner.invoke(
+        cli,
+        [
+            "exec",
+            str(ap_file),
+            "-a",
+            mock_api_endpoint(),
+            "-s",
+            sessionId,
+        ],
+    )
+    assert result.exit_code == 0
+    assert (
+        f"Success. View {mock_api_endpoint()}/dashboard?sessionId={sessionId} to see the scheduling outcome."
+        in result.output
+    )
+
+
+def test_too_many_workcell_definition_arguments(cli_test_runner, monkeypatch, ap_file):
+
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-s", "anthing", "-w", "wc0"],
+    )
+    assert result.exit_code == 0
+    assert "Error: --workcell-id, --session-id are mutually exclusive." in result.stderr
