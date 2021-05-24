@@ -13,8 +13,16 @@ def queue_test_success_res(sessionId="testSessionId"):
     return {"success": True, "sessionId": sessionId}
 
 
+def app_config_res():
+    return {"hostManifest": {"lab": {"workcell": "something.bar.foo"}}}
+
+
 def mock_api_endpoint():
     return "foo.bar.baz/lab/workcell"
+
+
+def mockget(*args, **kwargs):
+    return MockResponse(0, app_config_res(), json.dumps(app_config_res()))
 
 
 @pytest.fixture
@@ -39,12 +47,13 @@ def test_good_autoprotocol(cli_test_runner, monkeypatch, ap_file):
         )
 
     monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
         cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
     )
     assert result.exit_code == 0
     assert (
-        f"Success. View {mock_api_endpoint()}/dashboard?sessionId=testSessionId to see the scheduling outcome."
+        f"Success. View http://{mock_api_endpoint()}/dashboard to see the scheduling outcome."
         in result.output
     )
 
@@ -81,6 +90,7 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
         return MockResponse(0, "not-json", "not-json")
 
     monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
         cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
     )
@@ -95,12 +105,13 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
         )
 
     monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
         cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-w", "wc3"]
     )
     assert result.exit_code == 0
     assert (
-        f"Success. View {mock_api_endpoint()}/dashboard?sessionId=testSessionId to see the scheduling outcome."
+        f"Success. View http://{mock_api_endpoint()}/dashboard to see the scheduling outcome."
         in result.output
     )
 
@@ -124,6 +135,7 @@ def test_session_id(cli_test_runner, monkeypatch, ap_file):
         )
 
     monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
         cli,
         [
@@ -137,7 +149,7 @@ def test_session_id(cli_test_runner, monkeypatch, ap_file):
     )
     assert result.exit_code == 0
     assert (
-        f"Success. View {mock_api_endpoint()}/dashboard?sessionId={sessionId} to see the scheduling outcome."
+        f"Success. View http://{mock_api_endpoint()}/dashboard to see the scheduling outcome."
         in result.output
     )
 
