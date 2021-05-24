@@ -1575,7 +1575,11 @@ def execute(
     res = requests.get(f"{path_base}/app-config")
     try:
         res_json = json.loads(res.text)
-        if res_json["hostManifest"] and res_json["hostManifest"][path_lab] and res_json["hostManifest"][path_lab][path_workcell]:
+        if (
+            res_json["hostManifest"]
+            and res_json["hostManifest"][path_lab]
+            and res_json["hostManifest"][path_lab][path_workcell]
+        ):
             frontend_node_address = res_json["hostManifest"][path_lab][path_workcell]
         else:
             click.echo(f"Error when get frontend node address: {res_json}", err=True)
@@ -1583,7 +1587,6 @@ def execute(
     except json.decoder.JSONDecodeError:
         click.echo(f"Error when get frontend node address: {res.text}", err=True)
         return
-
 
     # POST to workcell
     test_run_endpoint = f"http://{frontend_node_address}/testRun"
