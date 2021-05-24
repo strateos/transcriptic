@@ -14,7 +14,7 @@ def queue_test_success_res(sessionId="testSessionId"):
 
 
 def mock_api_endpoint():
-    return "foo.bar.baz"
+    return "foo.bar.baz/lab/workcell"
 
 
 @pytest.fixture
