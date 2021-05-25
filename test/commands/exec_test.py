@@ -115,15 +115,6 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
         in result.output
     )
 
-
-def test_bad_workcell(cli_test_runner, ap_file):
-    result = cli_test_runner.invoke(
-        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-w", "bad-workcell-id"]
-    )
-    assert result.exit_code != 0
-    assert "Workcell id must be like wcN but was bad-workcell-id" in result.stderr
-
-
 def test_session_id(cli_test_runner, monkeypatch, ap_file):
     sessionId = "hi_there"
 
