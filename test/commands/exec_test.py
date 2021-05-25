@@ -115,6 +115,7 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
         in result.output
     )
 
+
 def test_session_id(cli_test_runner, monkeypatch, ap_file):
     sessionId = "hi_there"
 
