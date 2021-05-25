@@ -1546,9 +1546,13 @@ def execute(
         in_use.append("--device-set")
 
     if workcell_id:
-        if not re.search("^wc[a-z,0-9]+$", workcell_id):
-            raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
-        payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
+        if re.search("^wc[a-z,0-9]+$", workcell_id):
+            workcell_id = f"{workcell_id}-mcx1"
+        elif workcell_id == "tst-01":
+            workcell_id = f"{workcell_id}-mcx-01"
+        else:
+            raise BadParameter(f"Workcell id must be like wcN or tst-01 but was {workcell_id}")
+        payload["workcellIdForDeviceSet"] = workcell_id
         in_use.append("--workcell-id")
 
     if session_id is not None:
