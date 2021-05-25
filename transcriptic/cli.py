@@ -641,7 +641,7 @@ def format_cmd(manifest):
 @click.option(
     "--workcell-id",
     "-w",
-    help="The workcell id to use for the device set (wc4, tst-01, etc.). This is not permitted along with the `device-set` or `session-id` option.",
+    help="The workcell id to use for the device set (wc4-mcx1, tst-01-mcx-01, etc.). This is not permitted along with the `device-set` or `session-id` option.",
 )
 @click.option(
     "--device-set",
