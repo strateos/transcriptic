@@ -1489,6 +1489,30 @@ def execute(
     partition_horizon,
     partitioning_swap_device_id,
 ):
+    # Clean api end point
+    if api.startswith("http://"):
+        clean_api = api[7:]
+    elif api.startswith("https://"):
+        click.echo("HTTPS endpoint is not supported, falling back to HTTP.")
+        clean_api = api[8:]
+    else:
+        clean_api = api
+    if clean_api[-1] == "/":
+        clean_api = clean_api[0:-1]  # remove trailing slash
+
+    # Validate api
+    path_tokens = clean_api.split("/")
+    if len(path_tokens) != 3:
+        click.echo(
+            f"Invalid api target, expects http://base/facility/workcell.", err=True
+        )
+        return
+
+    clean_api = f"http://{clean_api}"
+    path_base = f"http://{path_tokens[0]}"
+    path_lab = path_tokens[1]
+    path_workcell = path_tokens[2]
+
     # Define the initial payload
     payload = {"timeLimit": f"{time_limit}:second"}
 
@@ -1527,9 +1551,9 @@ def execute(
         in_use.append("--device-set")
 
     if workcell_id:
-        if not re.search("^wc[a-z,0-9]+$", workcell_id):
-            raise BadParameter(f"Workcell id must be like wcN but was {workcell_id}")
-        payload["workcellIdForDeviceSet"] = f"{workcell_id}-mcx1"
+        if "." in workcell_id:
+            raise BadParameter(f"Workcell id can't have '.' but was {workcell_id}")
+        payload["workcellIdForDeviceSet"] = workcell_id
         in_use.append("--workcell-id")
 
     if session_id is not None:
@@ -1553,27 +1577,37 @@ def execute(
     if partitioning_swap_device_id is not None:
         payload["partitioningSwapDeviceId"] = partitioning_swap_device_id
 
-    # Clean api end point
-    if api[-1] == "/":
-        clean_api = api[0:-1]  # remove trailing slash
-    else:
-        clean_api = api
+    res = requests.get(f"{path_base}/app-config")
+    try:
+        res_json = json.loads(res.text)
+        if (
+            res_json["hostManifest"]
+            and res_json["hostManifest"][path_lab]
+            and res_json["hostManifest"][path_lab][path_workcell]
+        ):
+            frontend_node_address = res_json["hostManifest"][path_lab][path_workcell]
+        else:
+            click.echo(f"Error when get frontend node address: {res_json}", err=True)
+            return
+    except json.decoder.JSONDecodeError:
+        click.echo(f"Error when get frontend node address: {res.text}", err=True)
+        return
 
     # POST to workcell
-    test_run_endpoint = f"{clean_api}/testRun"
-    click.echo("Sending request...")
+    test_run_endpoint = f"http://{frontend_node_address}/testRun"
+    click.echo(f"Sending request to {frontend_node_address}")
     res = requests.post(test_run_endpoint, json=payload)
     try:
         res_json = json.loads(res.text)
         if res_json["success"]:
             click.echo(
-                f"Success. View {clean_api}/dashboard?sessionId={res_json['sessionId']} to see the scheduling outcome."
+                f"Success. View {clean_api}/dashboard to see the scheduling outcome."
             )
         else:
             click.echo(f"Error: {res_json['message']}", err=True)
             if "sessionId" in res_json:
                 click.echo(
-                    f"Dashboard can be seen at: {clean_api}/dashboard?sessionId={res_json['sessionId']}",
+                    f"Dashboard can be seen at: {clean_api}/dashboard",
                     err=True,
                 )
     except json.decoder.JSONDecodeError:
