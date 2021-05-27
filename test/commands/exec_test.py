@@ -116,6 +116,14 @@ def test_good_workcell(cli_test_runner, monkeypatch, ap_file):
     )
 
 
+def test_bad_workcell(cli_test_runner, monkeypatch, ap_file):
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-w", "hello.world"]
+    )
+    assert result.exit_code != 0
+    assert "Error: " in result.stderr
+
+
 def test_session_id(cli_test_runner, monkeypatch, ap_file):
     sessionId = "hi_there"
 
