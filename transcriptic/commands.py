@@ -1492,6 +1492,9 @@ def execute(
     # Clean api end point
     if api.startswith("http://"):
         clean_api = api[7:]
+    elif api.startswith("https://"):
+        click.echo("HTTPS endpoint is not supported, falling back to HTTP.")
+        clean_api = api[8:]
     else:
         clean_api = api
     if clean_api[-1] == "/":
@@ -1500,7 +1503,9 @@ def execute(
     # Validate api
     path_tokens = clean_api.split("/")
     if len(path_tokens) != 3:
-        click.echo(f"Invalid api target: {api}.", err=True)
+        click.echo(
+            f"Invalid api target, expects http://base/facility/workcell.", err=True
+        )
         return
 
     clean_api = f"http://{clean_api}"
