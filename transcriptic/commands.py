@@ -1479,6 +1479,7 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
 def execute(
     autoprotocol,
     api,
+    no_redirect,
     workcell_id,
     device_set,
     session_id,
@@ -1501,18 +1502,38 @@ def execute(
     if clean_api[-1] == "/":
         clean_api = clean_api[0:-1]  # remove trailing slash
 
-    # Validate api
-    path_tokens = clean_api.split("/")
-    if len(path_tokens) != 3:
-        click.echo(
-            f"Invalid api target, expects http://base/facility/workcell.", err=True
-        )
-        return
+    if no_redirect:
+        frontend_node_address = clean_api
+    else:
+        # Validate api
+        path_tokens = clean_api.split("/")
+        if len(path_tokens) != 3:
+            click.echo(
+                    f"Invalid api target, expects base-url/facility/workcell.", err=True
+                    )
+            return
 
-    clean_api = f"http://{clean_api}"
-    path_base = f"http://{path_tokens[0]}"
-    path_lab = path_tokens[1]
-    path_workcell = path_tokens[2]
+        clean_api = f"http://{clean_api}"
+        path_base = f"http://{path_tokens[0]}"
+        path_lab = path_tokens[1]
+        path_workcell = path_tokens[2]
+
+        # get the scle test workcell endpoint
+        res = requests.get(f"{path_base}/app-config")
+        try:
+            res_json = json.loads(res.text)
+            if (
+                res_json["hostManifest"]
+                and res_json["hostManifest"][path_lab]
+                and res_json["hostManifest"][path_lab][path_workcell]
+            ):
+                frontend_node_address = res_json["hostManifest"][path_lab][path_workcell]
+            else:
+                click.echo(f"Error when get frontend node address: {res_json}", err=True)
+                return
+        except json.decoder.JSONDecodeError:
+            click.echo(f"Error when get frontend node address: {res.text}", err=True)
+            return
 
     # Define the initial payload
     payload = {"timeLimit": f"{time_limit}:second"}
@@ -1580,25 +1601,9 @@ def execute(
 
     payload["timeConstraintsAreSuggestion"] = time_constraints_are_suggestion
 
-    res = requests.get(f"{path_base}/app-config")
-    try:
-        res_json = json.loads(res.text)
-        if (
-            res_json["hostManifest"]
-            and res_json["hostManifest"][path_lab]
-            and res_json["hostManifest"][path_lab][path_workcell]
-        ):
-            frontend_node_address = res_json["hostManifest"][path_lab][path_workcell]
-        else:
-            click.echo(f"Error when get frontend node address: {res_json}", err=True)
-            return
-    except json.decoder.JSONDecodeError:
-        click.echo(f"Error when get frontend node address: {res.text}", err=True)
-        return
-
     # POST to workcell
     test_run_endpoint = f"http://{frontend_node_address}/testRun"
-    click.echo(f"Sending request to {frontend_node_address}")
+    click.echo(f"Sending request to http://{frontend_node_address}")
     res = requests.post(test_run_endpoint, json=payload)
     try:
         res_json = json.loads(res.text)

@@ -635,8 +635,13 @@ def format_cmd(manifest):
 @click.option(
     "--api",
     "-a",
-    help="The api endpoint of your scle test workcell instance.",
+    help="The api endpoint of your test dash board, or the scle test workcell instance (if used with --no-redirect).",
     required=True,
+)
+@click.option(
+    "--no-redirect",
+    help="If set, the api endpoint given is the scle test workcell instance.",
+    is_flag=True,
 )
 @click.option(
     "--workcell-id",
@@ -675,7 +680,7 @@ def format_cmd(manifest):
 @click.option(
     "--time-constraints-are-suggestion",
     "-tc-suggestion",
-    help="If set, the time constraints will be considered only suggestion.",
+    help="If set, the time constraints will be considered only a suggestion.",
     is_flag=True,
 )
 @click.option(
@@ -698,6 +703,7 @@ def format_cmd(manifest):
 def execute(
     autoprotocol,
     api,
+    no_redirect,
     workcell_id,
     device_set,
     session_id,
@@ -713,6 +719,7 @@ def execute(
     commands.execute(
         autoprotocol,
         api,
+        no_redirect,
         workcell_id,
         device_set,
         session_id,
