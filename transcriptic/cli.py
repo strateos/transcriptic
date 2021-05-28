@@ -673,6 +673,12 @@ def format_cmd(manifest):
     help="Delay in minutes at which the given protocol should start (at the earliest).",
 )
 @click.option(
+    "--time-constraints-are-suggestion",
+    "-tc-suggestion",
+    help="If set, the time constraints will be considered only suggestion.",
+    is_flag=True,
+)
+@click.option(
     "--partition-group-size",
     type=click.INT,
     default=None,
@@ -698,6 +704,7 @@ def execute(
     time_limit,
     schedule_at,
     schedule_delay,
+    time_constraints_are_suggestion,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -712,6 +719,7 @@ def execute(
         time_limit,
         schedule_at,
         schedule_delay,
+        time_constraints_are_suggestion,
         partition_group_size,
         partition_horizon,
         partitioning_swap_device_id,

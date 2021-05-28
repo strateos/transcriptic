@@ -1485,6 +1485,7 @@ def execute(
     time_limit,
     schedule_at,
     schedule_delay,
+    time_constraints_are_suggestion,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -1576,6 +1577,8 @@ def execute(
 
     if partitioning_swap_device_id is not None:
         payload["partitioningSwapDeviceId"] = partitioning_swap_device_id
+
+    payload["timeConstraintsAreSuggestion"] = time_constraints_are_suggestion
 
     res = requests.get(f"{path_base}/app-config")
     try:
