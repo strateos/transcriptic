@@ -635,7 +635,7 @@ def format_cmd(manifest):
 @click.option(
     "--api",
     "-a",
-    help="The api endpoint of your test dash board, or the scle test workcell instance (if used with --no-redirect).",
+    help="The api endpoint of your test dashboard, or the scle test workcell instance (if used with --no-redirect).",
     required=True,
 )
 @click.option(
