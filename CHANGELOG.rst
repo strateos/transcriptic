@@ -21,8 +21,8 @@ Updated
 - Added support for sessions and absolute time constraint in `exec` CLI command.
   Added "--sessionId", "--schedule-at", and "--schedule-delay" flags.
 - The api url expected by the `exec` method has been changed to be the url of
-  the new dashboard. It has the shape: `base_url/facility/workcell`.
-  It does not require `http` to be added anymore.
+  the new dashboard (unless `--no-redirect` is used). It has the shape:
+  `base_url/facility/workcell`. It does not require `http` to be added anymore.
 
 
 v9.2.0
