@@ -615,13 +615,19 @@ def select_org_cmd(ctx, organization=None):
     type=click.Path(exists=True, file_okay=True, dir_okay=False),
     help="Path to RSA key used for signing requests",
 )
+@click.option(
+    "--web-staging",
+    is_flag=True,
+    required=False,
+    help="login to staging environment for testing changes in master of web that are not yet released to production",
+)
 @click.pass_context
-def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None):
+def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None, web_staging=False):
     """Authenticate to your Transcriptic account."""
+    ctx.obj.api = Connection()
     api = ctx.obj.api
     config = ctx.parent.params["config"]
-    commands.login(api, config, api_root, analytics, rsa_key)
-
+    commands.login(api, config, api_root, analytics, rsa_key, web_staging)
 
 @cli.command("format", cls=FeatureCommand, feature="can_upload_packages")
 @click.argument("manifest", default="manifest.json")
