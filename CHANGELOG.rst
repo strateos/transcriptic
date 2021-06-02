@@ -1,20 +1,28 @@
 Changelog
 =========
 
-Unreleased
-----------
+v9.3.0
+------
 
 Added
 ~~~~~
+- A new `-tc-suggestion/--time-constraints-are-suggestion` flag to `exec`.
+- A new `--no-redirect` flag to `exec`. It allows the endpoint of the scle test
+  workcell instance to be used, instead of the client dashboard.
 
 Fixed
 ~~~~~
+
+- The workcell id in `exec` was forced to be `wcN`. There is now no restrictions.
 
 Updated
 ~~~~~~~
 
 - Added support for sessions and absolute time constraint in `exec` CLI command.
   Added "--sessionId", "--schedule-at", and "--schedule-delay" flags.
+- The api url expected by the `exec` method has been changed to be the url of
+  the new dashboard (unless `--no-redirect` is used). It has the shape:
+  `base_url/facility/workcell`. It does not require `http` to be added anymore.
 
 
 v9.2.0
