@@ -29,7 +29,13 @@ from transcriptic import routes
 from transcriptic.auth import StrateosSign
 from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
-from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
+from transcriptic.util import (
+    PreviewParameters,
+    ascii_encode,
+    flatmap,
+    iter_json,
+    makedirs,
+)
 
 
 def submit(
@@ -1680,3 +1686,97 @@ class ProtocolPreview(object):
     def _repr_html_(self):
         return f"""<iframe src="{self.preview_url}" frameborder="0"
         allowtransparency="true" style="height:500px" seamless></iframe>"""
+
+
+def generate_preview_parameters(
+    api, protocol, project, local, filename, merge, pkg=None
+):
+    """Generate preview parameters for a specified protocol from selected samples"""
+    # Load protocol from local file if not remote and load from listed protocols otherwise
+    if local:
+        manifest, protocol_obj = load_manifest_and_protocol(protocol)
+    else:
+        print_stderr("Searching for {}...".format(protocol))
+        protocol_list = api.get_protocols()
+
+        matched_protocols = [
+            p
+            for p in protocol_list
+            if (p["name"] == protocol and (pkg is None or p["package_id"] == pkg))
+        ]
+
+        if len(matched_protocols) == 0:
+            print_stderr(
+                "Protocol {} in {} was not found."
+                "".format(
+                    protocol, "package {}".format(pkg) if pkg else "unspecified package"
+                )
+            )
+            return
+        elif len(matched_protocols) > 1:
+            print_stderr("More than one match found. Using the first match.")
+        else:
+            print_stderr("Protocol found.")
+        protocol_obj = matched_protocols[0]
+    # Project is required for quick launch
+    if not project:
+        click.echo("Project field is required if parameters file is not specified.")
+        return
+    project = get_project_id(api, project)
+    if not project:
+        return
+    # Creates web browser and generates inputs for quick_launch
+    quick_launch = _get_quick_launch(api, protocol_obj, project)
+    pp = PreviewParameters(api, quick_launch["raw_inputs"])
+    # Determine where to place the generated preview parameters
+    if not merge:
+        if not filename:
+            filename = "preview_parameters.json"
+        try:
+            with click.open_file(filename, "w") as f:
+                f.write(json.dumps(pp.preview, indent=2))
+                f.close()
+        except Exception as e:
+            print_stderr(
+                "\nUnable to save preview inputs due to not being"
+                " able to process: {} {}".format(type(e), str(e))
+            )
+    else:
+        # Read manifest.json
+        with click.open_file("manifest.json", "r") as f:
+            manifest = json.loads(f.read())
+        # Get selected protocol
+        selected_protocol = next(
+            p for p in manifest["protocols"] if p["name"] == protocol
+        )
+        # Get the index of the protocol in the protocols list
+        protocol_idx = manifest["protocols"].index(selected_protocol)
+        # Merge generated preview parameters into the selected protocol
+        selected_protocol["preview"] = pp.preview["preview"]
+        # Ensure that the merged protocol object has the same key order
+        updated_protocol = OrderedDict()
+        updated_protocol["name"] = selected_protocol["name"]
+        updated_protocol["display_name"] = selected_protocol["display_name"]
+        updated_protocol["categories"] = selected_protocol.get("categories", [])
+        updated_protocol["description"] = selected_protocol["description"]
+        updated_protocol["version"] = selected_protocol["version"]
+        updated_protocol["command_string"] = selected_protocol["command_string"]
+        updated_protocol["inputs"] = selected_protocol["inputs"]
+        updated_protocol["preview"] = selected_protocol["preview"]
+        # Place modified protocol in the appropriate index
+        manifest["protocols"][protocol_idx] = updated_protocol
+        # Ensure that manifest has correct order
+        merged_manifest = OrderedDict()
+        merged_manifest["format"] = "python"
+        merged_manifest["license"] = "MIT"
+        merged_manifest["protocols"] = manifest["protocols"]
+        # Write new manifest to current working directory
+        try:
+            with click.open_file("manifest.json", "w") as f:
+                f.write(json.dumps(merged_manifest, indent=2))
+                f.close()
+        except Exception as e:
+            print_stderr(
+                "\nUnable to save preview inputs due to not being"
+                " able to process: {} {}".format(type(e), str(e))
+            )

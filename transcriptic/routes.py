@@ -4,6 +4,10 @@ Note: {api_root} and {org_id} are automatically supplied in the Connection.get_r
 """
 
 
+def get_container(api_root, org_id, container_id):
+    return "{api_root}/{org_id}/samples/{container_id}".format(**locals())
+
+
 def create_project(api_root, org_id):
     return "{api_root}/{org_id}".format(**locals())
 

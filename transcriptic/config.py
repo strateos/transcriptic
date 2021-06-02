@@ -310,25 +310,29 @@ class Connection(object):
         self._rsa_key = value
         self.load_rsa_secret()
 
+    def get_container(self, container_id):
+        route = self.get_route(
+            "get_container", org_id=self.organization_id, container_id=container_id
+        )
+        return self.get(route)
+
     def save(self, path):
         """Saves current connection into specified file, used for CLI"""
         with open(os.path.expanduser(path), "w") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "email": self.email,
-                        "token": self.token,
-                        "organization_id": self.organization_id,
-                        "api_root": self.api_root,
-                        "analytics": self.analytics,
-                        "user_id": self.user_id,
-                        "feature_groups": self.feature_groups,
-                        # We dont want to save a string key, only a path
-                        "rsa_key": self._rsa_key_path,
-                    },
-                    indent=2,
-                )
-            )
+            config_params = {
+                "email": self.email,
+                "token": self.token,
+                "organization_id": self.organization_id,
+                "api_root": self.api_root,
+                "analytics": self.analytics,
+                "user_id": self.user_id,
+                "feature_groups": self.feature_groups,
+            }
+            # We dont want to save a string key, only a path
+            if self._rsa_key is not None:
+                config_params["rsa_key"] = self._rsa_key_path
+
+            f.write(json.dumps(config_params, indent=2))
 
     def load_rsa_secret(self):
         key_string_or_path = self._rsa_key
