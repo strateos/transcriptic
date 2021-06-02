@@ -218,7 +218,7 @@ def submit_cmd(ctx, file, project, title=None, test=None, pm=None):
 @click.option("--name", "-n", help="Optional name for your zip file")
 @click.pass_context
 def release_cmd(ctx, name=None, package=None):
-    """ Compress the contents of the current directory to upload as a release.  """
+    """Compress the contents of the current directory to upload as a release."""
     api = ctx.obj.api
     commands.release(api, name=name, package=package)
 
@@ -628,6 +628,7 @@ def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None, web_staging=Fals
     api = ctx.obj.api
     config = ctx.parent.params["config"]
     commands.login(api, config, api_root, analytics, rsa_key, web_staging)
+
 
 @cli.command("format", cls=FeatureCommand, feature="can_upload_packages")
 @click.argument("manifest", default="manifest.json")
