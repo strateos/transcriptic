@@ -1048,13 +1048,13 @@ def select_org(api, config, organization=None):
     click.echo(f"Logged in with organization: {organization}")
 
 
-def login(api, config, api_root=None, analytics=True, rsa_key=None, web_staging=False):
+def login(api, config, api_root=None, analytics=True, rsa_key=None, staging=False):
     """Authenticate to your Transcriptic account."""
     # If user does not specify staging web api argument, default to the "https://secure.strateos.com" domain
-    if web_staging:
+    if staging:
         api_root = "https://webapp.staging.strateos.com/"
     else:
-        api_root = "https://secure.strateos.com/"
+        api_root = "https://secure.transcriptic.com/"
     rsa_auth = None
     rsa_key_path = None
 

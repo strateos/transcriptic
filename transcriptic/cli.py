@@ -616,18 +616,18 @@ def select_org_cmd(ctx, organization=None):
     help="Path to RSA key used for signing requests",
 )
 @click.option(
-    "--web-staging",
+    "--staging",
     is_flag=True,
     required=False,
     help="login to staging environment for testing changes in master of web that are not yet released to production",
 )
 @click.pass_context
-def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None, web_staging=False):
+def login_cmd(ctx, api_root=None, analytics=True, rsa_key=None, staging=False):
     """Authenticate to your Transcriptic account."""
     ctx.obj.api = Connection()
     api = ctx.obj.api
     config = ctx.parent.params["config"]
-    commands.login(api, config, api_root, analytics, rsa_key, web_staging)
+    commands.login(api, config, api_root, analytics, rsa_key, staging)
 
 
 @cli.command("format", cls=FeatureCommand, feature="can_upload_packages")
