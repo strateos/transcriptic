@@ -1,8 +1,14 @@
 Changelog
 =========
 
-v9.2.1
+v9.3.0
 ------
+
+Added
+~~~~~
+- A new `-tc-suggestion/--time-constraints-are-suggestion` flag to `exec`.
+- A new `--no-redirect` flag to `exec`. It allows the endpoint of the scle test
+  workcell instance to be used, instead of the client dashboard.
 
 Fixed
 ~~~~~
