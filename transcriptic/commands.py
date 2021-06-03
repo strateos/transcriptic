@@ -1052,9 +1052,9 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None, staging=Fals
     """Authenticate to your Transcriptic account."""
     # If user does not specify staging web api argument, default to the "https://secure.strateos.com" domain
     if staging:
-        api_root = "https://webapp.staging.strateos.com/"
+        api_root = "https://webapp.staging.strateos.com"
     else:
-        api_root = "https://secure.transcriptic.com/"
+        api_root = "https://secure.transcriptic.com"
     rsa_auth = None
     rsa_key_path = None
 
