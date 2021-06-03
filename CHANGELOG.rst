@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Added
+~~~~~
+- A new `--staging` flag to `login`
+
+Fixed
+~~~~~
+- Changed default root api behavior to route based on login flag rather than API_ROUTE in prexisting .transcriptic config file
+
+Updated
+~~~~~~~
+
+
 v9.3.0
 ------
 
