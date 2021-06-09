@@ -1595,7 +1595,7 @@ def execute(
             ):
                 frontend_node_address = res_json["hostManifest"][path_lab][
                     path_workcell
-                ]
+                ]["url"]
             else:
                 click.echo(
                     f"Error when get frontend node address: {res_json}", err=True
