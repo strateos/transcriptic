@@ -1588,14 +1588,14 @@ def execute(
         res = requests.get(f"{path_base}/app-config")
         try:
             res_json = json.loads(res.text)
-            if
+            if (
                 res_json["hostManifest"]
                 and res_json["hostManifest"][path_lab]
                 and res_json["hostManifest"][path_lab][path_workcell]
-            :
+            ):
                 frontend_node_address = res_json["hostManifest"][path_lab][
                     path_workcell
-                ]['url']
+                ]["url"]
             else:
                 click.echo(
                     f"Error when get frontend node address: {res_json}", err=True

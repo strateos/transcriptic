@@ -14,7 +14,7 @@ def queue_test_success_res(sessionId="testSessionId"):
 
 
 def app_config_res():
-    return {"hostManifest": {"lab": {"workcell": "something.bar.foo"}}}
+    return {"hostManifest": {"lab": {"workcell": { "url": "something.bar.foo" }}}}
 
 
 def mock_api_endpoint():
