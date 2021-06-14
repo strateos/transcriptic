@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v9.3.1
+------
+
+Fixed
+~~~~~
+
+- Adapt the backend url resolution with the new configuration of the frontend client.
+
 v9.3.0
 ------
 
