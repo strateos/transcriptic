@@ -1509,6 +1509,19 @@ def validate_filter(filters, instructions):
                 )
             else:
                 click.echo(f"Info: filter {arg} does not match instructions")
+        elif arg == "human":
+            hits = []
+            for idx, instruction in enumerate(instructions):
+                if "x_human" in instruction and instruction["x_human"]:
+                    instructions_indices.add(idx)
+                    hits.append(str(idx))
+            if len(hits) > 0:
+                click.echo(
+                    f"Info: filter {arg} matches instructions at indices: {', '.join(hits)}"
+                )
+            else:
+                click.echo(f"Info: filter {arg} does not match instructions")
+
         else:
             invalid_filters.add(arg)
 

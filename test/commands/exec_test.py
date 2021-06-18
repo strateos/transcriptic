@@ -31,7 +31,7 @@ def ap_file(tmpdir_factory):
     with open(str(path), "w") as f:
         payload = {
             "instructions": [
-                {"op": "provision"},
+                {"op": "provision", "x_human": True },
                 {"op": "uncover"},
                 {"op": "spin"},
                 {"op": "cover"}
@@ -289,3 +289,25 @@ def test_filter_instruction_range_with_include(cli_test_runner, monkeypatch, ap_
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
     assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "spin" ]
 
+def test_filter_instruction_human(cli_test_runner, monkeypatch, ap_file):
+    payloads= {}
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "human" ]
+    )
+    assert result.exit_code == 0, result.stderr
+    key = (f'http://{fake_valid_URL}/testRun',)
+    assert "Info: filter human matches instructions at indices: 0" in result.output
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "uncover", "spin", "cover" ]
