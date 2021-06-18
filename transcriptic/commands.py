@@ -1496,32 +1496,36 @@ def validate_filter(filters, instructions):
             else:
                 for idx in range(s, e + 1):
                     instructions_indices.add(idx)
-        elif arg.startswith("type:"):
-            op = arg[5:]
-            hits = []
-            for idx, instruction in enumerate(instructions):
-                if instruction["op"] == op:
-                    instructions_indices.add(idx)
-                    hits.append(str(idx))
-            if len(hits) > 0:
-                click.echo(
-                    f"Info: filter {arg} matches instructions at indices: {', '.join(hits)}"
-                )
-            else:
-                click.echo(f"Info: filter {arg} does not match instructions")
-        elif arg == "human":
-            hits = []
-            for idx, instruction in enumerate(instructions):
-                if "x_human" in instruction and instruction["x_human"]:
-                    instructions_indices.add(idx)
-                    hits.append(str(idx))
-            if len(hits) > 0:
-                click.echo(
-                    f"Info: filter {arg} matches instructions at indices: {', '.join(hits)}"
-                )
-            else:
-                click.echo(f"Info: filter {arg} does not match instructions")
+        elif ":" in arg:
+            tokens = arg.split(":")
+            if len(tokens) != 2:
+                invalid_filters.add(arg)
+                continue
+            [key, value] = tokens
+            if value in ["true", "false"]:
+                value = value == "true"
 
+            missing_is_match = False
+            if key.endswith("!"):
+                key = key[:-1]
+                missing_is_match = True
+
+            hits = []
+            for idx, instruction in enumerate(instructions):
+                if (
+                    key in instruction
+                    and instruction[key] == value
+                    or key not in instruction
+                    and missing_is_match
+                ):
+                    instructions_indices.add(idx)
+                    hits.append(str(idx))
+            if len(hits) > 0:
+                click.echo(
+                    f"Info: filter {arg} matches instructions at indices: {', '.join(hits)}"
+                )
+            else:
+                click.echo(f"Info: filter {arg} does not match instructions")
         else:
             invalid_filters.add(arg)
 
@@ -1653,7 +1657,8 @@ def execute(
         path_tokens = clean_api.split("/")
         if len(path_tokens) != 3:
             click.echo(
-                f"Error: Invalid api target, expects base-url/facility/workcell.", err=True
+                f"Error: Invalid api target, expects base-url/facility/workcell.",
+                err=True,
             )
             sys.exit(1)
 
@@ -1680,7 +1685,9 @@ def execute(
                 )
                 sys.exit(1)
         except json.decoder.JSONDecodeError:
-            click.echo(f"Error when getting frontend node address: {res.text}", err=True)
+            click.echo(
+                f"Error when getting frontend node address: {res.text}", err=True
+            )
             sys.exit(1)
 
     # POST to workcell

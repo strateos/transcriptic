@@ -12,7 +12,10 @@ from ..helpers.mockAPI import MockResponse
 def queue_test_success_res(sessionId="testSessionId"):
     return {"success": True, "sessionId": sessionId}
 
+
 fake_valid_URL = "something.bar.foo"
+
+
 def app_config_res():
     return {"hostManifest": {"lab": {"workcell": {"url": fake_valid_URL}}}}
 
@@ -24,6 +27,7 @@ def mock_api_endpoint():
 def mockget(*args, **kwargs):
     return MockResponse(0, app_config_res(), json.dumps(app_config_res()))
 
+
 @pytest.fixture
 def ap_file(tmpdir_factory):
     """Make a temp autoprotocol file"""
@@ -31,17 +35,14 @@ def ap_file(tmpdir_factory):
     with open(str(path), "w") as f:
         payload = {
             "instructions": [
-                {"op": "provision", "x_human": True },
+                {"op": "provision", "x_human": True},
                 {"op": "uncover"},
                 {"op": "spin"},
-                {"op": "cover"}
+                {"op": "cover"},
             ]
         }
-        print("Pyalod: ")
-        print(json.dumps(payload))
         f.write(json.dumps(payload))
     return path
-
 
 
 def test_unspecified_api(cli_test_runner, ap_file):
@@ -174,7 +175,6 @@ def test_too_many_workcell_definition_arguments(cli_test_runner, monkeypatch, ap
     assert "Error: --workcell-id, --session-id are mutually exclusive." in result.stderr
 
 
-
 def test_invalid_filters(cli_test_runner, monkeypatch, ap_file):
     invalid_command = [
         "-e",
@@ -191,8 +191,7 @@ def test_invalid_filters(cli_test_runner, monkeypatch, ap_file):
     invalid_filters = set(filter(lambda v: not v.startswith("-"), invalid_command))
     result = cli_test_runner.invoke(
         cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint()]
-        + invalid_command,
+        ["exec", str(ap_file), "-a", mock_api_endpoint()] + invalid_command,
     )
     assert result.exit_code != 0
     assert "Error: invalid filters" in result.stderr
@@ -200,8 +199,10 @@ def test_invalid_filters(cli_test_runner, monkeypatch, ap_file):
     for inv in invalid_filters:
         assert inv in result.stderr
 
+
 def test_filter_instruction_type(cli_test_runner, monkeypatch, ap_file):
-    payloads= {}
+    payloads = {}
+
     def mockpost(*args, **kwargs):
         payloads[args] = kwargs
         return MockResponse(
@@ -213,18 +214,23 @@ def test_filter_instruction_type(cli_test_runner, monkeypatch, ap_file):
     monkeypatch.setattr(requests, "post", mockpost)
     monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
-        cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "type:provision" ]
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "op:provision"]
     )
     assert result.exit_code == 0, result.stderr
-    assert "Info: filter type:provision matches instructions at indices: 0" in result.output
-    key = (f'http://{fake_valid_URL}/testRun',)
+    assert (
+        "Info: filter op:provision matches instructions at indices: 0" in result.output
+    )
+    key = (f"http://{fake_valid_URL}/testRun",)
     assert key in payloads
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
-    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "uncover", "spin", "cover" ]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["uncover", "spin", "cover"]
+
 
 def test_filter_instruction_idx(cli_test_runner, monkeypatch, ap_file):
-    payloads= {}
+    payloads = {}
+
     def mockpost(*args, **kwargs):
         payloads[args] = kwargs
         return MockResponse(
@@ -236,17 +242,20 @@ def test_filter_instruction_idx(cli_test_runner, monkeypatch, ap_file):
     monkeypatch.setattr(requests, "post", mockpost)
     monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
-        cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1" ]
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1"]
     )
     assert result.exit_code == 0, result.stderr
-    key = (f'http://{fake_valid_URL}/testRun',)
+    key = (f"http://{fake_valid_URL}/testRun",)
     assert key in payloads
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
-    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "spin", "cover" ]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["provision", "spin", "cover"]
+
 
 def test_filter_instruction_range(cli_test_runner, monkeypatch, ap_file):
-    payloads= {}
+    payloads = {}
+
     def mockpost(*args, **kwargs):
         payloads[args] = kwargs
         return MockResponse(
@@ -258,17 +267,20 @@ def test_filter_instruction_range(cli_test_runner, monkeypatch, ap_file):
     monkeypatch.setattr(requests, "post", mockpost)
     monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
-        cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-2" ]
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-2"]
     )
     assert result.exit_code == 0, result.stderr
-    key = (f'http://{fake_valid_URL}/testRun',)
+    key = (f"http://{fake_valid_URL}/testRun",)
     assert key in payloads
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
-    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "cover" ]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["provision", "cover"]
+
 
 def test_filter_instruction_range_with_include(cli_test_runner, monkeypatch, ap_file):
-    payloads= {}
+    payloads = {}
+
     def mockpost(*args, **kwargs):
         payloads[args] = kwargs
         return MockResponse(
@@ -280,17 +292,50 @@ def test_filter_instruction_range_with_include(cli_test_runner, monkeypatch, ap_
     monkeypatch.setattr(requests, "post", mockpost)
     monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
-        cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-3", "-i", "2" ]
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-3", "-i", "2"]
     )
     assert result.exit_code == 0, result.stderr
-    key = (f'http://{fake_valid_URL}/testRun',)
+    key = (f"http://{fake_valid_URL}/testRun",)
     assert key in payloads
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
-    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "spin" ]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["provision", "spin"]
+
 
 def test_filter_instruction_human(cli_test_runner, monkeypatch, ap_file):
-    payloads= {}
+    payloads = {}
+
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli, ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "x_human:true"]
+    )
+    assert result.exit_code == 0, result.stderr
+    key = (f"http://{fake_valid_URL}/testRun",)
+    assert (
+        "Info: filter x_human:true matches instructions at indices: 0" in result.output
+    )
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["uncover", "spin", "cover"]
+
+
+def test_filter_instruction_human_exclamation_point(
+    cli_test_runner, monkeypatch, ap_file
+):
+    payloads = {}
+
     def mockpost(*args, **kwargs):
         payloads[args] = kwargs
         return MockResponse(
@@ -303,11 +348,25 @@ def test_filter_instruction_human(cli_test_runner, monkeypatch, ap_file):
     monkeypatch.setattr(requests, "get", mockget)
     result = cli_test_runner.invoke(
         cli,
-        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "human" ]
+        [
+            "exec",
+            str(ap_file),
+            "-a",
+            mock_api_endpoint(),
+            "-e",
+            "0-2",
+            "-i",
+            "x_human!:false",
+        ],
     )
     assert result.exit_code == 0, result.stderr
-    key = (f'http://{fake_valid_URL}/testRun',)
-    assert "Info: filter human matches instructions at indices: 0" in result.output
+    key = (f"http://{fake_valid_URL}/testRun",)
+    assert (
+        "Info: filter x_human!:false matches instructions at indices: 1, 2, 3"
+        in result.output
+    )
     assert key in payloads
     payload_to_testRun = payloads[key]["json"]["autoprotocol"]
-    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "uncover", "spin", "cover" ]
+    assert [
+        instruction["op"] for instruction in payload_to_testRun["instructions"]
+    ] == ["uncover", "spin", "cover"]

@@ -687,7 +687,7 @@ def format_cmd(manifest):
     "--exclude",
     "-e",
     metavar="FILTER",
-    help="Remove those instructions from the payload. e.g.: 0, 0-5, human, type:povision.",
+    help="Remove those instructions from the payload. e.g.: 0, 0-5, x_human, op:povision, x_human!:false",
     multiple=True,
 )
 @click.option(
