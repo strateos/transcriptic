@@ -12,9 +12,9 @@ from ..helpers.mockAPI import MockResponse
 def queue_test_success_res(sessionId="testSessionId"):
     return {"success": True, "sessionId": sessionId}
 
-
+fake_valid_URL = "something.bar.foo"
 def app_config_res():
-    return {"hostManifest": {"lab": {"workcell": {"url": "something.bar.foo"}}}}
+    return {"hostManifest": {"lab": {"workcell": {"url": fake_valid_URL}}}}
 
 
 def mock_api_endpoint():
@@ -24,14 +24,24 @@ def mock_api_endpoint():
 def mockget(*args, **kwargs):
     return MockResponse(0, app_config_res(), json.dumps(app_config_res()))
 
-
 @pytest.fixture
 def ap_file(tmpdir_factory):
     """Make a temp autoprotocol file"""
     path = tmpdir_factory.mktemp("foo").join("ap.json")
     with open(str(path), "w") as f:
-        f.write("{}")  # any valid json works
+        payload = {
+            "instructions": [
+                {"op": "provision"},
+                {"op": "uncover"},
+                {"op": "spin"},
+                {"op": "cover"}
+            ]
+        }
+        print("Pyalod: ")
+        print(json.dumps(payload))
+        f.write(json.dumps(payload))
     return path
+
 
 
 def test_unspecified_api(cli_test_runner, ap_file):
@@ -94,7 +104,7 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
     result = cli_test_runner.invoke(
         cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
     )
-    assert result.exit_code == 0
+    assert result.exit_code != 0
     assert "Error: " in result.stderr
 
 
@@ -160,5 +170,122 @@ def test_too_many_workcell_definition_arguments(cli_test_runner, monkeypatch, ap
         cli,
         ["exec", str(ap_file), "-a", mock_api_endpoint(), "-s", "anthing", "-w", "wc0"],
     )
-    assert result.exit_code == 0
+    assert result.exit_code != 0
     assert "Error: --workcell-id, --session-id are mutually exclusive." in result.stderr
+
+
+
+def test_invalid_filters(cli_test_runner, monkeypatch, ap_file):
+    invalid_command = [
+        "-e",
+        "10",
+        "-i",
+        "10",
+        "-e",
+        "2-1",
+        "-i",
+        "3-6",
+        "-e",
+        "anything",
+    ]
+    invalid_filters = set(filter(lambda v: not v.startswith("-"), invalid_command))
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint()]
+        + invalid_command,
+    )
+    assert result.exit_code != 0
+    assert "Error: invalid filters" in result.stderr
+    assert "(number of instructions: 4)" in result.stderr
+    for inv in invalid_filters:
+        assert inv in result.stderr
+
+def test_filter_instruction_type(cli_test_runner, monkeypatch, ap_file):
+    payloads= {}
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "type:provision" ]
+    )
+    assert result.exit_code == 0, result.stderr
+    assert "Info: filter type:provision matches instructions at indices: 0" in result.output
+    key = (f'http://{fake_valid_URL}/testRun',)
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "uncover", "spin", "cover" ]
+
+def test_filter_instruction_idx(cli_test_runner, monkeypatch, ap_file):
+    payloads= {}
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1" ]
+    )
+    assert result.exit_code == 0, result.stderr
+    key = (f'http://{fake_valid_URL}/testRun',)
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "spin", "cover" ]
+
+def test_filter_instruction_range(cli_test_runner, monkeypatch, ap_file):
+    payloads= {}
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-2" ]
+    )
+    assert result.exit_code == 0, result.stderr
+    key = (f'http://{fake_valid_URL}/testRun',)
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "cover" ]
+
+def test_filter_instruction_range_with_include(cli_test_runner, monkeypatch, ap_file):
+    payloads= {}
+    def mockpost(*args, **kwargs):
+        payloads[args] = kwargs
+        return MockResponse(
+            0,
+            queue_test_success_res(),
+            json.dumps(queue_test_success_res()),
+        )
+
+    monkeypatch.setattr(requests, "post", mockpost)
+    monkeypatch.setattr(requests, "get", mockget)
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint(), "-e", "1-3", "-i", "2" ]
+    )
+    assert result.exit_code == 0, result.stderr
+    key = (f'http://{fake_valid_URL}/testRun',)
+    assert key in payloads
+    payload_to_testRun = payloads[key]["json"]["autoprotocol"]
+    assert [ instruction["op"] for instruction in payload_to_testRun["instructions"] ] == [ "provision", "spin" ]
+
