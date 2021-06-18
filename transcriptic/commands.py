@@ -1494,8 +1494,7 @@ def validate_filter(filters, instructions):
             if s > e or number_of_instructions <= e:
                 invalid_filters.add(arg)
             else:
-                for idx in range(s, e + 1):
-                    instructions_indices.add(idx)
+                instructions_indices = instructions_indices.union(set(range(s, e + 1)))
         elif ":" in arg:
             tokens = arg.split(":")
             if len(tokens) != 2:
