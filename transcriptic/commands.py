@@ -1476,59 +1476,26 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
             return
 
 
-def validate_filter(filters, instructions):
-    instructions_indices = set()
+def validate_filter(filters, number_of_instructions):
     invalid_filters = set()
-
-    number_of_instructions = len(instructions)
 
     for arg in filters:
         if arg.isdigit():
             idx = int(arg)
-            if 0 <= idx and idx < number_of_instructions:
-                instructions_indices.add(idx)
-            else:
+            if 0 > idx or idx >= number_of_instructions:
                 invalid_filters.add(arg)
         elif re.match(r"\d+-\d+", arg):
             [s, e] = [int(v) for v in arg.split("-")]
             if s > e or number_of_instructions <= e:
                 invalid_filters.add(arg)
-            else:
-                instructions_indices = instructions_indices.union(set(range(s, e + 1)))
         elif ":" in arg:
             tokens = arg.split(":")
             if len(tokens) != 2:
                 invalid_filters.add(arg)
-                continue
-            [key, value] = tokens
-            if value in ["true", "false"]:
-                value = value == "true"
-
-            missing_is_match = False
-            if key.endswith("!"):
-                key = key[:-1]
-                missing_is_match = True
-
-            hits = []
-            for idx, instruction in enumerate(instructions):
-                if (
-                    key in instruction
-                    and instruction[key] == value
-                    or key not in instruction
-                    and missing_is_match
-                ):
-                    instructions_indices.add(idx)
-                    hits.append(str(idx))
-            if len(hits) > 0:
-                click.echo(
-                    f"Info: filter {arg} matches instructions at indices: {', '.join(hits)}"
-                )
-            else:
-                click.echo(f"Info: filter {arg} does not match instructions")
         else:
             invalid_filters.add(arg)
 
-    return (instructions_indices, invalid_filters)
+    return invalid_filters
 
 
 def execute(
@@ -1547,6 +1514,7 @@ def execute(
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
+    email,
 ):
     # Clean api end point
     if api.startswith("http://"):
@@ -1579,34 +1547,25 @@ def execute(
     # Get the autoprotocol
     try:
         autoprotocol_json = json.loads(autoprotocol.read())
+        payload["autoprotocol"] = autoprotocol_json
     except json.decoder.JSONDecodeError as err:
         click.echo(f"Error decoding autoprotocol json: {err}", err=True)
         sys.exit(1)
 
     # validate filters
-    instructions = autoprotocol_json["instructions"]
-    (exclude_indices, invalid_exclude) = validate_filter(exclude, instructions)
-    (include_indices, invalid_include) = validate_filter(include, instructions)
+    num_instructions = len(autoprotocol_json["instructions"])
+    invalid_exclude = validate_filter(exclude, num_instructions)
+    invalid_include = validate_filter(include, num_instructions)
     if len(invalid_exclude) + len(invalid_include) > 0:
         click.echo(
-            f"Error: invalid filters: {','.join(invalid_exclude.union(invalid_include))} (number of instructions: {len(instructions)})",
+            f"Error: invalid filters: {','.join(invalid_exclude.union(invalid_include))} (number of instructions: {num_instructions})",
             err=True,
         )
         sys.exit(1)
 
-    # filter the instructions
-    filtered_instructions = [
-        instruction
-        for idx, instruction in enumerate(instructions)
-        if idx in include_indices or idx not in exclude_indices
-    ]
-    if len(filtered_instructions) == 0:
-        click.echo(f"Error: all instructions have been removed.", err=True)
-        sys.exit(1)
-
-    # update the payload
-    autoprotocol_json["instructions"] = filtered_instructions
-    payload["autoprotocol"] = autoprotocol_json
+    #update the payload
+    payload['exclude'] = exclude
+    payload['include'] = include
 
     # device set resolution
     in_use = []
@@ -1688,6 +1647,10 @@ def execute(
                 f"Error when getting frontend node address: {res.text}", err=True
             )
             sys.exit(1)
+
+    # add sentBy
+    if email is not None:
+        payload["sentBy"] = email.split("@")[0]
 
     # POST to workcell
     test_run_endpoint = f"http://{frontend_node_address}/testRun"

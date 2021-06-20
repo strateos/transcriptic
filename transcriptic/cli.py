@@ -714,7 +714,9 @@ def format_cmd(manifest):
     default=None,
     help="The device id to use as a swap space when partitioning.",
 )
+@click.pass_context
 def execute(
+    ctx,
     autoprotocol,
     api,
     no_redirect,
@@ -748,4 +750,5 @@ def execute(
         partition_group_size,
         partition_horizon,
         partitioning_swap_device_id,
+        ctx.obj.api.email,
     )
