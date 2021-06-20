@@ -1563,9 +1563,9 @@ def execute(
         )
         sys.exit(1)
 
-    #update the payload
-    payload['exclude'] = exclude
-    payload['include'] = include
+    # update the payload
+    payload["exclude"] = exclude
+    payload["include"] = include
 
     # device set resolution
     in_use = []
