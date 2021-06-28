@@ -6,7 +6,7 @@ v9.4.0
 
 Added
 ~~~~~
-- New `-e/--exclude` and `-i/--include` flag to `exec`. It filters out the autoprotocol
+- New `-e/--exclude` and `-i/--include` flags to `exec`. It filters out the autoprotocol
   instructions in the backend.
 
 v9.3.1
