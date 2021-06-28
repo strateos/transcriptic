@@ -13,8 +13,11 @@ def queue_test_success_res(sessionId="testSessionId"):
     return {"success": True, "sessionId": sessionId}
 
 
+fake_valid_URL = "something.bar.foo"
+
+
 def app_config_res():
-    return {"hostManifest": {"lab": {"workcell": {"url": "something.bar.foo"}}}}
+    return {"hostManifest": {"lab": {"workcell": {"url": fake_valid_URL}}}}
 
 
 def mock_api_endpoint():
@@ -30,7 +33,15 @@ def ap_file(tmpdir_factory):
     """Make a temp autoprotocol file"""
     path = tmpdir_factory.mktemp("foo").join("ap.json")
     with open(str(path), "w") as f:
-        f.write("{}")  # any valid json works
+        payload = {
+            "instructions": [
+                {"op": "provision", "x_human": True},
+                {"op": "uncover"},
+                {"op": "spin"},
+                {"op": "cover"},
+            ]
+        }
+        f.write(json.dumps(payload))
     return path
 
 
@@ -94,7 +105,7 @@ def test_bad_api_response(cli_test_runner, monkeypatch, ap_file):
     result = cli_test_runner.invoke(
         cli, ["exec", str(ap_file), "-a", mock_api_endpoint()]
     )
-    assert result.exit_code == 0
+    assert result.exit_code != 0
     assert "Error: " in result.stderr
 
 
@@ -160,5 +171,30 @@ def test_too_many_workcell_definition_arguments(cli_test_runner, monkeypatch, ap
         cli,
         ["exec", str(ap_file), "-a", mock_api_endpoint(), "-s", "anthing", "-w", "wc0"],
     )
-    assert result.exit_code == 0
+    assert result.exit_code != 0
     assert "Error: --workcell-id, --session-id are mutually exclusive." in result.stderr
+
+
+def test_invalid_filters(cli_test_runner, monkeypatch, ap_file):
+    invalid_command = [
+        "-e",
+        "10",
+        "-i",
+        "10",
+        "-e",
+        "2-1",
+        "-i",
+        "3-6",
+        "-e",
+        "anything",
+    ]
+    invalid_filters = set(filter(lambda v: not v.startswith("-"), invalid_command))
+    result = cli_test_runner.invoke(
+        cli,
+        ["exec", str(ap_file), "-a", mock_api_endpoint()] + invalid_command,
+    )
+    assert result.exit_code != 0
+    assert "Error: invalid filters" in result.stderr
+    assert "(number of instructions: 4)" in result.stderr
+    for inv in invalid_filters:
+        assert inv in result.stderr
