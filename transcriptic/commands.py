@@ -1662,6 +1662,8 @@ def execute(
             click.echo(
                 f"Success. View {clean_api}/dashboard to see the scheduling outcome."
             )
+            if "message" in res_json:
+                click.echo(res_json["message"])
         else:
             click.echo(f"Error: {res_json['message']}", err=True)
             if "sessionId" in res_json:
