@@ -1,6 +1,15 @@
 Changelog
 =========
 
+v9.4.1
+------
+
+Added
+~~~~~
+- optional predecessor_id argument in commands.launch. If passed, will print to 
+stdout the preceding run link.
+
+
 v9.4.0
 ------
 

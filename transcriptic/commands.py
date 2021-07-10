@@ -857,6 +857,7 @@ def launch(
     pm=None,
     test=None,
     pkg=None,
+    predecessor_id=None,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -989,6 +990,8 @@ def launch(
                 payment_method_id=pm,
             )
             run_id = req_json["id"]
+            if predecessor_id:
+                print_stderr("\nPredecessor run: %s" % api.url("%s/runs/%s" % (project, predecessor_id)))
             click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
         except Exception as err:
             click.echo("\n" + str(err))
