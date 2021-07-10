@@ -991,7 +991,10 @@ def launch(
             )
             run_id = req_json["id"]
             if predecessor_id:
-                print_stderr("\nPredecessor run: %s" % api.url("%s/runs/%s" % (project, predecessor_id)))
+                print_stderr(
+                    "\nPredecessor run: %s"
+                    % api.url("%s/runs/%s" % (project, predecessor_id))
+                )
             click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
         except Exception as err:
             click.echo("\n" + str(err))
