@@ -6,8 +6,9 @@ v9.4.1
 
 Added
 ~~~~~
-- optional predecessor_id argument in commands.launch. If passed, will print to
-  stdout the preceding run link.
+- optional predecessor_id argument in commands.launch. and config.submit_launch_request
+  If passed, will populate on web.
+  
 
 v9.4.0
 ------
