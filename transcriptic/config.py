@@ -713,7 +713,7 @@ class Connection(object):
         title=None,
         test_mode=False,
         payment_method_id=None,
-        predecessor_id=None
+        predecessor_id=None,
     ):
         """Submit specified launch request"""
         payload = {

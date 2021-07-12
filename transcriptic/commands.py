@@ -988,7 +988,7 @@ def launch(
                 title=run_title,
                 test_mode=test,
                 payment_method_id=pm,
-                predecessor_id=predecessor_id
+                predecessor_id=predecessor_id,
             )
             run_id = req_json["id"]
             click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
