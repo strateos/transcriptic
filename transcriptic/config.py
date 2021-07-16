@@ -722,10 +722,9 @@ class Connection(object):
             "protocol_id": protocol_id,
             "test_mode": test_mode,
             "payment_method_id": payment_method_id,
+            "predecessor_id": predecessor_id
         }
-        if predecessor_id:
-            payload["predecessor_id"] = predecessor_id
-
+        
         data = {k: v for k, v in payload.items() if v is not None}
         return self.post(
             self.get_route("submit_launch_request", project_id=project_id),
