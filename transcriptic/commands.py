@@ -857,6 +857,7 @@ def launch(
     pm=None,
     test=None,
     pkg=None,
+    predecessor_id=None,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -987,6 +988,7 @@ def launch(
                 title=run_title,
                 test_mode=test,
                 payment_method_id=pm,
+                predecessor_id=predecessor_id,
             )
             run_id = req_json["id"]
             click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
