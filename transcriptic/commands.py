@@ -863,6 +863,7 @@ def launch(
     pm=None,
     test=None,
     pkg=None,
+    predecessor_id=None,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -993,6 +994,7 @@ def launch(
                 title=run_title,
                 test_mode=test,
                 payment_method_id=pm,
+                predecessor_id=predecessor_id,
             )
             run_id = req_json["id"]
             click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
@@ -1482,6 +1484,28 @@ def run_protocol(api, manifest, protocol, inputs, view=False, dye_test=False):
             return
 
 
+def validate_filter(filters, number_of_instructions):
+    invalid_filters = set()
+
+    for arg in filters:
+        if arg.isdigit():
+            idx = int(arg)
+            if 0 > idx or idx >= number_of_instructions:
+                invalid_filters.add(arg)
+        elif re.match(r"\d+-\d+", arg):
+            [s, e] = [int(v) for v in arg.split("-")]
+            if s > e or number_of_instructions <= e:
+                invalid_filters.add(arg)
+        elif ":" in arg:
+            tokens = arg.split(":")
+            if len(tokens) != 2:
+                invalid_filters.add(arg)
+        else:
+            invalid_filters.add(arg)
+
+    return invalid_filters
+
+
 def execute(
     autoprotocol,
     api,
@@ -1493,9 +1517,12 @@ def execute(
     schedule_at,
     schedule_delay,
     time_constraints_are_suggestion,
+    exclude,
+    include,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
+    email,
 ):
     # Clean api end point
     if api.startswith("http://"):
@@ -1516,7 +1543,7 @@ def execute(
             "Error: '--schedule-delay' and '--schedule-at' are mutually exclusive.",
             err=True,
         )
-        return
+        sys.exit(1)
 
     # Get the requested scheduling time
     if schedule_delay is not None:
@@ -1526,12 +1553,27 @@ def execute(
         payload["scheduleAt"] = schedule_at
 
     # Get the autoprotocol
-    autoprotocol_str = autoprotocol.read()
     try:
-        payload["autoprotocol"] = json.loads(autoprotocol_str)
+        autoprotocol_json = json.loads(autoprotocol.read())
+        payload["autoprotocol"] = autoprotocol_json
     except json.decoder.JSONDecodeError as err:
         click.echo(f"Error decoding autoprotocol json: {err}", err=True)
-        return
+        sys.exit(1)
+
+    # validate filters
+    num_instructions = len(autoprotocol_json["instructions"])
+    invalid_exclude = validate_filter(exclude, num_instructions)
+    invalid_include = validate_filter(include, num_instructions)
+    if len(invalid_exclude) + len(invalid_include) > 0:
+        click.echo(
+            f"Error: invalid filters: {','.join(invalid_exclude.union(invalid_include))} (number of instructions: {num_instructions})",
+            err=True,
+        )
+        sys.exit(1)
+
+    # update the payload
+    payload["exclude"] = exclude
+    payload["include"] = include
 
     # device set resolution
     in_use = []
@@ -1542,7 +1584,7 @@ def execute(
             payload["deviceSet"] = device_json
         except json.decoder.JSONDecodeError as err:
             click.echo(f"Error decoding device set json: {err}", err=True)
-            return
+            sys.exit(1)
         in_use.append("--device-set")
 
     if workcell_id:
@@ -1557,7 +1599,7 @@ def execute(
 
     if len(in_use) > 1:
         click.echo(f"Error: {', '.join(in_use)} are mutually exclusive.", err=True)
-        return
+        sys.exit(1)
 
     if len(in_use) == 0:
         payload["workcellIdForDeviceSet"] = "wctest-mcx1"
@@ -1581,9 +1623,10 @@ def execute(
         path_tokens = clean_api.split("/")
         if len(path_tokens) != 3:
             click.echo(
-                f"Invalid api target, expects base-url/facility/workcell.", err=True
+                f"Error: Invalid api target, expects base-url/facility/workcell.",
+                err=True,
             )
-            return
+            sys.exit(1)
 
         clean_api = f"http://{clean_api}"
         path_base = f"http://{path_tokens[0]}"
@@ -1601,19 +1644,25 @@ def execute(
             ):
                 frontend_node_address = res_json["hostManifest"][path_lab][
                     path_workcell
-                ]
+                ]["url"]
             else:
                 click.echo(
-                    f"Error when get frontend node address: {res_json}", err=True
+                    f"Error when getting frontend node address: {res_json}", err=True
                 )
-                return
+                sys.exit(1)
         except json.decoder.JSONDecodeError:
-            click.echo(f"Error when get frontend node address: {res.text}", err=True)
-            return
+            click.echo(
+                f"Error when getting frontend node address: {res.text}", err=True
+            )
+            sys.exit(1)
+
+    # add sentBy
+    if email is not None:
+        payload["sentBy"] = email.split("@")[0]
 
     # POST to workcell
     test_run_endpoint = f"http://{frontend_node_address}/testRun"
-    click.echo(f"Sending request to http://{frontend_node_address}")
+    click.echo(f"Sending request to {test_run_endpoint}")
     res = requests.post(test_run_endpoint, json=payload)
     try:
         res_json = json.loads(res.text)
@@ -1621,6 +1670,8 @@ def execute(
             click.echo(
                 f"Success. View {clean_api}/dashboard to see the scheduling outcome."
             )
+            if "message" in res_json:
+                click.echo(res_json["message"])
         else:
             click.echo(f"Error: {res_json['message']}", err=True)
             if "sessionId" in res_json:
@@ -1628,8 +1679,10 @@ def execute(
                     f"Dashboard can be seen at: {clean_api}/dashboard",
                     err=True,
                 )
+                sys.exit(1)
     except json.decoder.JSONDecodeError:
         click.echo(f"Error: {res.text}", err=True)
+        sys.exit(1)
 
 
 def parse_json(json_file):

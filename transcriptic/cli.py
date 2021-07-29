@@ -684,6 +684,20 @@ def format_cmd(manifest):
     is_flag=True,
 )
 @click.option(
+    "--exclude",
+    "-e",
+    metavar="FILTER",
+    help="Remove those instructions from the payload. e.g.: 0, 0-5, x_human, op:povision, x_human!:false",
+    multiple=True,
+)
+@click.option(
+    "--include",
+    "-i",
+    metavar="FILTER",
+    help="Add those instructions to the payload after the --exclude has been applied.",
+    multiple=True,
+)
+@click.option(
     "--partition-group-size",
     type=click.INT,
     default=None,
@@ -700,7 +714,9 @@ def format_cmd(manifest):
     default=None,
     help="The device id to use as a swap space when partitioning.",
 )
+@click.pass_context
 def execute(
+    ctx,
     autoprotocol,
     api,
     no_redirect,
@@ -711,6 +727,8 @@ def execute(
     schedule_at,
     schedule_delay,
     time_constraints_are_suggestion,
+    exclude,
+    include,
     partition_group_size,
     partition_horizon,
     partitioning_swap_device_id,
@@ -727,9 +745,12 @@ def execute(
         schedule_at,
         schedule_delay,
         time_constraints_are_suggestion,
+        exclude,
+        include,
         partition_group_size,
         partition_horizon,
         partitioning_swap_device_id,
+        ctx.obj.api.email,
     )
 
 

@@ -1,6 +1,30 @@
 Changelog
 =========
 
+v9.4.1
+------
+
+Added
+~~~~~
+- optional predecessor_id argument in commands.launch. and config.submit_launch_request
+  If passed, will populate on web.
+
+v9.4.0
+------
+
+Added
+~~~~~
+- New `-e/--exclude` and `-i/--include` flags to `exec`. It filters out the autoprotocol
+  instructions in the backend.
+
+v9.3.1
+------
+
+Fixed
+~~~~~
+
+- Adapt the backend url resolution with the new configuration of the frontend client.
+
 v9.3.0
 ------
 
