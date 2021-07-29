@@ -143,9 +143,13 @@ class PreviewParameters:
     preview: dict
         the combination of refs and modified_params for scientific
         application debugging
+
+    protocol_obj: dict
+        the protocol object from the manifest
+
     """
 
-    def __init__(self, api, quick_launch_params):
+    def __init__(self, api, quick_launch_params, protocol_obj):
         """
         Initialize TestParameter by providing a web generated params dict.
 
@@ -155,19 +159,56 @@ class PreviewParameters:
             web browser generated inputs for quick launch
         """
         self.api = api
+        self.protocol_obj = protocol_obj
         self.container_cache = {}
         self.selected_samples = {}
+        self.csv_templates = {}
         self.quick_launch_params = quick_launch_params
         self.preview = self.build_preview()
 
     def build_preview(self):
         """Builds preview parameters"""
-        self.modified_params = self.modify_preview_parameters()
+        self.modify_preview_parameters()
         self.refs = self.generate_refs()
         preview = defaultdict(lambda: defaultdict(dict))
         preview["preview"]["parameters"].update(self.modified_params)
         preview["preview"].update(self.refs)
         return preview
+
+    def adjust_csv_table_input_type(self):
+        """
+        Traverses the protocol object from the manifest to find any csv-table
+        input types. If it finds one it creates the headers and modifies the
+        modified_params that eventually will be the preview parameters for
+        autoprotocol testing.
+        """
+        self.traverse_protocol_obj(self.protocol_obj['inputs'])
+
+    def update_nested(self, in_dict, key, value):
+        for k, v in in_dict.items():
+            if key == k:
+                in_dict[k] = [value, v]
+            elif isinstance(v, dict):
+                self.update_nested(v, key, value)
+            elif isinstance(v, list):
+                for o in v:
+                    if isinstance(o, dict):
+                        self.update_nested(o, key, value)
+
+    def traverse_protocol_obj(self, obj, parentkey=None):
+        if isinstance(obj, dict):
+            if obj.get('type') == 'csv-table':
+                t = obj.get('template')
+                headers = {k: c  for k, c in zip(t.get('keys'), t.get('col_type'))}
+                self.update_nested(self.modified_params, parentkey, headers)
+                return obj
+            else:
+                value = {pkey: self.traverse_protocol_obj(v, pkey) for pkey, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.traverse_protocol_obj(elem, parentkey) for elem in obj]
+        else:
+            value = obj
+        return value
 
     def modify_preview_parameters(self):
         """
@@ -175,9 +216,10 @@ class PreviewParameters:
         container ids and aliquot dicts into a preview parameter container
         string for autoprotocol generation debugging.
         """
-        return self.traverse(
+        self.modified_params = self.traverse_quick_launch(
             obj=self.quick_launch_params, callback=self.create_preview_string
         )
+        self.adjust_csv_table_input_type()
 
     def generate_refs(self):
         """
@@ -212,7 +254,7 @@ class PreviewParameters:
 
         return ref_dict
 
-    def traverse(self, obj, callback=None):
+    def traverse_quick_launch(self, obj, callback=None):
         """
         Will traverse quick launch object and send value to a callback
         action method.
@@ -222,9 +264,9 @@ class PreviewParameters:
             if "containerId" and "wellIndex" in obj.keys():
                 return self.create_string_from_aliquot(value=obj)
             else:
-                value = {k: self.traverse(v, callback) for k, v in obj.items()}
+                value = {k: self.traverse_quick_launch(v, callback) for k, v in obj.items()}
         elif isinstance(obj, list):
-            return [self.traverse(elem, callback) for elem in obj]
+            return [self.traverse_quick_launch(elem, callback) for elem in obj]
         else:
             value = obj
 

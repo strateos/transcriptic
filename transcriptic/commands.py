@@ -1727,7 +1727,7 @@ def generate_preview_parameters(
         return
     # Creates web browser and generates inputs for quick_launch
     quick_launch = _get_quick_launch(api, protocol_obj, project)
-    pp = PreviewParameters(api, quick_launch["raw_inputs"])
+    pp = PreviewParameters(api, quick_launch["raw_inputs"], protocol_obj)
     # Determine where to place the generated preview parameters
     if not merge:
         if not filename:
