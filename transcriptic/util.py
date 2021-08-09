@@ -2,7 +2,7 @@ import itertools
 import json
 import re
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from os.path import abspath, dirname, join
 
 import click
@@ -184,32 +184,6 @@ class PreviewParameters:
         """
         self.traverse_protocol_obj(self.protocol_obj['inputs'])
 
-    def update_nested(self, in_dict, key, value):
-        for k, v in in_dict.items():
-            if key == k:
-                in_dict[k] = [value, v]
-            elif isinstance(v, dict):
-                self.update_nested(v, key, value)
-            elif isinstance(v, list):
-                for o in v:
-                    if isinstance(o, dict):
-                        self.update_nested(o, key, value)
-
-    def traverse_protocol_obj(self, obj, parentkey=None):
-        if isinstance(obj, dict):
-            if obj.get('type') == 'csv-table':
-                t = obj.get('template')
-                headers = {k: c  for k, c in zip(t.get('keys'), t.get('col_type'))}
-                self.update_nested(self.modified_params, parentkey, headers)
-                return obj
-            else:
-                value = {pkey: self.traverse_protocol_obj(v, pkey) for pkey, v in obj.items()}
-        elif isinstance(obj, list):
-            return [self.traverse_protocol_obj(elem, parentkey) for elem in obj]
-        else:
-            value = obj
-        return value
-
     def modify_preview_parameters(self):
         """
         This method will traverse the quick launch 'raw_inputs' and modify
@@ -329,6 +303,61 @@ class PreviewParameters:
             }
         return ref_aliquots
 
+    def update_nested(self, in_dict, key, value):
+        for k, v in in_dict.items():
+            if key == k:
+                in_dict[k] = [value, v]
+            elif isinstance(v, dict):
+                self.update_nested(v, key, value)
+            elif isinstance(v, list):
+                for o in v:
+                    if isinstance(o, dict):
+                        self.update_nested(o, key, value)
+
+    def traverse_protocol_obj(self, obj, parentkey=None):
+        if isinstance(obj, dict):
+            if obj.get('type') == 'csv-table':
+                t = obj.get('template')
+                headers = {k: c  for k, c in zip(t.get('keys'), t.get('col_type'))}
+                self.update_nested(self.modified_params, parentkey, headers)
+                return obj
+            else:
+                value = {pkey: self.traverse_protocol_obj(v, pkey) for pkey, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.traverse_protocol_obj(elem, parentkey) for elem in obj]
+        else:
+            value = obj
+        return value
+
+    def merge(self, manifest):
+        # Get selected protocol
+        selected_protocol = next(
+            p for p in manifest["protocols"] if p["name"] == self.protocol_obj.get('name')
+        )
+
+        # Get the index of the protocol in the protocols list
+        protocol_idx = manifest["protocols"].index(selected_protocol)
+        updated_protocol = OrderedDict()
+        # Ensure that the merged protocol object has the same key order
+        updated_protocol["name"] = self.protocol_obj["name"]
+        updated_protocol["display_name"] = self.protocol_obj["display_name"]
+        updated_protocol["categories"] = self.protocol_obj.get("categories", [])
+        updated_protocol["description"] = self.protocol_obj["description"]
+        updated_protocol["version"] = self.protocol_obj["version"]
+        updated_protocol["command_string"] = self.protocol_obj["command_string"]
+        updated_protocol["inputs"] = self.protocol_obj["inputs"]
+        updated_protocol["preview"] = self.preview.get('preview')
+
+        # Place modified protocol in the appropriate index
+        manifest["protocols"][protocol_idx] = updated_protocol
+
+        # Ensure that manifest has correct order
+        self.merged_manifest = OrderedDict()
+        self.merged_manifest["format"] = "python"
+        self.merged_manifest["license"] = "MIT"
+        self.merged_manifest["protocols"] = manifest["protocols"]
+
     @classmethod
     def format_container_name(cls, container):
         return container.get("label").replace(" ", "_")
+

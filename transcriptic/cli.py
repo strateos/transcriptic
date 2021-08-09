@@ -565,6 +565,14 @@ def compile_cmd(protocol_name, args):
     required=False,
     help="Package ID for discriminating between protocols with identical names",
 )
+@click.option(
+    "--save_preview",
+    "-sp",
+    is_flag=True,
+    required=False,
+    help="Will NOT submit a Run if given as option! Save the protocol preview parameters and refs selected as input and merge into local "
+         "manifest.json. This is useful for debugging a protocol.",
+)
 @click.pass_context
 def launch_cmd(
     ctx,
@@ -578,6 +586,7 @@ def launch_cmd(
     pm=None,
     test=None,
     pkg=None,
+    save_preview=False,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -594,6 +603,7 @@ def launch_cmd(
         pm=None,
         test=None,
         pkg=None,
+        save_preview=save_preview
     )
 
 
@@ -754,49 +764,3 @@ def execute(
     )
 
 
-@cli.command("preview-params")
-@click.argument("protocol")
-@click.option(
-    "--project",
-    "-p",
-    metavar="PROJECT_ID",
-    required=True,
-    help="Project id or name context for configuring the protocol. Use "
-    "`transcriptic projects` command to list existing projects.",
-)
-@click.option(
-    "--local",
-    is_flag=True,
-    required=False,
-    help="If include, the specified protocol will launch a from the local manifest file.",
-)
-@click.option(
-    "--filename",
-    "-f",
-    metavar="FILE",
-    is_flag=True,
-    required=False,
-    help="If specified, will output generated preview params to file with "
-    'specified filename. The default will be "preview_parameters.json".',
-)
-@click.option(
-    "--merge",
-    "-m",
-    is_flag=True,
-    required=False,
-    help="If specified, will merge the preview parameters generated into manifest used.",
-)
-@click.option(
-    "--pkg",
-    metavar="PACKAGE_ID",
-    required=False,
-    help="Package ID for discriminating between protocols with identical names",
-)
-@click.pass_context
-def generate_preview_parameters_cmd(
-    ctx, protocol, project, local, filename, merge, pkg=None
-):
-    api = ctx.obj.api
-    commands.generate_preview_parameters(
-        api, protocol, project, local, filename, merge, pkg=None
-    )
