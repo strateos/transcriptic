@@ -37,7 +37,7 @@ test_deps = [
     "pytest>=5.4, <6",
     "pytest-cov>=2, <3",
     "tox>=3.15, <4",
-    "responses>=0.13.4"
+    "responses>=0.13.4",
 ]
 
 doc_deps = [
@@ -77,7 +77,7 @@ setup(
         "pycryptodome==3.9.6",
         "python-magic>=0.4,<1",
         "Jinja2>=2.0,<3",
-        "responses>=0.13.4"
+        "responses>=0.13.4",
     ],
     extras_require={
         "jupyter": jupyter_deps,

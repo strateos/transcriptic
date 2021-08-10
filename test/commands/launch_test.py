@@ -1,5 +1,7 @@
 import pytest
 
+import responses
+
 from transcriptic import commands
 
 from transcriptic.util import PreviewParameters
