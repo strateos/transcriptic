@@ -942,12 +942,9 @@ def launch(
         pp = PreviewParameters(api, params["parameters"], protocol_obj)
         # Read manifest.json and write updated manifest to working dir
         try:
-            with click.open_file("manifest.json", "r+") as f:
-                manifest = f.read()
-                f.seek(0)
-                pp.merge(json.loads(manifest))
+            pp.merge(load_manifest())
+            with click.open_file("manifest.json", "w") as f:
                 f.write(json.dumps(pp.merged_manifest, indent=2))
-                f.truncate()
                 f.close()
         except Exception as e:
             print_stderr(
