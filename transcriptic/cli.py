@@ -218,7 +218,7 @@ def submit_cmd(ctx, file, project, title=None, test=None, pm=None):
 @click.option("--name", "-n", help="Optional name for your zip file")
 @click.pass_context
 def release_cmd(ctx, name=None, package=None):
-    """ Compress the contents of the current directory to upload as a release.  """
+    """Compress the contents of the current directory to upload as a release."""
     api = ctx.obj.api
     commands.release(api, name=name, package=package)
 

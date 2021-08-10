@@ -1,10 +1,7 @@
-import json
-
 import pytest
 
-import responses
-
 from transcriptic import commands
+
 from transcriptic.util import PreviewParameters
 
 
@@ -14,38 +11,13 @@ class TestLaunch:
           uses monkeypatching to mock out those functions.
     """
 
-    project_id = "pr123"
-
-    @pytest.fixture
-    def valid_json_file(self, tmpdir):
-        path = tmpdir.mkdir("foo").join("valid-input.json")
-        path.write(json.dumps({"refs": {}, "instructions": []}))
-        yield path
-
-    @pytest.fixture
-    def valid_manifest_file(self, tmpdir):
-        path = tmpdir.join("manifest.json")
-        path.write(
-            json.dumps(
-                {
-                    "format": "python",
-                    "license": "MIT",
-                    "protocols": [
-                        {
-                            "name": "protocolname",
-                            "display_name": "displayname",
-                            "categories": [],
-                            "description": "desc",
-                            "version": "1.0.0",
-                            "command_string": "python3 -m protocol.main",
-                            "inputs": {},
-                            "preview": {"parameters": {}, "refs": {}},
-                        }
-                    ],
-                }
-            )
-        )
-        yield path
+    project_id = "p123"
+    launch_request_id = "lr123"
+    quick_launch_id = "quick123"
+    protocolname = "protocolname"
+    title = "launch_title"
+    run_id = "r123"
+    mock_baseurl = "http://mock-api/mock"
 
     @pytest.fixture(scope="function")
     def simple_manifest(self, simple_protocol):
@@ -54,7 +26,7 @@ class TestLaunch:
     @pytest.fixture(scope="function")
     def simple_protocol(self):
         yield {
-            "name": "protocolname",
+            "name": self.protocolname,
             "display_name": "displayname",
             "categories": [],
             "description": "desc",
@@ -88,29 +60,9 @@ class TestLaunch:
     def load_protocol(self, simple_protocol):
         return lambda manifest, protocol_name: simple_protocol
 
-    def test_invalid_pm(self, monkeypatch, test_connection):
-        monkeypatch.setattr(commands, "is_valid_payment_method", lambda api, pm: False)
-
-        with pytest.raises(RuntimeError) as error:
-            commands.submit(test_connection, "some file", "some project", pm="invalid")
-
-        assert f"{error.value}" == (
-            "Payment method is invalid. Please specify a payment "
-            "method from `transcriptic payments` or not specify the "
-            "`--payment` flag to use the default payment method."
-        )
-
-    def test_invalid_project(self, monkeypatch, test_connection):
-        monkeypatch.setattr(commands, "get_project_id", lambda api, project: False)
-
-        with pytest.raises(RuntimeError) as error:
-            commands.submit(test_connection, "some file", "invalid_project")
-
-        assert f"{error.value}" == "Invalid project invalid_project specified"
-
     @pytest.fixture(scope="function")
     def format_url(self):
-        return lambda path: f"http://mock-api/mock/p123/runs/r123"
+        return lambda path: f"{self.mock_baseurl}/{self.project_id}/runs/{self.run_id}"
 
     @pytest.fixture(scope="function")
     def _get_quick_launch(self):
@@ -121,7 +73,7 @@ class TestLaunch:
     @pytest.fixture(scope="function")
     def _get_launch_request(self):
         return lambda api, params, protocol_obj, test: [
-            "lr123",
+            self.launch_request_id,
             {"generation_errors": []},
         ]
 
@@ -152,29 +104,29 @@ class TestLaunch:
             test_connection.get_route(
                 "create_quick_launch", project_id=self.project_id
             ),
-            json={"id": "quick123"},
+            json={"id": self.quick_launch_id},
         )
         responses.add(
             responses.POST,
             test_connection.get_route(
                 "resolve_quick_launch_inputs",
                 project_id=self.project_id,
-                quick_launch_id="quick123",
+                quick_launch_id=self.quick_launch_id,
             ),
             json={"inputs": {"parameters": {}, "refs": {}}},
         )
-        actual = commands.launch(
+        # Test that it will run without error since the autoprotocol generated
+        # gets dumped out in the terminal and not returned
+        commands.launch(
             test_connection,
-            protocol="protocolname",
+            protocol=self.protocolname,
             project=self.project_id,
-            title="launch_title",
+            title=self.title,
             save_input=False,
             local=local,
             accept_quote=True,
             params=None,
         )
-        expected = "http://mock-api/mock/p123/runs/r123"
-        assert actual == expected
 
     @responses.activate
     def test_not_local(
@@ -186,7 +138,9 @@ class TestLaunch:
         format_url,
         local=False,
     ):
-        monkeypatch.setattr(commands, "get_project_id", lambda api, project: "p123")
+        monkeypatch.setattr(
+            commands, "get_project_id", lambda api, project: self.project_id
+        )
         monkeypatch.setattr(commands, "_get_launch_request", _get_launch_request)
         monkeypatch.setattr(commands, "_get_quick_launch", _get_quick_launch)
         monkeypatch.setattr(test_connection, "url", format_url)
@@ -197,7 +151,7 @@ class TestLaunch:
             json=[
                 {
                     "id": "protocol123",
-                    "name": "protocolname",
+                    "name": self.protocolname,
                     "created_at": "today",
                     "package_name": "pkgname",
                     "package_id": "pkg123",
@@ -218,25 +172,25 @@ class TestLaunch:
             responses.POST,
             test_connection.get_route(
                 "submit_launch_request",
-                launch_request_id="lr123",
-                project_id="p123",
+                launch_request_id=self.launch_request_id,
+                project_id=self.project_id,
                 protocol_id="protocol123",
-                title="launch_title",
+                title=self.title,
             ),
-            json={"id": "r123"},
+            json={"id": f"{self.run_id}"},
         )
 
         actual = commands.launch(
             test_connection,
-            protocol="protocolname",
-            project="p123",
-            title="launch_title",
+            protocol=self.protocolname,
+            project=self.project_id,
+            title=self.title,
             save_input=False,
             local=local,
             accept_quote=True,
             params=None,
         )
-        expected = "http://mock-api/mock/p123/runs/r123"
+        expected = f"{self.mock_baseurl}/{self.project_id}/runs/{self.run_id}"
         assert actual == expected
 
     @responses.activate
@@ -249,14 +203,13 @@ class TestLaunch:
         _get_launch_request,
         _get_quick_launch,
         format_url,
-        valid_manifest_file,
     ):
         monkeypatch.setattr(commands, "load_manifest", load_manifest)
         monkeypatch.setattr(commands, "load_protocol", load_protocol)
         monkeypatch.setattr(commands, "_get_quick_launch", _get_quick_launch)
         manifest = commands.load_manifest()
         protocol_obj = commands.load_protocol(
-            manifest=manifest, protocol_name="protocolname"
+            manifest=manifest, protocol_name=self.protocolname
         )
         quick_launch = commands._get_quick_launch(
             test_connection, protocol_obj, self.project_id
@@ -264,9 +217,14 @@ class TestLaunch:
         params = dict(parameters=quick_launch["raw_inputs"])
         pp = PreviewParameters(test_connection, params["parameters"], protocol_obj)
 
+        # Assert that the PreviewParameters.preview does not match current manfest object
         assert manifest["protocols"][0].get("preview") == protocol_obj.get("preview")
         assert manifest["protocols"][0].get("preview") != pp.preview.get("preview")
+
+        # Merge PreviewParameters.preview into a copy of the manifest
         pp.merge(manifest)
+
+        # Assert that the merge placed the PreviewParameters.preview into the merged_manifest
         assert pp.merged_manifest["protocols"][0].get("preview") != protocol_obj.get(
             "preview"
         )

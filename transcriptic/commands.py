@@ -30,8 +30,13 @@ from transcriptic import routes
 from transcriptic.auth import StrateosSign
 from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
-from transcriptic.util import (PreviewParameters, ascii_encode, flatmap,
-                               iter_json, makedirs,)
+from transcriptic.util import (
+    PreviewParameters,
+    ascii_encode,
+    flatmap,
+    iter_json,
+    makedirs,
+)
 
 
 def submit(
