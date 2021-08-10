@@ -25,7 +25,6 @@ import requests
 
 from click.exceptions import BadParameter
 from jinja2 import Environment, PackageLoader
-
 from transcriptic import routes
 from transcriptic.auth import StrateosSign
 from transcriptic.config import AnalysisException, Connection

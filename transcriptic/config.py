@@ -8,7 +8,6 @@ import warnings
 import zipfile
 
 import requests
-
 import transcriptic
 
 from Crypto.PublicKey import RSA
