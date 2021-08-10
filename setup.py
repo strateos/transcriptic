@@ -37,6 +37,7 @@ test_deps = [
     "pytest>=5.4, <6",
     "pytest-cov>=2, <3",
     "tox>=3.15, <4",
+    "responses>=0.13.4"
 ]
 
 doc_deps = [
