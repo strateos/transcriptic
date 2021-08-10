@@ -570,8 +570,8 @@ def compile_cmd(protocol_name, args):
     "-sp",
     is_flag=True,
     required=False,
-    help="Will NOT submit a Run if given as option! Save the protocol preview parameters and refs selected as input and merge into local "
-         "manifest.json. This is useful for debugging a protocol.",
+    help="Save the protocol preview parameters and refs selected as input and merge into local "
+    "manifest.json. This is useful for debugging a protocol.",
 )
 @click.pass_context
 def launch_cmd(
@@ -603,7 +603,7 @@ def launch_cmd(
         pm=None,
         test=None,
         pkg=None,
-        save_preview=save_preview
+        save_preview=save_preview,
     )
 
 
@@ -762,5 +762,3 @@ def execute(
         partitioning_swap_device_id,
         ctx.obj.api.email,
     )
-
-

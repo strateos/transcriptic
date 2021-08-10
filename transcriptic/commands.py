@@ -25,17 +25,13 @@ import requests
 
 from click.exceptions import BadParameter
 from jinja2 import Environment, PackageLoader
+
 from transcriptic import routes
 from transcriptic.auth import StrateosSign
 from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
-from transcriptic.util import (
-    PreviewParameters,
-    ascii_encode,
-    flatmap,
-    iter_json,
-    makedirs,
-)
+from transcriptic.util import (PreviewParameters, ascii_encode, flatmap,
+                               iter_json, makedirs,)
 
 
 def submit(
@@ -852,19 +848,19 @@ def compile(protocol_name, args):
 
 
 def launch(
-    api,
-    protocol,
-    project,
-    title,
-    save_input,
-    local,
-    accept_quote,
-    params,
-    pm=None,
-    test=None,
-    pkg=None,
-    predecessor_id=None,
-    save_preview=None
+    api: Connection,
+    protocol: str,
+    project: str,
+    title: str,
+    save_input: bool,
+    local: bool,
+    accept_quote: bool,
+    params: str,
+    pm: str = None,
+    test: bool = None,
+    pkg: str = None,
+    predecessor_id: str = None,
+    save_preview: bool = False,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -880,7 +876,8 @@ def launch(
     # Project is required for quick launch
     if not project:
         click.echo(
-            "Project field is required if parameters file is not specified and is required for Run submission.")
+            "Project field is required if parameters file is not specified and is required for Run submission."
+        )
         return
     else:
         project = get_project_id(api, project)
@@ -889,9 +886,12 @@ def launch(
 
     # Load protocol from local file if not remote and load from listed protocols otherwise
     if not local:
-        print_stderr(f"Searching for {protocol} in organization {api.organization_id}...")
+        print_stderr(
+            f"Searching for {protocol} in organization {api.organization_id}..."
+        )
         matched_protocols = [
-            p for p in api.get_protocols()
+            p
+            for p in api.get_protocols()
             if (p["name"] == protocol and (pkg is None or p["package_id"] == pkg))
         ]
 
@@ -935,7 +935,7 @@ def launch(
             print_stderr("\nUnable to save inputs: %s" % str(e))
 
     if save_preview:
-        pp = PreviewParameters(api, params['parameters'], protocol_obj)
+        pp = PreviewParameters(api, params["parameters"], protocol_obj)
         # Read manifest.json and write updated manifest to working dir
         try:
             with click.open_file("manifest.json", "r+") as f:
@@ -994,7 +994,9 @@ def launch(
                 predecessor_id=predecessor_id,
             )
             run_id = req_json["id"]
-            click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
+            formatted_url = api.url(f"{project}/runs/{run_id}")
+            click.echo(f"\nRun created: {formatted_url}")
+            return formatted_url
         except Exception as err:
             click.echo("\n" + str(err))
     else:

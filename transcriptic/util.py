@@ -2,7 +2,7 @@ import itertools
 import json
 import re
 
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from os.path import abspath, dirname, join
 
 import click
@@ -182,7 +182,7 @@ class PreviewParameters:
         modified_params that eventually will be the preview parameters for
         autoprotocol testing.
         """
-        self.traverse_protocol_obj(self.protocol_obj['inputs'])
+        self.traverse_protocol_obj(self.protocol_obj["inputs"])
 
     def modify_preview_parameters(self):
         """
@@ -238,7 +238,9 @@ class PreviewParameters:
             if "containerId" and "wellIndex" in obj.keys():
                 return self.create_string_from_aliquot(value=obj)
             else:
-                value = {k: self.traverse_quick_launch(v, callback) for k, v in obj.items()}
+                value = {
+                    k: self.traverse_quick_launch(v, callback) for k, v in obj.items()
+                }
         elif isinstance(obj, list):
             return [self.traverse_quick_launch(elem, callback) for elem in obj]
         else:
@@ -316,13 +318,15 @@ class PreviewParameters:
 
     def traverse_protocol_obj(self, obj, parentkey=None):
         if isinstance(obj, dict):
-            if obj.get('type') == 'csv-table':
-                t = obj.get('template')
-                headers = {k: c  for k, c in zip(t.get('keys'), t.get('col_type'))}
+            if obj.get("type") == "csv-table":
+                t = obj.get("template")
+                headers = {k: c for k, c in zip(t.get("keys"), t.get("col_type"))}
                 self.update_nested(self.modified_params, parentkey, headers)
                 return obj
             else:
-                value = {pkey: self.traverse_protocol_obj(v, pkey) for pkey, v in obj.items()}
+                value = {
+                    pkey: self.traverse_protocol_obj(v, pkey) for pkey, v in obj.items()
+                }
         elif isinstance(obj, list):
             return [self.traverse_protocol_obj(elem, parentkey) for elem in obj]
         else:
@@ -332,7 +336,9 @@ class PreviewParameters:
     def merge(self, manifest):
         # Get selected protocol
         selected_protocol = next(
-            p for p in manifest["protocols"] if p["name"] == self.protocol_obj.get('name')
+            p
+            for p in manifest["protocols"]
+            if p["name"] == self.protocol_obj.get("name")
         )
 
         # Get the index of the protocol in the protocols list
@@ -346,7 +352,7 @@ class PreviewParameters:
         updated_protocol["version"] = self.protocol_obj["version"]
         updated_protocol["command_string"] = self.protocol_obj["command_string"]
         updated_protocol["inputs"] = self.protocol_obj["inputs"]
-        updated_protocol["preview"] = self.preview.get('preview')
+        updated_protocol["preview"] = self.preview.get("preview")
 
         # Place modified protocol in the appropriate index
         manifest["protocols"][protocol_idx] = updated_protocol
@@ -360,4 +366,3 @@ class PreviewParameters:
     @classmethod
     def format_container_name(cls, container):
         return container.get("label").replace(" ", "_")
-
