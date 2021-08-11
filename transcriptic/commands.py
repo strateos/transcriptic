@@ -29,7 +29,13 @@ from transcriptic import routes
 from transcriptic.auth import StrateosSign
 from transcriptic.config import AnalysisException, Connection
 from transcriptic.english import AutoprotocolParser
-from transcriptic.util import ascii_encode, flatmap, iter_json, makedirs
+from transcriptic.util import (
+    PreviewParameters,
+    ascii_encode,
+    flatmap,
+    iter_json,
+    makedirs,
+)
 
 
 def submit(
@@ -846,18 +852,19 @@ def compile(protocol_name, args):
 
 
 def launch(
-    api,
-    protocol,
-    project,
-    title,
-    save_input,
-    local,
-    accept_quote,
-    params,
-    pm=None,
-    test=None,
-    pkg=None,
-    predecessor_id=None,
+    api: Connection,
+    protocol: str,
+    project: str,
+    title: str,
+    save_input: bool,
+    local: bool,
+    accept_quote: bool,
+    params: str,
+    pm: str = None,
+    test: bool = None,
+    pkg: str = None,
+    predecessor_id: str = None,
+    save_preview: bool = False,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -869,16 +876,26 @@ def launch(
             "`--payment` flag to use the default payment method."
         )
         return
-    # Load protocol from local file if not remote and load from listed protocols otherwise
-    if local:
-        manifest, protocol_obj = load_manifest_and_protocol(protocol)
-    else:
-        print_stderr(f"Searching for {protocol}...")
-        protocol_list = api.get_protocols()
 
+    # Project is required for quick launch
+    if not project:
+        click.echo(
+            "Project field is required if parameters file is not specified and is required for Run submission."
+        )
+        return
+    else:
+        project = get_project_id(api, project)
+        if not project:
+            return
+
+    # Load protocol from local file if not remote and load from listed protocols otherwise
+    if not local:
+        print_stderr(
+            f"Searching for {protocol} in organization {api.organization_id}..."
+        )
         matched_protocols = [
             p
-            for p in protocol_list
+            for p in api.get_protocols()
             if (p["name"] == protocol and (pkg is None or p["package_id"] == pkg))
         ]
 
@@ -894,53 +911,48 @@ def launch(
         else:
             print_stderr("Protocol found.")
         protocol_obj = matched_protocols[0]
+    else:
+        manifest, protocol_obj = load_manifest_and_protocol(protocol)
 
-    # If parameters are not specified, use quick launch to get inputs
+    # For remote execution, use input params file if specified, else use quick_launch inputs
     if not params:
-        # Project is required for quick launch
-        if not project:
-            click.echo("Project field is required if parameters file is not specified.")
-            return
-        project = get_project_id(api, project)
-        if not project:
-            return
-
+        # If parameters are not specified, use quick launch to get inputs
         # Creates web browser and generates inputs for quick_launch
         quick_launch = _get_quick_launch(api, protocol_obj, project)
+        params = dict(parameters=quick_launch["raw_inputs"])
+    else:
+        try:
+            params = json.loads(params.read())
+        except ValueError:
+            print_stderr(
+                "Unable to load parameters given. "
+                "File is probably incorrectly formatted."
+            )
+            return
 
-        # Save the protocol input locally if the user specified the save_input option
-        if save_input:
-            try:
-                with click.open_file(save_input, "w") as f:
-                    f.write(
-                        json.dumps(
-                            dict(parameters=quick_launch["raw_inputs"]), indent=2
-                        )
-                    )
-            except Exception as e:
-                print_stderr("\nUnable to save inputs: %s" % str(e))
+    # Save parameters to file if specified
+    if save_input:
+        try:
+            with click.open_file(save_input, "w") as f:
+                f.write(json.dumps(params, indent=2))
+        except Exception as e:
+            print_stderr("\nUnable to save inputs: %s" % str(e))
+
+    if save_preview:
+        pp = PreviewParameters(api, params["parameters"], protocol_obj)
+        # Read manifest.json and write updated manifest to working dir
+        try:
+            pp.merge(load_manifest())
+            with click.open_file("manifest.json", "w") as f:
+                f.write(json.dumps(pp.merged_manifest, indent=2))
+                f.close()
+        except Exception as e:
+            print_stderr(
+                f"\nUnable to save preview inputs due to not being"
+                f" able to process: {type(e)} {str(e)}"
+            )
 
     if not local:
-        # For remote execution, use input params file if specified, else use quick_launch inputs
-        if not params:
-            params = dict(parameters=quick_launch["raw_inputs"])
-            # Save parameters to file if specified
-            if save_input:
-                try:
-                    with click.open_file(save_input, "w") as f:
-                        f.write(json.dumps(params, indent=2))
-                except Exception as e:
-                    print_stderr("\nUnable to save inputs: %s" % str(e))
-        else:
-            try:
-                params = json.loads(params.read())
-            except ValueError:
-                print_stderr(
-                    "Unable to load parameters given. "
-                    "File is probably incorrectly formatted."
-                )
-                return
-
         req_id, launch_protocol = _get_launch_request(api, params, protocol_obj, test)
 
         # Check for generation errors
@@ -965,14 +977,6 @@ def launch(
             if not confirmed:
                 return
 
-        # Project is required for run submission
-        if not project:
-            click.echo("\nProject field is required for run submission.")
-            return
-        project = get_project_id(api, project)
-        if not project:
-            return
-
         from time import gmtime, strftime
 
         if title:
@@ -991,7 +995,9 @@ def launch(
                 predecessor_id=predecessor_id,
             )
             run_id = req_json["id"]
-            click.echo("\nRun created: %s" % api.url("%s/runs/%s" % (project, run_id)))
+            formatted_url = api.url(f"{project}/runs/{run_id}")
+            click.echo(f"\nRun created: {formatted_url}")
+            return formatted_url
         except Exception as err:
             click.echo("\n" + str(err))
     else:
@@ -1009,16 +1015,9 @@ def launch(
             In order to generate these `inputs`, we can create a new quick
             launch
             """
-            try:
-                params = json.loads(params.read())
-                # This is the input format required by resolve_inputs
-                formatted_inputs = dict(inputs=params["parameters"])
-            except ValueError:
-                print_stderr(
-                    "Unable to load parameters given. "
-                    "File is probably incorrectly formatted."
-                )
-                return
+            # This is the input format required by resolve_inputs
+            formatted_inputs = dict(inputs=params["parameters"])
+
             quick_launch = api.create_quick_launch(
                 data=json.dumps({"manifest": protocol_obj}), project_id=project
             )

@@ -218,7 +218,7 @@ def submit_cmd(ctx, file, project, title=None, test=None, pm=None):
 @click.option("--name", "-n", help="Optional name for your zip file")
 @click.pass_context
 def release_cmd(ctx, name=None, package=None):
-    """ Compress the contents of the current directory to upload as a release.  """
+    """Compress the contents of the current directory to upload as a release."""
     api = ctx.obj.api
     commands.release(api, name=name, package=package)
 
@@ -565,6 +565,14 @@ def compile_cmd(protocol_name, args):
     required=False,
     help="Package ID for discriminating between protocols with identical names",
 )
+@click.option(
+    "--save_preview",
+    "-sp",
+    is_flag=True,
+    required=False,
+    help="Save the protocol preview parameters and refs selected as input and merge into local "
+    "manifest.json. This is useful for debugging a protocol.",
+)
 @click.pass_context
 def launch_cmd(
     ctx,
@@ -578,6 +586,7 @@ def launch_cmd(
     pm=None,
     test=None,
     pkg=None,
+    save_preview=False,
 ):
     """Configure and launch a protocol either using the local manifest file or remotely.
     If no parameters are specified, uses the webapp to select the inputs."""
@@ -594,6 +603,7 @@ def launch_cmd(
         pm=None,
         test=None,
         pkg=None,
+        save_preview=save_preview,
     )
 
 
