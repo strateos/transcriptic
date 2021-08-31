@@ -961,6 +961,21 @@ def launch(
         if len(generation_errs) > 0:
             for errors in generation_errs:
                 click.echo("\n\n" + str(errors["message"]))
+                if errors.get("info"):
+                    errors_info = errors.get("info")
+                    indexes = [
+                        idx
+                        for idx in range(len(errors_info))
+                        if errors_info.startswith("Error", idx)
+                        or errors_info.startswith("error", idx)
+                    ]
+                    # 100 length should give enough information
+                    errors_info_msgs = [
+                        str(errors_info[idx : idx + 100]) for idx in indexes
+                    ]
+                    for info_msg in errors_info_msgs:
+                        click.echo("\n" + info_msg)
+
             click.echo("\nPlease fix the above errors and try again.")
             return
 
