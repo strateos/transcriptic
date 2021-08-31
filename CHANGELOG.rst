@@ -1,5 +1,11 @@
 Changelog
 =========
+v9.4.2
+------
+
+Added
+~~~~~
+- Stdout the detail error_info of the `generation_errors` in the launch request.
 
 v9.4.1
 ------
