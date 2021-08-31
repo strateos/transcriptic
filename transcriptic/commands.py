@@ -963,10 +963,18 @@ def launch(
                 click.echo("\n\n" + str(errors["message"]))
                 if errors.get("info"):
                     errors_info = errors.get("info")
-                    index = errors_info.find("Error") or errors_info.find("error")
+                    indexes = [
+                        idx
+                        for idx in range(len(errors_info))
+                        if errors_info.startswith("Error", idx)
+                        or errors_info.startswith("error", idx)
+                    ]
                     # 100 length should give enough information
-                    errors_info_msg = str(errors_info[index : index + 100])
-                    click.echo("\n" + errors_info_msg)
+                    errors_info_msgs = [
+                        str(errors_info[idx : idx + 100]) for idx in indexes
+                    ]
+                    for info_msg in errors_info_msgs:
+                        click.echo("\n" + info_msg)
 
             click.echo("\nPlease fix the above errors and try again.")
             return
