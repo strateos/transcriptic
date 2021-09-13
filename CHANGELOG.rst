@@ -1,5 +1,13 @@
 Changelog
 =========
+
+Unreleased
+----------
+
+Fixed
+-----
+- upgraded base docker image to 3.7 to fix nbgitpuller error
+
 v9.4.2
 ------
 
