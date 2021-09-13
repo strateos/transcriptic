@@ -30,7 +30,7 @@ ENV PYTHON_EGG_CACHE /python_eggs
 
 # Install Jupyter, nbgitpuller for separate notebook/environment
 RUN pip install --no-cache-dir notebook==5.* && \
-    pip install nbgitpuller
+    pip install nbgitpuller==1.*
 
 # Install TxPy
 RUN pip install 'transcriptic[jupyter, analysis]'
