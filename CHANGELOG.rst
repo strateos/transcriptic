@@ -1,5 +1,12 @@
 Changelog
 =========
+v9.4.3
+------
+
+Updated
+~~~~~
+- Jinja2 version >=3.0 to be compatible with the data-processor-service.
+
 v9.4.2
 ------
 
