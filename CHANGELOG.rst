@@ -1,7 +1,7 @@
 Changelog
 =========
-Unreleased
-----------
+v9.5.0
+------
 
 Updated
 ~~~~~~~
