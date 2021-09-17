@@ -1,8 +1,11 @@
 Changelog
 =========
-
 Unreleased
 ----------
+
+Updated
+~~~~~~~
+- Jinja2 version >=3.0 to be compatible with the data-processor-service.
 
 Fixed
 -----
