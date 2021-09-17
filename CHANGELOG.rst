@@ -1,11 +1,15 @@
 Changelog
 =========
-v9.5.0
-------
+Unreleased
+----------
 
 Updated
 ~~~~~~~
 - Jinja2 version >=3.0 to be compatible with the data-processor-service.
+
+Fixed
+-----
+- upgraded base docker image to 3.7 to fix nbgitpuller error
 
 v9.4.2
 ------
