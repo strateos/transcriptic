@@ -76,7 +76,7 @@ setup(
         "requests>=2.0,<3",
         "pycryptodome==3.9.6",
         "python-magic>=0.4,<1",
-        "Jinja2>=3.0",
+        "Jinja2>=3.0,<4",
         "responses>=0.13.4",
     ],
     extras_require={
