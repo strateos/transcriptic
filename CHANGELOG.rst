@@ -1,5 +1,17 @@
 Changelog
 =========
+
+Unreleased
+----------
+
+Added
+~~~~~
+- Python 3.9 support
+
+Updated
+~~~~~~~
+- Pandas version to >=1, <2 to support Python 3.9
+
 v9.5.0
 ------
 
