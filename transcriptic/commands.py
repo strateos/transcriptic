@@ -10,6 +10,7 @@ the caller (e.g. CLI). We should move towards the latter pattern.
 import json
 import locale
 import os
+import random
 import re
 import sys
 import time
@@ -1013,6 +1014,7 @@ def launch(
             )
             run_id = req_json["id"]
             formatted_url = api.url(f"{project}/runs/{run_id}")
+            click.echo(f"\nLR id: {req_id}")
             click.echo(f"\nRun created: {formatted_url}")
             return formatted_url
         except Exception as err:
@@ -1064,6 +1066,38 @@ def select_org(api, config, organization=None):
     api.organization_id = organization
     api.save(config)
     click.echo(f"Logged in with organization: {organization}")
+
+
+def env(
+    api,
+    config,
+    organization=None,
+    env=None,
+):
+    env_root = env_prompt(env)
+    api.api_root = env_root
+    api.save(config)
+
+    click.echo('\n')
+
+    try:
+        org_list = [
+            {"name": org["name"], "subdomain": org["subdomain"]}
+            for org in api.organizations()
+        ]
+        if organization is None:
+            organization = org_prompt(org_list)
+    except:
+        organization = api.organization_id
+
+    r = api.get_organization(org_id=organization)
+    if r.status_code != 200:
+        click.echo(f"Error accessing organization: {r.text}")
+        sys.exit(1)
+
+    api.organization_id = organization
+    api.save(config)
+    click.echo(f"Logged in with organization: {env_root}/{organization}")
 
 
 def login(api, config, api_root=None, analytics=True, rsa_key=None):
@@ -1316,6 +1350,64 @@ def _get_quick_launch(api, protocol, project):
         )
         count += 1
     return quick_launch
+
+
+def env_prompt(env=None):
+    """"""
+    # "😺", "🐵", "🙈", "🙉", "🙊", "🐒",
+    rand = [
+        "(੭｡╹▿╹｡)੭",
+        " (੭ˊᵕˋ)੭ ",
+        " ( *◑∇◑)☞",
+        " ( ^o^)ノ",
+        " ₍ᐢ.  ̫.ᐢ₎",
+        "づ ᴗ _ᴗ)づ",
+        "  ՞•ﻌ•՞ฅ  ",
+        "  ⑅ᐢ..ᐢ   ",
+        "  ʕ·ᴥ·ʔ   ",
+        " ᐡ ᐧ ﻌ ᐧ ᐡ  ",
+        "  ₍˄·͈༝·͈˄   ",
+        "૮ ˶ᵔ ᵕ ᵔ˶ ა",
+        "(* °ヮ° *) ",
+        " (ˊ•͈ ◡ •͈ˋ) "
+    ]
+    envs = {
+        "PROD": "https://secure.strateos.com",
+        "STAGING": "https://webapp.staging.strateos.com",
+        "LOCAL": "http://localhost:5000",
+        # "DOCKER": "http://host.docker.internal:5000"
+    }
+
+    def parse_valid_env(env_str, envs):
+        try:
+            if env_str not in envs.keys():
+                raise ValueError(
+                    f'Environment "{env_str}" selected not in: {list(envs.keys())}')
+            else:
+                return env_str
+        except:
+            raise BadParameter(
+                f"Please enter one of the following {envs.keys()}"
+            )
+
+    if env is None:
+        click.echo("Select the which ENV you want to point to:")
+        env_map = []
+        for name, endpoint in envs.items():
+            env_map.append(name)
+            click.echo(f"{random.choice(rand)}\t{name}\t{endpoint}")
+
+
+        selected_env = click.prompt(
+            "Which ENV would you like to configure your session with",
+            default='STAGING',
+            prompt_suffix="? ",
+            type=str,
+            value_proc=lambda x: parse_valid_env(x, envs),
+        )
+    else:
+        selected_env = parse_valid_env(env, envs)
+    return envs[selected_env]
 
 
 def org_prompt(org_list):

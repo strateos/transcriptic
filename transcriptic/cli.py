@@ -606,6 +606,19 @@ def launch_cmd(
         save_preview=save_preview,
     )
 
+@cli.command("env")
+@click.argument("organization", metavar="ORGANIZATION_NAME", type=str, required=False)
+@click.argument("env", metavar="EMV_NAME", type=str, required=False)
+@click.pass_context
+def env_cmd(ctx, organization=None, env=None):
+    """Allows you to switch organizations. If the organization argument
+    is provided, this will directly select the specified organization.
+    """
+    api = ctx.obj.api
+    config = ctx.parent.params["config"]
+    commands.env(api, config, organization, env)
+
+
 
 @cli.command("select-org")
 @click.argument("organization", metavar="ORGANIZATION_NAME", type=str, required=False)
