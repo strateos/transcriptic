@@ -159,7 +159,7 @@ def upload_release(api, archive, package):
         bar.update(20)
         try:
             up = api.post_release(
-                data=json.dumps({"release": {"upload_id": upload_id}}),
+                data=json.dumps({"release": {"upload_id": upload_id, "user_id": api.user_id}}),
                 package_id=package_id,
             )
             re = up["id"]
