@@ -56,7 +56,7 @@ analysis_deps = [
     # Version 1.21 upwards only support Python >= 3.7
     "numpy>=1.14,<=1.20.3",
     "pandas>=1,<2",
-    "pillow>=3,<4",
+    "pillow>=8,<9",
     "plotly>=1.13,<2",
 ]
 

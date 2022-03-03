@@ -140,7 +140,7 @@ class _PlateRead(object):
             is rendered
         plot_type : {"box", "bar", "line", "hist"}, optional
             Type of plot to render
-        \**plot_kwargs : dict, optional
+        plot_kwargs : dict, optional
             Optional dictionary of specifications for your plot type of choice
         """
         py.offline.init_notebook_mode()
@@ -215,7 +215,7 @@ class Absorbance(_PlateRead):
         use_adj: Boolean, optional
             Boolean option which determines if the adjusted absorbance readings
             are used
-        \**plot_kwargs : dict
+        kwargs : dict
             Optional dictionary of specifications for your plot type of choice
         """
         if "title" not in kwargs:

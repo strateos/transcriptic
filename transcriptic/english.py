@@ -114,8 +114,8 @@ class AutoprotocolParser(object):
         def depth_one(steps):
             depth_one = []
             for step in steps:
-                if type(step) is list:
-                    if type(step[0]) is list:
+                if isinstance(step, list):
+                    if isinstance(step[0], list):
                         depth_one.append(step[0])
                     else:
                         depth_one.append(step)
@@ -390,7 +390,7 @@ class AutoprotocolParser(object):
         def print_tree(lst, level=0):
             print("    " * (level - 1) + "+---" * (level > 0) + str(lst[0]))
             for l in lst[1:]:
-                if type(l) is list:
+                if isinstance(l, list):
                     print_tree(l, level + 1)
                 else:
                     print("    " * level + "+---" + l)
@@ -436,12 +436,12 @@ class AutoprotocolParser(object):
                     % (
                         len(g["to"]),
                         len(g["from"]),
-                        ("well" if len(g["from"]) is 1 else "wells"),
+                        ("well" if len(g["from"]) == 1 else "wells"),
                         self.well_list(g["from"]),
                         self.well_list(g["to"]),
                         (
                             f"data saved at '{opts['dataref']}'"
-                            if i is 0
+                            if i == 0
                             else "analyzed with previous"
                         ),
                     )

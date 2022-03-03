@@ -43,7 +43,7 @@ def regex_manifest(protocol, input):
     """Special input types, gets updated as more input types are added"""
     if "type" in input and input["type"] == "choice":
         if "options" in input:
-            pattern = "\[(.*?)\]"
+            pattern = r"\[(.*?)\]"
             match = re.search(pattern, str(input["options"]))
             if not match:
                 click.echo(
