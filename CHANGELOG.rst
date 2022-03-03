@@ -4,6 +4,16 @@ Changelog
 Unreleased
 ----------
 
+Fixed
+-----
+- upload-release command to release archive requires the `user_id` of the session.
+- Linting, equivalence, and docstring issues.
+
+Updated
+-------
+- Updated pillow version <=8,<9
+
+
 Added
 ~~~~~
 - Python 3.9 support
