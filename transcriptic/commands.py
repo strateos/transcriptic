@@ -1078,7 +1078,7 @@ def env(
     api.api_root = env_root
     api.save(config)
 
-    click.echo('\n')
+    click.echo("\n")
 
     try:
         org_list = [
@@ -1369,7 +1369,7 @@ def env_prompt(env=None):
         "  ₍˄·͈༝·͈˄   ",
         "૮ ˶ᵔ ᵕ ᵔ˶ ა",
         "(* °ヮ° *) ",
-        " (ˊ•͈ ◡ •͈ˋ) "
+        " (ˊ•͈ ◡ •͈ˋ) ",
     ]
     envs = {
         "PROD": "https://secure.strateos.com",
@@ -1382,13 +1382,12 @@ def env_prompt(env=None):
         try:
             if env_str not in envs.keys():
                 raise ValueError(
-                    f'Environment "{env_str}" selected not in: {list(envs.keys())}')
+                    f'Environment "{env_str}" selected not in: {list(envs.keys())}'
+                )
             else:
                 return env_str
         except:
-            raise BadParameter(
-                f"Please enter one of the following {envs.keys()}"
-            )
+            raise BadParameter(f"Please enter one of the following {envs.keys()}")
 
     if env is None:
         click.echo("Select the which ENV you want to point to:")
@@ -1397,10 +1396,9 @@ def env_prompt(env=None):
             env_map.append(name)
             click.echo(f"{random.choice(rand)}\t{name}\t{endpoint}")
 
-
         selected_env = click.prompt(
             "Which ENV would you like to configure your session with",
-            default='STAGING',
+            default="STAGING",
             prompt_suffix="? ",
             type=str,
             value_proc=lambda x: parse_valid_env(x, envs),

@@ -606,6 +606,7 @@ def launch_cmd(
         save_preview=save_preview,
     )
 
+
 @cli.command("env")
 @click.argument("organization", metavar="ORGANIZATION_NAME", type=str, required=False)
 @click.argument("env", metavar="EMV_NAME", type=str, required=False)
@@ -617,7 +618,6 @@ def env_cmd(ctx, organization=None, env=None):
     api = ctx.obj.api
     config = ctx.parent.params["config"]
     commands.env(api, config, organization, env)
-
 
 
 @cli.command("select-org")
