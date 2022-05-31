@@ -78,6 +78,7 @@ setup(
         "python-magic>=0.4,<1",
         "Jinja2>=3.0,<4",
         "responses>=0.13.4",
+        "requests>2.21.0"
     ],
     extras_require={
         "jupyter": jupyter_deps,
