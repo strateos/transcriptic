@@ -1,29 +1,24 @@
 Changelog
 =========
 
-Unreleased
-----------
-Fixed
------
-- requests dependency to requests>2.21.0,<3
+v9.6.0
+------
 
 Fixed
 -----
+- requests dependency to requests>2.21.0,<3
 - upload-release command to release archive requires the `user_id` of the session.
 - Linting, equivalence, and docstring issues.
 
 Updated
 -------
 - Updated pillow version <=8,<9
-
+- Pandas version to >=1, <2 to support Python 3.9
 
 Added
 ~~~~~
 - Python 3.9 support
 
-Updated
-~~~~~~~
-- Pandas version to >=1, <2 to support Python 3.9
 
 v9.5.0
 ------
