@@ -1,8 +1,9 @@
 Changelog
 =========
 
-Unreleased
-----------
+v9.5.1
+------
+
 Fixed
 -----
 - requests dependency to requests>2.21.0,<3
