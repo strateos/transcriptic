@@ -73,7 +73,7 @@ setup(
     install_requires=[
         "Click>=7.0,<8",
         "httpsig==1.3.0",
-        "requests>=2.0,<3",
+        "requests>2.21.0,<3",
         "pycryptodome==3.9.6",
         "python-magic>=0.4,<1",
         "Jinja2>=3.0,<4",

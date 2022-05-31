@@ -3,6 +3,9 @@ Changelog
 
 Unreleased
 ----------
+Fixed
+-----
+- requests dependency to requests>2.21.0,<3
 
 Fixed
 -----
