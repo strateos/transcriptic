@@ -430,7 +430,9 @@ class ConnectionInitTests(unittest.TestCase):
 
         get_request = requests.Request("GET", "http://foo:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
+
         self.assertTrue("authorization" in prepared_get.headers)
+        self.assertTrue("x-user-token" not in prepared_get.headers)
         self.assertTrue(
             connection.session.auth.token == prepared_get.headers["authorization"]
         )
