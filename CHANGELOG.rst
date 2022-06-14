@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v9.6.1
+------
+
+Updated
+-------
+- Preferring Bearer token over user token when configuring Connection session
+
 v9.6.0
 ------
 
