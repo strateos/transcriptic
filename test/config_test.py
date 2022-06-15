@@ -388,18 +388,33 @@ class ConnectionInitTests(unittest.TestCase):
                 user_id="ufoo2",
             )
 
-    def test_user_token_supersedes_bearer_token(self):
+    def test_bearer_token_supersedes_user_token(self):
         """Verify that the user token and bearer token are mutually exclusive and that
-        user token supersedes bearer token"""
+        bearer token supersedes user token"""
 
         user_token = "userTokenFoo"
+        bearer_token = (
+            "Bearer eyJraWQiOiJWcmVsOE9zZ0JXaUpHeEpMeFJ4bE1UaVwvbjgyc1hwWktUaTd2UExUNFQ0T"
+            "T0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJoMTBlM2hwajliNjc4bXMwOG8zbGlibHQ2IiwidG9r"
+            "ZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJ3ZWJcL2dldCB3ZWJcL3Bvc3QiLCJhdXRoX3RpbWUi"
+            "OjE1OTM3MjM1NDgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9u"
+            "YXdzLmNvbVwvdXMtZWFzdC0xX1d6aEZzTGlPRyIsImV4cCI6MTU5MzcyNzE0OCwiaWF0IjoxNTkz"
+            "NzIzNTQ4LCJ2ZXJzaW9uIjoyLCJqdGkiOiI4Njk5ZDEwYy05Mjg4LTQ0YmEtODIxNi01OTJjZGU3"
+            "MDBhY2MiLCJjbGllbnRfaWQiOiJoMTBlM2hwajliNjc4bXMwOG8zbGlibHQ2In0.YA_yiD-x6UuB"
+            "MShprUbUKuB_DO6ogCtd5srfgpJA6Ve_qsf8n19nVMmFsZBy3GxzN92P1ZXiFY99FfNPohhQtaRR"
+            "hpeUkir08hgJN2bEHCJ5Ym8r9mr9mlwSG6FoiedgLaUVGwJujD9c2rcA83NEo8ayTyfCynF2AZ2p"
+            "MxLHvqOYtvscGMiMzIwlZfJV301iKUVgPODJM5lpJ4iKCpOy2ByCl2_KL1uxIxgMkglpB-i7kgJc"
+            "-WmYoJFoN88D89ugnEoAxNfK14N4_RyEkrLNGape9kew79nUeR6fWbVFLiGDDu25_9z-7VB-GGGk"
+            "7L_Hb7YgVJ5W2FwESnkDvV1T4Q"
+        )
+
         with tempfile.NamedTemporaryFile() as config_file:
             with open(config_file.name, "w") as f:
                 json.dump(
                     {
                         "email": "somebody@transcriptic.com",
                         "token": user_token,
-                        "bearer_token": "bearerTokenBar",
+                        "bearer_token": bearer_token,
                         "organization_id": "transcriptic",
                         "api_root": "http://foo:5555",
                         "analytics": True,
@@ -415,7 +430,12 @@ class ConnectionInitTests(unittest.TestCase):
 
         get_request = requests.Request("GET", "http://foo:5555/get")
         prepared_get = connection.session.prepare_request(get_request)
-        self.assertFalse("authorization" in prepared_get.headers)
+
+        self.assertTrue("authorization" in prepared_get.headers)
+        self.assertTrue("x-user-token" not in prepared_get.headers)
+        self.assertTrue(
+            connection.session.auth.token == prepared_get.headers["authorization"]
+        )
         self.assertTrue(
             prepared_get.headers["X-Organization-Id"] == connection.organization_id
         )
