@@ -453,13 +453,21 @@ class Connection(object):
         err_default = (
             f"There was an error fetching the runs in project " f"{project_id}"
         )
-        return self.get(
-            route,
-            status_response={
-                "200": lambda resp: resp.json(),
-                "default": lambda resp: RuntimeError(err_default),
-            },
-        )
+        results = []
+        while True:
+            response = self.get(
+                route,
+                status_response={
+                    "200": lambda resp: resp.json(),
+                    "default": lambda resp: RuntimeError(err_default),
+                },
+            )
+            results.extend(response["data"])
+            if "next" in response["links"]:
+                route = response["links"]["next"]
+            else:
+                break
+        return results
 
     def create_project(self, title):
         """Create project with given title"""
