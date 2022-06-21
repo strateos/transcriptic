@@ -44,7 +44,7 @@ class TestMockConnection:
         )
         assert mock_connection.runs(project_id="p123") == load_sampledata_json(
             "p123-runs.json"
-        )
+        )["data"]
         assert mock_connection._get_object(obj_id="r123") == sample_run_attr
 
     def test_jupyter_project(self):
