@@ -462,7 +462,9 @@ class Connection(object):
                     "default": lambda resp: RuntimeError(err_default),
                 },
             )
-            results.extend(response["data"])
+            results.extend(
+                [{**data["attributes"], "id": data["id"]} for data in response["data"]]
+            )
             if "next" in response["links"]:
                 route = response["links"]["next"]
             else:

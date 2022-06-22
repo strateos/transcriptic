@@ -42,10 +42,10 @@ class TestMockConnection:
             mock_connection.projects()
             == load_sampledata_json("sample-org-projects.json")["projects"]
         )
-        assert (
-            mock_connection.runs(project_id="p123")
-            == load_sampledata_json("p123-runs.json")["data"]
-        )
+        assert mock_connection.runs(project_id="p123") == [
+            {**data["attributes"], "id": data["id"]}
+            for data in load_sampledata_json("p123-runs.json")["data"]
+        ]
         assert mock_connection._get_object(obj_id="r123") == sample_run_attr
 
     def test_jupyter_project(self):

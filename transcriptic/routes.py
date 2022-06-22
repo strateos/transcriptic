@@ -29,9 +29,7 @@ def get_projects(api_root, org_id):
 
 
 def get_project_runs(api_root, org_id, project_id):
-    return "{api_root}/api/runs?filter[project_id]={project_id}&filter[organization]={org_id}".format(
-        **locals()
-    )
+    return "{api_root}/api/runs?filter[project_id]={project_id}".format(**locals())
 
 
 def create_package(api_root, org_id):
