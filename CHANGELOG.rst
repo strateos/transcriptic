@@ -7,6 +7,7 @@ Unreleased
 Updated
 -------
 - Preferring Bearer token over user token when configuring Connection session
+- Using json-api runs endpoint to fetch project runs, avoid possible timeouts, and improve efficiency
 
 v9.6.0
 ------
