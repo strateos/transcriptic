@@ -7,8 +7,9 @@ v9.7.0
 Updated
 -------
 - Preferring Bearer token over user token when configuring Connection session.
-- Using json-api runs endpoint to fetch project runs, avoid possible timeouts, and improve efficiency. Fields returned
-  from the original project-runs api call were limited to the fields used by the cli.
+- Using json-api runs endpoint to fetch project runs instead of previous project-runs endpoint. Change was made to
+  avoid possible timeouts, and improve efficiency. Fields returned from the original project-runs api call were limited
+  to the fields used by the cli.
 
 v9.6.0
 ------
