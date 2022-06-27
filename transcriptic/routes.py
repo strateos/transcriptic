@@ -29,7 +29,9 @@ def get_projects(api_root, org_id):
 
 
 def get_project_runs(api_root, org_id, project_id):
-    return "{api_root}/{org_id}/{project_id}/runs".format(**locals())
+    return "{api_root}/api/runs?filter[project_id]={project_id}&fields[runs]=id,title,status,created_at,completed_at&page[limit]=100".format(
+        **locals()
+    )
 
 
 def create_package(api_root, org_id):

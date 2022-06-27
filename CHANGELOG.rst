@@ -6,7 +6,10 @@ Unreleased
 
 Updated
 -------
-- Preferring Bearer token over user token when configuring Connection session
+- Preferring Bearer token over user token when configuring Connection session.
+- Using json-api runs endpoint to fetch project runs instead of previous project-runs endpoint. Change was made to
+  avoid possible timeouts, and improve efficiency. Fields returned from the original project-runs api call were limited
+  to the fields used by the cli. This may be a BREAKING CHANGE if using `config.runs` method.
 
 v9.6.0
 ------
