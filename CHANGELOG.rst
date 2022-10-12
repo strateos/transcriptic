@@ -1,12 +1,13 @@
 Changelog
 =========
 
-Updated
-~~~~~~~
-- Transcriptic CLI to use "strateos" not "transcriptic" as default API root
-
 Unreleased
 ----------
+
+Updated
+---------
+- Transcriptic CLI to use "strateos" not "transcriptic" as default API root
+
 
 Updated
 -------
