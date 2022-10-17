@@ -5,6 +5,11 @@ Unreleased
 ----------
 
 Updated
+---------
+- Transcriptic CLI to use "strateos" not "transcriptic" as default API root
+
+
+Updated
 -------
 - Preferring Bearer token over user token when configuring Connection session.
 - Using json-api runs endpoint to fetch project runs instead of previous project-runs endpoint. Change was made to
