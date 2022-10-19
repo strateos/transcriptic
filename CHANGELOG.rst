@@ -4,6 +4,9 @@ Changelog
 Unreleased
 ----------
 
+v9.6.1
+------
+
 Updated
 ---------
 - Transcriptic CLI to use "strateos" not "transcriptic" as default API root
