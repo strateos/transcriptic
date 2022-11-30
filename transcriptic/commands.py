@@ -1108,7 +1108,7 @@ def login(api, config, api_root=None, analytics=True, rsa_key=None):
         try:
             api_root = api.api_root
         except ValueError:
-            api_root = "https://secure.transcriptic.com"
+            api_root = "https://secure.strateos.com"
 
     rsa_auth = None
     rsa_key_path = None

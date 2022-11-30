@@ -156,15 +156,15 @@ class Connection(object):
                 )
             self.session.headers["Cookie"] = None
             self.email = email
-            if token is not None:
-                self.token = token
-                if bearer_token is not None:
+            if bearer_token is not None:
+                if token is not None:
                     warnings.warn(
                         "User token and bearer token authentication"
-                        "is mutually exclusive. Ignoring bearer token"
+                        "is mutually exclusive. Ignoring user token"
                     )
-            elif bearer_token is not None:
                 self.bearer_token = bearer_token
+            elif token is not None:
+                self.token = token
             self.update_session_auth()
 
         # Initialize feature groups
@@ -453,13 +453,23 @@ class Connection(object):
         err_default = (
             f"There was an error fetching the runs in project " f"{project_id}"
         )
-        return self.get(
-            route,
-            status_response={
-                "200": lambda resp: resp.json(),
-                "default": lambda resp: RuntimeError(err_default),
-            },
-        )
+        results = []
+        while True:
+            response = self.get(
+                route,
+                status_response={
+                    "200": lambda resp: resp.json(),
+                    "default": lambda resp: RuntimeError(err_default),
+                },
+            )
+            results.extend(
+                [{**data["attributes"], "id": data["id"]} for data in response["data"]]
+            )
+            if "next" in response["links"]:
+                route = response["links"]["next"]
+            else:
+                break
+        return results
 
     def create_project(self, title):
         """Create project with given title"""
