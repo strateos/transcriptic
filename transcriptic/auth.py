@@ -7,7 +7,23 @@ from urllib.parse import urlparse
 from Crypto.Hash import SHA256
 from httpsig.requests_auth import HTTPSignatureAuth
 from httpsig.utils import HttpSigException
+from requests import Session
 from requests.auth import AuthBase
+
+
+class AuthSession(Session):
+    """Custom Session to handle any auth specific behaviors"""
+
+    def rebuild_auth(self, prepared_request, response):
+        """
+        Monkey-patches original rebuild_auth method which handles auth building
+        for redirects. In cases where we're using any of our StrateosAuthBase
+        classes, we want to always apply our own internal auth logic handlers.
+        """
+        if isinstance(self.auth, StrateosAuthBase):
+            prepared_request.prepare_auth(self.auth)
+        else:
+            super().rebuild_auth(prepared_request, response)
 
 
 class StrateosAuthBase(AuthBase, ABC):
