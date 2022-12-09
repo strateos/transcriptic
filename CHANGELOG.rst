@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+Updated
+-------
+- Pin CI environment to Ubuntu 20.04 to support running Py 36 tests
+
 v9.6.1
 ------
 
