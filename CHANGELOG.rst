@@ -1,8 +1,9 @@
 Changelog
 =========
 
-Unreleased
+v9.6.2
 ----------
+
 Fixed
 -----
 - Always rebuild authorization headers even on redirects
