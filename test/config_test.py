@@ -7,6 +7,7 @@ from email.utils import formatdate
 
 import pytest
 import requests
+import responses
 import transcriptic.config
 
 
@@ -183,6 +184,68 @@ class ConnectionInitTests(unittest.TestCase):
         self.assertEqual(
             set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
             {"(request-target)", "date", "host", "content-length", "digest"},
+        )
+
+    @responses.activate
+    def test_signing_auth_header_on_redirects(self):
+        # Set up a connection with a key from a file
+        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+            with open(key_file.name, "w") as kf:
+                kf.write(
+                    "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDIK/IzSkBEuwKjYQo/ri4iKTTkr+FDtJetI7dYoz0//U5z7Vbu\nZQWncDNc38wMKidf2bWA+MTSWcYVUTlivp0y98MTLPsR6oJ9RwLggA2lFlCIjmdV\nUow/MmhWg0vX/SkThxS/F5I41GTrNIU3ZVZwGbmQ8hbyKCBYtbEHJWqATwIDAQAB\nAoGAHtYmSaB2ph/pGCIq4gSDNuACNfiiSzvW4eVOqWj8Vo8/NrypV7BYXqL6RqRz\nWqxjxHBVdbjdGUqbKU2J+ZxDuwCREsxQipjq+hM9aPpgjNJg4dz6yuc5mnUdOr9M\nR+zFjnnOJx98HGjuzLDXdBNYVSZFcDWj70Fjln/z5AjBYQECQQDijaHEcvDJOUmL\nDNyAYbjK811kFGpmglQBiZ257L47IP6jgqN544siHGnI7rykt+1upGfB2q8uQSIb\njNJKKsa3AkEA4jB9PXE8EooJ/eax2UsuwXt9LAgRabFurAJtadpAeeFBIIMSwBXU\n7APMfB3cQOnBlodnyrQ56mIOWPcSdN+7KQJAHr+4aBBtq/IRkETjnK0mxqz3TQEU\nW+tueXLzLGv8ecwFo620gHOoy61tki8M/ZJVMIIx7va+dhmzBmg7loNtywJAZUdy\n/K0USfTXToIaxoJcmDQUM0AVk+7n8EtR9KDOWASdpdIq9imQYnG9ASJZuhMxJJbS\nybfzatinNfzDneOEKQJBAMLOhHHbskUuuU9oDUl8sbrsreglQuoq1hvlB1uVskpi\nqMEIXSBwxAlxwmiAQLgS4hZY+cmQ3v5hCberMaZRPZ8=\n-----END RSA PRIVATE KEY-----\n"
+                )
+            with open(config_file.name, "w") as f:
+                json.dump(
+                    {
+                        "email": "somebody@transcriptic.com",
+                        "token": "foobarinvalid",
+                        "organization_id": "transcriptic",
+                        "api_root": "http://foo:5555",
+                        "analytics": True,
+                        "user_id": "ufoo2",
+                        "feature_groups": [
+                            "can_submit_autoprotocol",
+                            "can_upload_packages",
+                        ],
+                        "rsa_key": key_file.name,
+                    },
+                    f,
+                )
+
+            connection = transcriptic.config.Connection.from_file(config_file.name)
+
+        get_request = requests.Request(
+            "GET",
+            "http://foo:5555/get",
+            headers={
+                "Date": formatdate(timeval=1588628873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_get = connection.session.prepare_request(get_request)
+
+        # Setup redirect and simulate request
+        resp = requests.Response()
+        resp.headers["location"] = "http://foo:5555/redirect/get"
+        resp.request = prepared_get
+        resp.status_code = 302
+        responses.add(responses.GET, "http://foo:5555/redirect/get")
+
+        next_resp = next(connection.session.resolve_redirects(resp, prepared_get))
+        # Ensure headers are properly populated
+        get_sig = next_resp.request.headers["authorization"]
+        self.assertEqual(
+            re.search(r'keyId="(.+?)"', get_sig).group(1), "somebody@transcriptic.com"
+        )
+        self.assertEqual(
+            re.search(r'algorithm="(.+?)"', get_sig).group(1), "rsa-sha256"
+        )
+        self.assertEqual(
+            re.search(r'signature="(.+?)"', get_sig).group(1),
+            "DdfePPvN88mmIq9l4crfwPm80SKV/iiaBht+28iwlRd+SuuB95VJJ5M+PCD8X0gEqKlwvfYHhgXFMJybMBFS2Z9Syv4wGHpM5FxEXi57mD69kW73Whkh3ROzr6fq39CdoK06BaJnQYNtZfSg7R0fgjFUImbVScQksQrYwQ3yVF4=",
+        )
+        self.assertEqual(
+            set(re.search(r'headers="(.+?)"', get_sig).group(1).split(" ")),
+            {"(request-target)", "date", "host"},
         )
 
     def test_signing_auth_header_not_set_when_calling_non_api_root_endpoint(self):

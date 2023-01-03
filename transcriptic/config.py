@@ -1,6 +1,8 @@
+import http.client as http_client
 import inspect
 import io
 import json
+import logging
 import os
 import platform
 import time
@@ -13,7 +15,7 @@ import transcriptic
 from Crypto.PublicKey import RSA
 
 from . import routes
-from .auth import StrateosBearerAuth, StrateosSign
+from .auth import AuthSession, StrateosBearerAuth, StrateosSign
 from .util import is_valid_jwt_token
 from .version import __version__
 
@@ -34,7 +36,7 @@ def initialize_default_session():
     Initialize a default `requests.Session()` object which can be used for
     requests into the tx web api.
     """
-    session = requests.Session()
+    session = AuthSession()
     session.headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",

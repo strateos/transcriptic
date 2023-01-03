@@ -1,8 +1,24 @@
 Changelog
 =========
 
-Unreleased
+v9.6.2
 ----------
+
+Fixed
+-----
+- Always rebuild authorization headers even on redirects
+
+Updated
+-------
+- Pin CI environment to Ubuntu 20.04 to support running Py 36 tests
+
+v9.6.1
+------
+
+Updated
+---------
+- Transcriptic CLI to use "strateos" not "transcriptic" as default API root
+
 
 Updated
 -------
