@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v9.6.3
+----------
+
+Fixed
+-----
+- Allow empty body in put post patch requests with rsa requests
+
 v9.6.2
 ----------
 
