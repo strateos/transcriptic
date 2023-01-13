@@ -185,7 +185,7 @@ class ConnectionInitTests(unittest.TestCase):
             set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
             {"(request-target)", "date", "host", "content-length", "digest"},
         )
-    
+
     def test_signing_post_no_body_in_request(self):
         # Set up a connection with a key from a file
         with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
