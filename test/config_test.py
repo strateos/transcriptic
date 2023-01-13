@@ -185,6 +185,92 @@ class ConnectionInitTests(unittest.TestCase):
             set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
             {"(request-target)", "date", "host", "content-length", "digest"},
         )
+    
+    def test_signing_post_no_body_in_request(self):
+        # Set up a connection with a key from a file
+        with tempfile.NamedTemporaryFile() as config_file, tempfile.NamedTemporaryFile() as key_file:
+            with open(key_file.name, "w") as kf:
+                kf.write(
+                    "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDIK/IzSkBEuwKjYQo/ri4iKTTkr+FDtJetI7dYoz0//U5z7Vbu\nZQWncDNc38wMKidf2bWA+MTSWcYVUTlivp0y98MTLPsR6oJ9RwLggA2lFlCIjmdV\nUow/MmhWg0vX/SkThxS/F5I41GTrNIU3ZVZwGbmQ8hbyKCBYtbEHJWqATwIDAQAB\nAoGAHtYmSaB2ph/pGCIq4gSDNuACNfiiSzvW4eVOqWj8Vo8/NrypV7BYXqL6RqRz\nWqxjxHBVdbjdGUqbKU2J+ZxDuwCREsxQipjq+hM9aPpgjNJg4dz6yuc5mnUdOr9M\nR+zFjnnOJx98HGjuzLDXdBNYVSZFcDWj70Fjln/z5AjBYQECQQDijaHEcvDJOUmL\nDNyAYbjK811kFGpmglQBiZ257L47IP6jgqN544siHGnI7rykt+1upGfB2q8uQSIb\njNJKKsa3AkEA4jB9PXE8EooJ/eax2UsuwXt9LAgRabFurAJtadpAeeFBIIMSwBXU\n7APMfB3cQOnBlodnyrQ56mIOWPcSdN+7KQJAHr+4aBBtq/IRkETjnK0mxqz3TQEU\nW+tueXLzLGv8ecwFo620gHOoy61tki8M/ZJVMIIx7va+dhmzBmg7loNtywJAZUdy\n/K0USfTXToIaxoJcmDQUM0AVk+7n8EtR9KDOWASdpdIq9imQYnG9ASJZuhMxJJbS\nybfzatinNfzDneOEKQJBAMLOhHHbskUuuU9oDUl8sbrsreglQuoq1hvlB1uVskpi\nqMEIXSBwxAlxwmiAQLgS4hZY+cmQ3v5hCberMaZRPZ8=\n-----END RSA PRIVATE KEY-----\n"
+                )
+            with open(config_file.name, "w") as f:
+                json.dump(
+                    {
+                        "email": "somebody@transcriptic.com",
+                        "token": "foobarinvalid",
+                        "organization_id": "transcriptic",
+                        "api_root": "http://foo:5555",
+                        "analytics": True,
+                        "user_id": "ufoo2",
+                        "feature_groups": [
+                            "can_submit_autoprotocol",
+                            "can_upload_packages",
+                        ],
+                        "rsa_key": key_file.name,
+                    },
+                    f,
+                )
+
+            connection = transcriptic.config.Connection.from_file(config_file.name)
+
+        # Test that GET signature matches the above key (given a hardcoded date header)
+        get_request = requests.Request(
+            "GET",
+            "http://foo:5555/get",
+            headers={
+                "Date": formatdate(timeval=1588628873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_get = connection.session.prepare_request(get_request)
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.organization_id
+        )
+        self.assertTrue(
+            prepared_get.headers["X-Organization-Id"] == connection.env_args["org_id"]
+        )
+
+        get_sig = prepared_get.headers["authorization"]
+        self.assertEqual(
+            re.search(r'keyId="(.+?)"', get_sig).group(1), "somebody@transcriptic.com"
+        )
+        self.assertEqual(
+            re.search(r'algorithm="(.+?)"', get_sig).group(1), "rsa-sha256"
+        )
+        self.assertEqual(
+            re.search(r'signature="(.+?)"', get_sig).group(1),
+            "GfcAtyV0+CKDkxjsREXYAm6RP0WdIYaN5RamlNfIYZ7e847KAydQf2ylYIcsj9CS5BIOiBi5JBoC6n51NSbxU+kQcSv2nzSsq3rBpTFFMHUhTPdrfeHsH4IBvgMWZZHmHvyE7UXVqhLssVzMIm/oGTnprPMWiTcsKjEhe+DsQT4=",
+        )
+        self.assertEqual(
+            set(re.search(r'headers="(.+?)"', get_sig).group(1).split(" ")),
+            {"(request-target)", "date", "host"},
+        )
+
+        # Test that POST signature matches the above key (given a hardcoded body & date header)
+        post_request = requests.Request(
+            "POST",
+            "http://foo:5555/get",
+            data=None,
+            headers={
+                "Date": formatdate(timeval=1588638873, localtime=False, usegmt=True)
+            },
+        )
+        prepared_post = connection.session.prepare_request(post_request)
+
+        post_sig = prepared_post.headers["authorization"]
+        self.assertEqual(
+            re.search(r'keyId="(.+?)"', post_sig).group(1), "somebody@transcriptic.com"
+        )
+        self.assertEqual(
+            re.search(r'algorithm="(.+?)"', post_sig).group(1), "rsa-sha256"
+        )
+        self.assertEqual(
+            re.search(r'signature="(.+?)"', post_sig).group(1),
+            "leQ7TO8IYbOKouKjqbwvk5uYrkmmO64aWBxxWGDMA41Kn3k0/9r6L4XWLGmMIjSqzQmFHF8Sdtz7pCh8YaQLHzXzwY0+R43jlJGLiL7WzgzWegHsnY2NwGOdGPWbVqAP3oCmr2lQtzl+k39ySW3Tpd+t8c0+VDCYOOV/kIAISVw=",
+        )
+        self.assertEqual(
+            set(re.search(r'headers="(.+?)"', post_sig).group(1).split(" ")),
+            {"(request-target)", "date", "host", "content-length", "digest"},
+        )
 
     @responses.activate
     def test_signing_auth_header_on_redirects(self):
