@@ -133,6 +133,7 @@ Added
 ~~~~~
 - A new `exec` command to send autoprotocol to a test workcell
 - isort for automatic import sorting
+- Python 3.9 support. Added to test suite.
 - Example initial tests for `commands` file using `responses` pattern, starting with
   `submit` and `projects`.
 - Deprecation warning for existing `-i` option for `projects` command.
