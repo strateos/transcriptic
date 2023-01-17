@@ -75,7 +75,7 @@ class StrateosSign(StrateosAuthBase):
         if request.method.upper() in ("PUT", "POST", "PATCH"):
             encoded_body = (
                 request.body
-                if isinstance(request.body, bytes)
+                if (isinstance(request.body, bytes) or request.body is None)
                 else request.body.encode()
             )
             digest = SHA256.new(encoded_body).digest()
