@@ -571,7 +571,7 @@ def resources(api, query):
                         if "vendor" in list(x.keys())
                         else "",
                     }
-                    for y in x["kit_items"]
+                    for y in x["orderable_material_components"]
                     if (y["provisionable"] and not y["reservable"])
                 ],
                 kit_req["results"],
