@@ -74,7 +74,7 @@ setup(
         "Click>=7.0,<8",
         "httpsig==1.3.0",
         "requests>2.21.0,<3",
-        "pycryptodome==3.9.6",
+        "pycryptodome==3.19.1",
         "python-magic>=0.4,<1",
         "Jinja2>=3.0,<4",
         "responses>=0.13.4",
